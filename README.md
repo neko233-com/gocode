@@ -28,7 +28,7 @@ Windows 构建：
 go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .
 ```
 
-本仓库通过 `go.mod` 固定依赖 `godesktop v0.3.0`，没有本地 `replace`；可以独立 clone/build。在父仓库同时开发时，用父目录的 `go work init . ./gocode` 连接本地源码。应用代码在子仓库提交/推送，随后在父仓库提交 submodule 的新指针。独立验证使用 `GOWORK=off`，避免本地框架源码掩盖发布依赖问题。
+本仓库通过 `go.mod` 固定依赖 `godesktop v0.3.1`，没有本地 `replace`；可以独立 clone/build。在父仓库同时开发时，用父目录的 `go work init . ./gocode` 连接本地源码。应用代码在子仓库提交/推送，随后在父仓库提交 submodule 的新指针。独立验证使用 `GOWORK=off`，避免本地框架源码掩盖发布依赖问题。该版本隔离 D3D12 的异步通知与关闭/缩放同步等待，原生错误会先于 smoke 成功信息返回。
 
 ## 当前交互
 

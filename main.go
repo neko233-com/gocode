@@ -210,6 +210,9 @@ func run() error {
 
 		return m.view(viewContext)
 	})
+	if err != nil {
+		return err
+	}
 	if *smoke {
 		if !verified.Load() {
 			return errors.New("extension command was not verified")
@@ -219,5 +222,5 @@ func run() error {
 		}
 		fmt.Println("gocode smoke passed: native rendering + installed VSIX activation + command execution")
 	}
-	return err
+	return nil
 }
