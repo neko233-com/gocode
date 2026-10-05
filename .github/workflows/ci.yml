@@ -6,6 +6,8 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+env:
+  GOWORK: 'off'
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true

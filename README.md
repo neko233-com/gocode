@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/neko233-com/gocode/actions/workflows/ci.yml/badge.svg)](https://github.com/neko233-com/gocode/actions/workflows/ci.yml)
 
-用 **Go 1.27 + [godesktop](https://github.com/neko233-com/godesktop)** 实现的原生编辑器工作区。Windows x86-64 / amd64 和 macOS Intel / Apple Silicon，UI 使用 Win32/Direct2D/DirectWrite 或 AppKit/Metal/CoreText。独立公开 Git 仓库，同时作为 `godesktop/gocode` 的 submodule。
+用 **Go 1.27 + [godesktop](https://github.com/neko233-com/godesktop)** 实现的原生编辑器工作区。Windows x86-64 / amd64 和 macOS Intel / Apple Silicon，UI 使用 Win32/Direct3D 12/DXIL/DirectWrite 或 AppKit/Metal/CoreText。两平台采用三帧异步资源环、R8 字形图集和显示同步调度。独立公开 Git 仓库，同时作为 `godesktop/gocode` 的 submodule。
 
 界面按 VS Code Dark Modern 的布局实现：自定义标题栏、活动栏、文件树、标签页、面包屑、代码行号/着色、缩略图、底部面板、状态栏和命令列表。目标是接近其前端外观；当前是可运行原型，未宣称像素完全一致或完整替代 VS Code。
 
@@ -28,7 +28,7 @@ Windows 构建：
 go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .
 ```
 
-本仓库通过 `go.mod` 固定依赖 `godesktop v0.2.2`，没有本地 `replace`；可以独立 clone/build。在父仓库同时开发时，用父目录的 `go work init . ./gocode` 连接本地源码。应用代码在子仓库提交/推送，随后在父仓库提交 submodule 的新指针。
+本仓库通过 `go.mod` 固定依赖 `godesktop v0.3.0`，没有本地 `replace`；可以独立 clone/build。在父仓库同时开发时，用父目录的 `go work init . ./gocode` 连接本地源码。应用代码在子仓库提交/推送，随后在父仓库提交 submodule 的新指针。独立验证使用 `GOWORK=off`，避免本地框架源码掩盖发布依赖问题。
 
 ## 当前交互
 
@@ -62,6 +62,6 @@ powershell -File scripts/test-windows-amd64.ps1
 
 CI 在 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd64 和 Ubuntu 上验证；Ubuntu 仅检查可移植模型。原生 smoke 要求真实绘制提交和已安装 VSIX 的命令返回值，Windows 使用 `GOAMD64=v1` 和严格 cgo 检查。Go 核心/原生桥接和扩展安装/宿主测试在 `godesktop` 仓库独立运行。构建产物、截图和覆盖率上传到 Actions artifacts。
 
-Windows 像素验证需要可用且未被其他应用遮挡的桌面。测试启用保留帧内容的诊断模式；正常运行仍按需重绘。覆盖范围不代表全部 Windows 设备、显卡、缩放比例和输入法均已验证。
+Windows 像素验证需要可用桌面会话。测试读取当前进程拥有的 HWND 对应、fence 完成后的实际 D3D12 帧，并核对后端和 amd64 系统 DLL 导入；截图只包含该窗口的 GPU 输出。窗口恢复后立即点击关闭按钮，要求命中当前客户区布局。正常运行按需重绘。覆盖范围不代表全部 Windows 设备、显卡、缩放比例和输入法均已验证。
 
 MIT License。VS Code 界面和 API 作为参考，项目与 Microsoft 无隶属关系。

@@ -189,11 +189,8 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		return value == 0 && err == nil && width == pixelWidth && height == pixelHeight
 	})
 	w.Raise()
-	// Wait for the restored client layout before sending another pointer gesture.
-	if err := w.Send(0x0f, 0, 0); err != nil { // WM_PAINT
-		t.Fatal(err)
-	}
-	until(t, func() bool { color, err := w.Pixel(1, viewHeight-10); return err == nil && color == accent })
+	// Click immediately after restore: the framework must refresh hit targets
+	// before pointer input even if the next DXGI-paced draw has not happened.
 	click(viewWidth-23, 16)
 	isWindow := user32.NewProc("IsWindow")
 	until(t, func() bool { value, _, _ := isWindow.Call(uintptr(w)); return value == 0 })
