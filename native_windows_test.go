@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -160,11 +161,30 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		}
 	}
 	click(viewWidth-69, 16)
-	time.Sleep(120 * time.Millisecond)
-	click(viewWidth-69, 16)
-	if err := w.Close(); err != nil {
+	user32 := syscall.NewLazyDLL("user32.dll")
+	isZoomed := user32.NewProc("IsZoomed")
+	isIconic := user32.NewProc("IsIconic")
+	until(t, func() bool { value, _, _ := isZoomed.Call(uintptr(w)); return value != 0 })
+	maxWidth, maxHeight, err := w.ClientSize()
+	if err != nil {
 		t.Fatal(err)
 	}
+	maxScale := float64(w.DPI()) / 96
+	until(t, func() bool {
+		color, err := w.Pixel(10, int(float64(maxHeight)/maxScale)-10)
+		return err == nil && color == accent
+	})
+	click(int(float64(maxWidth)/maxScale)-69, 16)
+	until(t, func() bool {
+		value, _, _ := isZoomed.Call(uintptr(w))
+		width, height, err := w.ClientSize()
+		return value == 0 && err == nil && width == pixelWidth && height == pixelHeight
+	})
+	click(viewWidth-115, 16)
+	until(t, func() bool { value, _, _ := isIconic.Call(uintptr(w)); return value != 0 })
+	w.Show(9) // SW_RESTORE, as when restoring from the taskbar.
+	until(t, func() bool { value, _, _ := isIconic.Call(uintptr(w)); return value == 0 })
+	click(viewWidth-23, 16)
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	select {
