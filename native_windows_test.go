@@ -86,7 +86,7 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	for _, point := range []struct {
 		x, y  int
 		color uint32
-	}{{12, 250, outer}, {100, min(600, viewHeight-220), outer}, {500, 400, editor}, {10, viewHeight - 10, accent}} {
+	}{{12, 250, outer}, {100, min(600, viewHeight-220), outer}, {500, 400, editor}, {1, viewHeight - 10, accent}} {
 		color, err := w.Pixel(point.x, point.y)
 		if err != nil || color != point.color {
 			t.Fatalf("pixel %d,%d=%06x expected %06x (%v)", point.x, point.y, color, point.color, err)
@@ -141,7 +141,7 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 			t.Fatal(err)
 		}
 		scale := float64(w.DPI()) / 96
-		p := image.RGBAAt(int(10*scale), int(float64(viewHeight-10)*scale))
+		p := image.RGBAAt(int(scale), int(float64(viewHeight-10)*scale))
 		if p.R != 0 || p.G != 0x78 || p.B != 0xd4 {
 			t.Fatalf("capture is not the workbench frame: %v", p)
 		}
@@ -171,7 +171,7 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	}
 	maxScale := float64(w.DPI()) / 96
 	until(t, func() bool {
-		color, err := w.Pixel(10, int(float64(maxHeight)/maxScale)-10)
+		color, err := w.Pixel(1, int(float64(maxHeight)/maxScale)-10)
 		return err == nil && color == accent
 	})
 	click(int(float64(maxWidth)/maxScale)-69, 16)
