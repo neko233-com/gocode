@@ -76,10 +76,16 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	unpin := w.Pin()
 	defer unpin()
 	until(t, func() bool { color, err := w.Pixel(500, 400); return err == nil && color == editor })
+	pixelWidth, pixelHeight, err := w.ClientSize()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dpi := float64(w.DPI()) / 96
+	viewWidth, viewHeight := int(float64(pixelWidth)/dpi), int(float64(pixelHeight)/dpi)
 	for _, point := range []struct {
 		x, y  int
 		color uint32
-	}{{12, 250, outer}, {100, 600, outer}, {500, 400, editor}, {10, 809, accent}} {
+	}{{12, 250, outer}, {100, min(600, viewHeight-220), outer}, {500, 400, editor}, {10, viewHeight - 10, accent}} {
 		color, err := w.Pixel(point.x, point.y)
 		if err != nil || color != point.color {
 			t.Fatalf("pixel %d,%d=%06x expected %06x (%v)", point.x, point.y, color, point.color, err)
@@ -88,8 +94,17 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	if hit, err := w.HitTest(1, 1); err != nil || hit != 13 {
 		t.Fatalf("resize corner %d %v", hit, err)
 	}
-	if hit, err := w.HitTest(430, 16); err != nil || hit != 2 {
-		t.Fatalf("draggable title region %d %v", hit, err)
+	dragFound := false
+	for x := 320; x < viewWidth-140; x += 10 {
+		if hit, err := w.HitTest(x, 16); err != nil {
+			t.Fatal(err)
+		} else if hit == 2 {
+			dragFound = true
+			break
+		}
+	}
+	if !dragFound {
+		t.Fatal("titlebar has no native drag region")
 	}
 	click := func(x, y int) {
 		t.Helper()
@@ -115,7 +130,7 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		return strings.HasPrefix(string(data), "你😀package main")
 	})
 	// Close the save notification, then execute an installed VSIX from its UI.
-	click(1260, 110)
+	click(viewWidth-15, 110)
 	click(24, 250)
 	click(130, 215)
 	until(t, func() bool { color, err := w.Pixel(700, 108); return err == nil && color == 0x252526 })
@@ -125,7 +140,7 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 			t.Fatal(err)
 		}
 		scale := float64(w.DPI()) / 96
-		p := image.RGBAAt(int(10*scale), int(809*scale))
+		p := image.RGBAAt(int(10*scale), int(float64(viewHeight-10)*scale))
 		if p.R != 0 || p.G != 0x78 || p.B != 0xd4 {
 			t.Fatalf("capture is not the workbench frame: %v", p)
 		}
@@ -144,9 +159,9 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	click(1210, 16)
+	click(viewWidth-69, 16)
 	time.Sleep(120 * time.Millisecond)
-	click(1210, 16)
+	click(viewWidth-69, 16)
 	if err := w.Close(); err != nil {
 		t.Fatal(err)
 	}
