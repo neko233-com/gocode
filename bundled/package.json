@@ -1,0 +1,15 @@
+{
+  "name": "hello-native",
+  "publisher": "gocode",
+  "version": "0.1.0",
+  "displayName": "Hello Native",
+  "description": "A real VS Code API sample extension",
+  "engines": { "vscode": "^1.90.0" },
+  "main": "./extension.cjs",
+  "contributes": {
+    "commands": [
+      { "command": "gocode.hello", "title": "Hello Native: Say hello" },
+      { "command": "gocode.readme", "title": "Hello Native: Open workspace README" }
+    ]
+  }
+}

@@ -1,0 +1,111 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows:
+    name: Windows amd64 / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      CGO_ENABLED: '1'
+      GOARCH: amd64
+      GOAMD64: v1
+      GOEXPERIMENT: cgocheck2
+      CC: gcc
+      CXX: g++
+      GOCODE_SCREENSHOT: .cache/workbench-windows.png
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - name: Validate Windows amd64
+        shell: powershell
+        run: ./scripts/test-windows-amd64.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: gocode-windows-amd64-${{ matrix.os }}
+          path: |
+            bin/*.exe
+            coverage.out
+            .cache/workbench-windows.png
+          include-hidden-files: true
+          if-no-files-found: warn
+  macos:
+    name: macOS / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      CGO_ENABLED: '1'
+      GOEXPERIMENT: cgocheck2
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - run: go test -race -shuffle=on -count=3 -coverprofile=coverage.out ./...
+      - run: go vet ./...
+      - name: Build and smoke native workbench
+        run: |
+          mkdir -p bin
+          go build -trimpath -ldflags="-s -w" -o bin/gocode .
+          ./bin/gocode -workspace . -extensions-dir .cache/extensions -smoke
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gocode-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            bin/gocode
+            coverage.out
+          if-no-files-found: error
+  portable:
+    name: Portable model / Ubuntu
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: '1'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - name: Formatting
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "$unformatted"
+            exit 1
+          fi
+      - run: go test -race -shuffle=on -count=3 ./...
+      - run: go vet ./...
+      - name: No-cgo model tests
+        env:
+          CGO_ENABLED: '0'
+        run: go test ./...
