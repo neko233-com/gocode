@@ -183,8 +183,20 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	click(viewWidth-115, 16)
 	until(t, func() bool { value, _, _ := isIconic.Call(uintptr(w)); return value != 0 })
 	w.Show(9) // SW_RESTORE, as when restoring from the taskbar.
-	until(t, func() bool { value, _, _ := isIconic.Call(uintptr(w)); return value == 0 })
+	until(t, func() bool {
+		value, _, _ := isIconic.Call(uintptr(w))
+		width, height, err := w.ClientSize()
+		return value == 0 && err == nil && width == pixelWidth && height == pixelHeight
+	})
+	w.Raise()
+	// Wait for the restored client layout before sending another pointer gesture.
+	if err := w.Send(0x0f, 0, 0); err != nil { // WM_PAINT
+		t.Fatal(err)
+	}
+	until(t, func() bool { color, err := w.Pixel(1, viewHeight-10); return err == nil && color == accent })
 	click(viewWidth-23, 16)
+	isWindow := user32.NewProc("IsWindow")
+	until(t, func() bool { value, _, _ := isWindow.Call(uintptr(w)); return value == 0 })
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	select {
