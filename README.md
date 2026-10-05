@@ -28,7 +28,7 @@ Windows 构建：
 go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .
 ```
 
-本仓库通过 `go.mod` 固定依赖 `godesktop v0.2.1`，没有本地 `replace`；可以独立 clone/build。在父仓库同时开发时，用父目录的 `go work init . ./gocode` 连接本地源码。应用代码在子仓库提交/推送，随后在父仓库提交 submodule 的新指针。
+本仓库通过 `go.mod` 固定依赖 `godesktop v0.2.2`，没有本地 `replace`；可以独立 clone/build。在父仓库同时开发时，用父目录的 `go work init . ./gocode` 连接本地源码。应用代码在子仓库提交/推送，随后在父仓库提交 submodule 的新指针。
 
 ## 当前交互
 
@@ -58,7 +58,7 @@ go run . -workspace .
 powershell -File scripts/test-windows-amd64.ps1
 ```
 
-脚本执行三轮 race/随机顺序测试、vet、普通与 GUI EXE 构建及原生 smoke。Windows 真实 HWND 测试检查 amd64 PE 和系统 DLL、原生颜色、标题栏拖动/边框命中、中文/emoji 输入、保存文件、从 UI 执行 VSIX 命令、窗口缩放和关闭。测试只操作通过 PID/标题确认的自身窗口，截图保存在 `.cache/workbench-windows.png`。
+脚本执行三轮 race/随机顺序测试、vet、普通与 GUI EXE 构建及原生 smoke。Windows 真实 HWND 测试检查 amd64 PE 和系统 DLL、原生颜色、标题栏拖动/边框命中、中文/emoji 输入、保存文件、从 UI 执行 VSIX 命令、最大化/还原/最小化/关闭及最大化后的状态栏。测试只操作通过 PID/标题确认的自身窗口，截图保存在 `.cache/workbench-windows.png`。
 
 CI 在 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd64 和 Ubuntu 上验证；Ubuntu 仅检查可移植模型。原生 smoke 要求真实绘制提交和已安装 VSIX 的命令返回值，Windows 使用 `GOAMD64=v1` 和严格 cgo 检查。Go 核心/原生桥接和扩展安装/宿主测试在 `godesktop` 仓库独立运行。构建产物、截图和覆盖率上传到 Actions artifacts。
 
