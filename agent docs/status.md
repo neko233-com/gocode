@@ -1,5 +1,45 @@
 # Milestone ledger
 
+## Asynchronous opening/traversal v0.10.0 promotion (2026-10-07)
+
+Immutable application/package source `0a86cec6e6a56aa439c1474c4bfc82a047ce5122`
+passed all five jobs in [CI 37527105167](https://github.com/neko233-com/gocode/actions/runs/37527105167):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. Both real Mac VSIX editor gates
+now pass the document acknowledgement barrier. This includes worker/queue/race,
+native delayed disk/scan, actual VSIX edit/save, gopls/recovery/reload, terminal,
+Windows 2025 actual GiB browsing/MSI lifecycle and Mac bundles. Public godesktop
+v0.5.3 remains independently pinned with GOWORK=off. Downloaded exact-source
+Windows 2022 pending-read/awaited-VSIX GPU PNGs were visually inspected.
+
+[Publication 37528232380](https://github.com/neko233-com/gocode/actions/runs/37528232380)
+reused the exact tested packages and created stable v0.10.0. Generated metadata
+`ba8555174b53d9e1119b615d3ebdb1d130ad327d` changes only the seven known channel/
+hash/install files; two Python hash/input-policy tests passed. No extra full-platform
+metadata CI is claimed. Windows ZIP SHA256 is
+`e38bbddf98f89521bbfad4247a8eaa12c2a3106cb1ddf6d282d60338634e69b1`;
+MSI SHA256 is `65e104577ae4ca81c2bdc2808bdecaa59bddc1647adb508f4232af3cbc8996c6`.
+Signed actual automatic direct-GitHub update, separate full direct download and
+manual ghfast.top full ZIP download passed integrity. Released-byte opener,
+four close modes, VSIX edit/save, large browsing, terminal, recovered-gopls and
+file-watch/gopls native checks passed. The owned root rolled back to real
+v0.4.0/source cfcd3513 and rendered its GUI with the same extension store.
+
+The user's actual old v0.9.0 -update command applied this release via direct GitHub.
+Selected payload/source is 0.10.0/0a86cec; stable MSI/launcher baseline stays 0.5.1.
+Installed version/update/embedded ConPTY, native delayed opener, VSIX editor/save,
+recovered-gopls, file-watch/gopls, highlighted terminal, close save, GUI/icons/
+Settings/source preservation passed. Installed awaited-README and Settings GPU
+captures were inspected: the original dirty tab remains, actual new file renders,
+Automatic=true/automatic route, Up to date (0.10.0) and gopls ready are visible.
+Desktop and actual nested Start Menu shortcuts/icon files and normalized user
+PATH are valid. Auto=true/mode=auto and both mirror URLs are preserved. Official
+Copilot authenticated/LSP/SDK=true, networkPromptSent=false; no new AI prompt.
+
+Initial source a335ff0 failed both real Mac VSIX editor gates in 37525452237;
+Windows/Ubuntu passing did not override it and that source was not published.
+Root validation still precedes ui.Run; Explorer is capped and not a recursive
+live tree. Full production/VS Code/official Copilot VSIX parity remains active.
+
 ## Asynchronous opening/traversal v0.10.0 development (2026-10-07)
 
 Initial source a335ff0 CI 37525452237 passed Windows 2022/2025/Ubuntu and the new real
@@ -30,9 +70,8 @@ file-watch validation passed (Repeat=1), as did no-cgo tests, two channel-policy
 Python tests, actionlint and diff checking. Real installed-managed gopls native
 formatting/hover/definition/completion/crash
 recovery and file-watch/VSIX/new-source-hover also passed from the new local binary.
-Five-platform CI, publication and user installation remain pending; the installed
-stable app is the verified v0.9.0
-source abadd6d below. Full production/VS Code parity remains active.
+At this development checkpoint, platform promotion and installation were pending;
+the installed app was v0.9.0/source abadd6d. Final promotion evidence is above.
 
 ## Editable file watching v0.9.0 promotion (2026-10-07)
 

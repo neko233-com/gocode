@@ -48,9 +48,9 @@ go.mod 固定依赖已发布的 godesktop v0.5.3，没有本地 replace，可以
 ## 编辑与扩展
 
 - UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。
-- 新源码将普通打开和有界 Explorer 扫描放到后台；慢读取期间可继续输入、缩放和取消，旧结果不会抢回新标签或覆盖未保存内容。VSIX/Problems/定义跳转等待实际目标；平台发布状态见 harness。
+- v0.10.0 将普通打开和有界 Explorer 扫描放到后台；慢读取期间可继续输入、缩放和取消，旧结果不会抢回新标签或覆盖未保存内容。VSIX/Problems/定义跳转等待实际目标，扩展命令等待文档同步确认；五平台和实际安装证据见 harness。
 - 未保存的窗口／标签页关闭会显示保存、丢弃、取消；关闭保存使用后台不可变快照，
-  保存前检查磁盘内容，检测外部变更时保留原文件和未保存缓冲区。v0.9.0 已发布，
+  保存前检查磁盘内容，检测外部变更时保留原文件和未保存缓冲区。v0.10.0 已发布，
   当前发行版的版本／真实安装验收状态见 agent docs/status.md。
 - Ctrl/Cmd+S 保存；Ctrl/Cmd+Z 撤销；Ctrl/Cmd+Shift+Z 或 Ctrl+Y 重做；Ctrl/Cmd+A/C/X/V；保存保留 LF/CRLF。
 - Ctrl/Cmd+P 命令列表；Ctrl/Cmd+J 面板；Ctrl+Space 请求 VSIX 补全和 Copilot；Enter 选择补全，Tab 接受 Copilot 建议。

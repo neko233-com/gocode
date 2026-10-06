@@ -43,6 +43,13 @@
 Normal CI never needs a paid Copilot prompt, certificate or notarization service.
 Real-account AI acceptance is an additional synthetic-workspace check.
 
+v0.10.0/source 0a86cec passed all five source jobs in 37527105167, publication
+37528232380, signed actual direct/mirror bytes, released native opener/VSIX/editor/
+terminal/gopls/reload and v0.4.0 native rollback. The initial a335ff0 failed both
+Mac VSIX editor gates; the corrected FIFO receipt barrier passed both. Exact-source
+Windows 2022 and installed opener/Settings pixels were inspected. The actual user
+update and no-prompt SDK/LSP checks passed; see status.md for hashes and limits.
+
 v0.9.0/source abadd6d passed all five source jobs in 37518877841, publication
 37520177277, signed public automatic/direct/manual-route bytes and actual v0.4.0
 native rollback. Windows 2022 source-CI and installed reload/Settings pixels were
