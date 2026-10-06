@@ -2,6 +2,15 @@
 
 ## Asynchronous opening/traversal v0.10.0 development (2026-10-07)
 
+Initial source a335ff0 CI 37525452237 passed Windows 2022/2025/Ubuntu and the new real
+Mac delayed-open acceptance, but both Mac jobs failed subsequent VSIX editor
+acceptance with no active document. Native startup could finish before the Node
+document/focus FIFO drained. That source is not released. The corrected bridge
+adds a FIFO receipt barrier before commands/providers, covering delayed initialize/
+open/focus, cancellation, full/stopped queues and real nested native RPCs.
+The corrected source passed five repeated Windows race queue/open/scan regressions,
+the full Windows strict-cgo/native suite (Repeat=1), no-cgo and workflow/diff checks.
+
 New source uses one bounded disk opener and batched Explorer scan after the
 native window starts. VSIX/Problems/definition navigation waits for actual target
 documents; aliases preserve live dirty buffers. Cancelled transfers, closed-path/
@@ -18,10 +27,11 @@ waits for source-row pixels at final input coordinates. Two repeated actual
 workbench/OS-close regressions passed. Full local Windows amd64/GOAMD64=v1
 strict-cgo/race/vet/console+GUI/native opener/editor/four-close/large/terminal/
 file-watch validation passed (Repeat=1), as did no-cgo tests, two channel-policy
-Python tests, actionlint and diff checking. Five-platform CI, publication and user
-Real installed-managed gopls native formatting/hover/definition/completion/crash
+Python tests, actionlint and diff checking. Real installed-managed gopls native
+formatting/hover/definition/completion/crash
 recovery and file-watch/VSIX/new-source-hover also passed from the new local binary.
-installation remain pending; the installed stable app is the verified v0.9.0
+Five-platform CI, publication and user installation remain pending; the installed
+stable app is the verified v0.9.0
 source abadd6d below. Full production/VS Code parity remains active.
 
 ## Editable file watching v0.9.0 promotion (2026-10-07)

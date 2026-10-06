@@ -38,6 +38,7 @@ type model struct {
 	commands                                           []extensionCommand
 	installed                                          []extensionInfo
 	execute                                            func(string)
+	awaitExtensions                                    func(context.Context) error
 	pointerX                                           float32
 	smoke                                              bool
 	pointerShift                                       bool

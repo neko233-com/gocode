@@ -86,6 +86,9 @@ func (m *model) bindCompletions(ctx context.Context, cx *ui.Context, host *exten
 		go func() {
 			c, stop := context.WithTimeout(ctx, 10*time.Second)
 			defer stop()
+			if err := m.awaitExtensions(c); err != nil {
+				return
+			}
 			// A full snapshot is used for an explicit request to recover from delayed
 			// background notifications before invoking an extension's provider.
 			if err := host.Call(c, "syncDocument", map[string]any{"kind": "focus", "document": state}, nil); err != nil {

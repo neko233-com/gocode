@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
 	"github.com/neko233-com/gocode/internal/languageserver"
@@ -305,7 +304,20 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		m.documentEvent("selection", d, textbuffer.ChangeEvent{})
 		return true, nil
 	}))
-	jobs := make(chan map[string]any, 128)
+	documents := make([]*documentState, 0, len(m.docs))
+	for _, d := range m.docs {
+		if state := stateOf(d); state != nil {
+			documents = append(documents, state)
+		}
+	}
+	params := map[string]any{"documents": documents, "active": stateOf(m.current()), "storageRoot": storage, "clientCapabilities": map[string]bool{"showDocument": true, "applyEdit": true}}
+	queue := startExtensionDocumentSync(ctx,
+		func(request context.Context) error { return host.Call(request, "initialize", params, nil) },
+		func(request context.Context, job map[string]any) error {
+			return host.Call(request, "syncDocument", job, nil)
+		},
+		func(err error) { cx.Dispatch(func() { m.message = "Extension synchronization: " + err.Error() }) })
+	m.awaitExtensions = func(request context.Context) error { return queue.await(request, cx.Dispatch) }
 	previous := m.onDocument
 	m.onDocument = func(kind string, d *document, change textbuffer.ChangeEvent) {
 		if previous != nil {
@@ -315,46 +327,11 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		if d != nil && !d.serviceEligible() && kind != "focus" {
 			params = map[string]any{"kind": "close", "document": &documentState{Path: d.path}}
 		}
-		select {
-		case jobs <- params:
-		case <-ctx.Done():
-		default:
-			m.message = "Extension document queue overflow; extension host stopped"
+		if err := queue.push(extensionSyncJob{params: params}); err != nil && ctx.Err() == nil {
+			m.message = err.Error() + "; extension host stopped"
 			go host.Close()
 		}
 	}
-	documents := make([]*documentState, 0, len(m.docs))
-	for _, d := range m.docs {
-		if state := stateOf(d); state != nil {
-			documents = append(documents, state)
-		}
-	}
-	params := map[string]any{"documents": documents, "active": stateOf(m.current()), "storageRoot": storage, "clientCapabilities": map[string]bool{"showDocument": true, "applyEdit": true}}
-	initialized := make(chan struct{})
 	m.bindCompletions(ctx, cx, host)
-	go func() {
-		c, stop := context.WithTimeout(ctx, 10*time.Second)
-		err := host.Call(c, "initialize", params, nil)
-		stop()
-		close(initialized)
-		if err != nil {
-			cx.Dispatch(func() { m.message = "Extension initialization: " + err.Error() })
-			return
-		}
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case job := <-jobs:
-				c, stop := context.WithTimeout(ctx, 10*time.Second)
-				err := host.Call(c, "syncDocument", job, nil)
-				stop()
-				if err != nil {
-					cx.Dispatch(func() { m.message = err.Error() })
-					return
-				}
-			}
-		}
-	}()
-	return initialized
+	return queue.initialized
 }

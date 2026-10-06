@@ -57,7 +57,7 @@ func (a *openAcceptance) scan(ctx context.Context, path string) workspaceScan {
 	}
 	return scanWorkspace(ctx, path)
 }
-func (a *openAcceptance) execute(cx *ui.Context, ctx context.Context, host *extensions.Host, initialized <-chan struct{}) {
+func (a *openAcceptance) execute(cx *ui.Context, ctx context.Context, host *extensions.Host, initialized <-chan struct{}, await func(context.Context) error) {
 	a.vsixDone, a.vsixErr = false, nil
 	go func() {
 		select {
@@ -65,7 +65,10 @@ func (a *openAcceptance) execute(cx *ui.Context, ctx context.Context, host *exte
 		case <-ctx.Done():
 			return
 		}
-		err := host.Call(ctx, "execute", map[string]string{"command": "gocode.readme"}, nil)
+		err := await(ctx)
+		if err == nil {
+			err = host.Call(ctx, "execute", map[string]string{"command": "gocode.readme"}, nil)
+		}
 		cx.Dispatch(func() { a.vsixDone, a.vsixErr = true, err })
 	}()
 }
@@ -165,7 +168,7 @@ func (a *openAcceptance) step(cx *ui.Context, m *model, ctx context.Context, hos
 			a.failure = "cancel changed the live buffer/opened discarded result"
 			return
 		}
-		a.execute(cx, ctx, host, initialized)
+		a.execute(cx, ctx, host, initialized, m.awaitExtensions)
 		a.phase = 4
 	case 4:
 		select {
@@ -190,7 +193,7 @@ func (a *openAcceptance) step(cx *ui.Context, m *model, ctx context.Context, hos
 			a.failure = "actual worker file body differs"
 			return
 		}
-		a.execute(cx, ctx, host, initialized)
+		a.execute(cx, ctx, host, initialized, m.awaitExtensions)
 		a.phase = 6
 	case 6:
 		if !a.vsixDone {

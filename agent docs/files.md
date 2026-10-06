@@ -65,6 +65,14 @@ for the actual target; superseded VSIX requests return an error. Extension edit/
 selection/save paths and generic diagnostic URIs resolve in RPC/service workers.
 UI findDocument performs only lexical/cache lookup.
 
+Document notifications and synchronization receipts share one bounded FIFO in
+the Node bridge. Commands/providers await prior open/change/focus acknowledgement
+after initialization. The worker releases the barrier before executing an
+extension command, allowing nested native showTextDocument/save RPCs to complete.
+Parent/request cancellation, a stopped synchronizer or a full queue fail clearly.
+Initial source a335ff0 exposed the missing barrier on both real Mac editor gates;
+Windows passing did not override this cross-platform failure.
+
 Explorer reads 128 entries per directory batch, retaining at most 250 files,
 256 queued directories, depth 64 and 32,768 visited entries. It skips symlink
 directories and existing .git/.cache/node_modules/bin/vendor exclusions. Sorted

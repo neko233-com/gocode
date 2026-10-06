@@ -12,6 +12,9 @@ import (
 )
 
 func verifyNativeEditor(ctx context.Context, cx *ui.Context, m *model, host *extensions.Host) error {
+	if err := m.awaitExtensions(ctx); err != nil {
+		return err
+	}
 	var edit struct {
 		Applied bool
 		Version int
@@ -27,6 +30,9 @@ func verifyNativeEditor(ctx context.Context, cx *ui.Context, m *model, host *ext
 		Saved, Dirty   bool
 		Version, Saves int
 		Text           string
+	}
+	if err := m.awaitExtensions(ctx); err != nil {
+		return err
 	}
 	if err := host.Call(ctx, "execute", map[string]string{"command": "gocode.save"}, &saved); err != nil {
 		return err
@@ -73,6 +79,9 @@ func verifyNativeEditor(ctx context.Context, cx *ui.Context, m *model, host *ext
 	data, err := os.ReadFile(state.Path)
 	if err != nil || string(data) != edit.Text {
 		return errors.New("native CRLF save differs from acknowledged extension edit")
+	}
+	if err := m.awaitExtensions(ctx); err != nil {
+		return err
 	}
 	if err := host.Call(ctx, "syncDocument", map[string]any{"document": state, "kind": "focus"}, nil); err != nil {
 		return err

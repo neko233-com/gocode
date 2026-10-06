@@ -460,7 +460,10 @@ func run() error {
 			}
 			ctx, stop := context.WithTimeout(hostCtx, 10*time.Second)
 			defer stop()
-			err := host.Call(ctx, "execute", map[string]string{"command": id}, nil)
+			err := m.awaitExtensions(ctx)
+			if err == nil {
+				err = host.Call(ctx, "execute", map[string]string{"command": id}, nil)
+			}
 			if err != nil {
 				cx.Dispatch(func() { m.message = err.Error() })
 			}
@@ -650,7 +653,10 @@ func run() error {
 					ctx, stop := context.WithTimeout(hostCtx, 10*time.Second)
 					defer stop()
 					var value string
-					err := host.Call(ctx, "execute", map[string]string{"command": "gocode.hello"}, &value)
+					err := m.awaitExtensions(ctx)
+					if err == nil {
+						err = host.Call(ctx, "execute", map[string]string{"command": "gocode.hello"}, &value)
+					}
 					if err != nil || value != "hello-native" {
 						fmt.Fprintln(os.Stderr, "extension smoke failed", err, value)
 						viewContext.Quit()
