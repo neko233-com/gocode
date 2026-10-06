@@ -83,7 +83,7 @@ type extensionCommand struct{ ID, Title string }
 type extensionInfo struct{ Name, ID, Description, Version string }
 
 func newModel(workspace string) (*model, error) {
-	absolute, err := filepath.Abs(workspace)
+	absolute, err := canonicalPath(workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (m *model) current() *document {
 	return m.docs[m.active]
 }
 func (m *model) open(path string) {
-	path, err := filepath.Abs(path)
+	path, err := canonicalPath(path)
 	if err != nil {
 		m.message = err.Error()
 		return
@@ -257,6 +257,20 @@ func (m *model) saveDocument(d *document) error {
 	m.documentEvent("save", d, textbuffer.ChangeEvent{})
 	m.message = "Saved " + filepath.Base(d.path)
 	return nil
+}
+
+// Existing files use one physical identity. On Windows EvalSymlinks also
+// resolves 8.3 aliases and restores filesystem casing, preserving live buffers
+// when a language server returns a canonical definition URI.
+func canonicalPath(path string) (string, error) {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	if physical, err := filepath.EvalSymlinks(abs); err == nil {
+		return physical, nil
+	}
+	return abs, nil
 }
 
 type fragment struct {

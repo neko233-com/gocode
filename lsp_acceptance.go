@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -13,10 +15,17 @@ type lspAcceptance struct {
 	frame          uint64
 	tick, verified bool
 	failure        string
+	loggedPhase    int
+	logged         bool
 }
 
 func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 	d := m.current()
+	if !a.logged || a.phase != a.loggedPhase {
+		fmt.Fprintf(os.Stderr, "gocode LSP acceptance phase=%d status=%q message=%q open-documents=%d\n", a.phase, m.lspStatus, m.message, len(m.docs))
+		a.loggedPhase = a.phase
+		a.logged = true
+	}
 	if d == nil || d.buffer == nil {
 		a.failure = "source buffer unavailable"
 		cx.Quit()

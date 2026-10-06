@@ -74,6 +74,14 @@ func (m *model) findDocument(path string) *document {
 			return d
 		}
 	}
+	physical, err := canonicalPath(path)
+	if err == nil && physical != path {
+		for _, d := range m.docs {
+			if d.path == physical || (runtime.GOOS == "windows" && strings.EqualFold(d.path, physical)) {
+				return d
+			}
+		}
+	}
 	return nil
 }
 

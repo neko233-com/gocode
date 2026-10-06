@@ -33,3 +33,14 @@ No installer/updater/local installation is verified yet. Large-file editing,
 language crash restart and broader parity remain pending. Source/CI integration
 for these milestones is in progress; record the immutable commit/run on promotion.
 Do not claim the active production/full-parity goal is complete.
+
+Public foundation source `633e754c0c6a695d869317785562678d5f14d756`, CI
+`37449327497`: macOS Intel/ARM and Ubuntu passed; both Windows passed native,
+editor, Copilot protocol and GiB checks but timed out at gopls navigation.
+An actual Windows 8.3 alias reproduced reopening an unsaved document from disk.
+The regression fails the old code and passes the canonical-path correction in
+three race runs. Public promotion waits for the corrected source's full CI.
+
+Free distribution is now in development: versioned launcher/layout and Windows
+Installer COM + makecab build a real MSI. Prototype payload command/version works;
+install/uninstall/upgrade and updater/local deployment are not yet verified.
