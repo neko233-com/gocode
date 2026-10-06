@@ -62,6 +62,6 @@ $taskInstall=Start-Process msiexec.exe -ArgumentList @('/i',('"'+$PackagePath+'"
 if($taskInstall.ExitCode -ne 0){throw ('Windows Installer failed: '+$taskInstall.ExitCode)}
 & (Join-Path $InstallDirectory 'gocode.exe') -version
 if($LASTEXITCODE -ne 0){throw 'Installed launcher did not pass its version check.'}
-& (Join-Path $InstallDirectory 'gocode.exe') -configure-updates -update-mode $Route -update-mirror $Mirror
+& (Join-Path $InstallDirectory 'gocode.exe') -configure-updates -update-mode $Route "-update-mirror=$Mirror"
 if($LASTEXITCODE -ne 0){throw 'Update route configuration failed.'}
 Write-Output ('Installed gocode. New terminals can run gocode. Location: '+$InstallDirectory)

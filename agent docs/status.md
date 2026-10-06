@@ -87,3 +87,10 @@ The strict updater rejected it and kept the immutable v0.4.0 baseline selected.
 v0.5.0 was held as a prerelease; no final user install occurred. v0.5.1 uses
 canonical ZIP paths and a new package gate that exercises production Stage and
 real native Probe on the exact generated Windows/macOS archives before publishing.
+
+v0.5.1 source `e7f2d69011040b6c458cb54fc73f4cff695015b6` passed all five jobs
+in CI `37461737830` and artifact publication `37462680852`. Windows PowerShell 5
+also drops a separate empty optional mirror argument; the maintained bootstrap
+now passes `-update-mirror=` and MSI acceptance executes that actual default CLI
+installer with an isolated user config. Released app/installer/ZIP bytes remain
+immutable; a corrected `install-windows.ps1` helper is published separately.

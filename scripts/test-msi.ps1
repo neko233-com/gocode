@@ -32,7 +32,15 @@ try{
         $taskProducts+=Read-MSIProperty $taskMSI 'ProductCode'
     }
     $taskOld=Join-Path $taskValidation '0.0.1.msi';$taskNew=Join-Path $taskValidation '0.0.2.msi'
-    if((Invoke-TestMSI '/i' $taskOld 'install.log' @(('INSTALLDIR="'+$taskTarget+'"'))) -ne 0){throw 'MSI install failed.'}
+    # Execute the same command installer under Windows PowerShell 5, including
+    # its default empty optional mirror. Isolate its user config from this PC.
+    $taskBootstrap=Join-Path $taskValidation 'bootstrap.ps1'
+    $taskBootstrapText=(Get-Content -LiteralPath (Join-Path $taskRoot 'distribution/install.ps1.in') -Raw).Replace('@VERSION@','0.0.1').Replace('@MSI_SHA256@',(Get-FileHash -LiteralPath $taskOld -Algorithm SHA256).Hash)
+    [IO.File]::WriteAllText($taskBootstrap,$taskBootstrapText,[Text.UTF8Encoding]::new($false))
+    $taskSavedAppData=$env:APPDATA;$taskTestAppData=Join-Path $taskValidation 'user-config';$env:APPDATA=$taskTestAppData
+    try{& powershell -NoProfile -ExecutionPolicy Bypass -File $taskBootstrap -PackagePath $taskOld -InstallDirectory $taskTarget;if($LASTEXITCODE -ne 0){throw 'PowerShell 5 default CLI installation failed.'}}finally{$env:APPDATA=$taskSavedAppData}
+    $taskUpdateConfig=Get-Content -LiteralPath (Join-Path $taskTestAppData 'gocode/updates.json') -Raw|ConvertFrom-Json
+    if($taskUpdateConfig.mode -ne 'auto' -or $taskUpdateConfig.mirror){throw 'Default installer route was not configured.'}
     $taskVersion=& (Join-Path $taskTarget 'gocode.exe') -version
     if($LASTEXITCODE -ne 0 -or $taskVersion -notmatch '^gocode 0\.0\.1 '){throw 'Installed command/version failed.'}
     $taskShell=New-Object -ComObject WScript.Shell
