@@ -91,7 +91,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		items = append(items, button("File: Save active document", "palette-save", func(*ui.Context) {
 			m.saveActive()
 			m.palette = false
-		}).Height(28), button("View: Toggle panel", "palette-panel", func(*ui.Context) { m.showPanel = !m.showPanel; m.palette = false }).Height(28))
+		}).Height(28), button("View: Toggle panel", "palette-panel", func(*ui.Context) { m.togglePanel(); m.palette = false }).Height(28))
 		items = append(items, button("Copilot: Open Chat (Ctrl/Cmd+I)", "palette-copilot-chat", func(*ui.Context) {
 			m.panel = "COPILOT"
 			m.showPanel = true
@@ -324,7 +324,7 @@ func (m *model) panelView(width float32) *ui.Element {
 		}
 		header = append(header, button(name, "panel-"+name, func(*ui.Context) { m.panel = name }).FontSize(11).Foreground(ui.RGB(color)))
 	}
-	header = append(header, spacer(), icon("chevron-down", "panel-toggle", func(*ui.Context) { m.showPanel = false }), icon("close", "panel-close", func(*ui.Context) { m.showPanel = false }))
+	header = append(header, spacer(), icon("chevron-down", "panel-toggle", func(*ui.Context) { m.hidePanel() }), icon("close", "panel-close", func(*ui.Context) { m.hidePanel() }))
 	if m.panel == "TERMINAL" {
 		windowHeight := float32(820)
 		if m.native != nil {
@@ -422,7 +422,7 @@ func (m *model) statusbar() *ui.Element {
 			language = "Go"
 		}
 	}
-	return ui.Column(rule(), ui.Row(label(" >< ").Width(34).Background(ui.RGB(accent)), label(fmt.Sprintf("  × %d   ⚠ %d", errors, warnings)).Width(180).Key("status-problems").OnClick(func(*ui.Context) { m.panel = "PROBLEMS"; m.showPanel = true }), label(strings.TrimSpace(m.status+"  "+m.lspStatus)).Flex(1), label(position).Width(105), label("Spaces: 4").Width(80), label("UTF-8").Width(55), label(lineEnding).Width(42), label(language).Width(60), icon("terminal", "status-panel", func(*ui.Context) { m.showPanel = !m.showPanel }).Width(28)).Height(21)).Height(22).Background(ui.RGB(outer))
+	return ui.Column(rule(), ui.Row(label(" >< ").Width(34).Background(ui.RGB(accent)), label(fmt.Sprintf("  × %d   ⚠ %d", errors, warnings)).Width(180).Key("status-problems").OnClick(func(*ui.Context) { m.panel = "PROBLEMS"; m.showPanel = true }), label(strings.TrimSpace(m.status+"  "+m.lspStatus)).Flex(1), label(position).Width(105), label("Spaces: 4").Width(80), label("UTF-8").Width(55), label(lineEnding).Width(42), label(language).Width(60), icon("terminal", "status-panel", func(*ui.Context) { m.togglePanel() }).Width(28)).Height(21)).Height(22).Background(ui.RGB(outer))
 }
 
 func hitColumn(line string, x float32) int {

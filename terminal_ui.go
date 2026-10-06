@@ -145,6 +145,24 @@ func (m *model) focusTerminal() {
 	m.editing, m.chatFocused, m.updateFocused, m.palette, m.navigation = false, false, false, false, false
 	m.pointerSelecting = false
 }
+func (m *model) hidePanel() {
+	m.showPanel, m.terminalFocused, m.terminalSelecting, m.chatFocused = false, false, false, false
+	m.editing = m.current() != nil
+}
+func (m *model) togglePanel() {
+	if m.showPanel {
+		m.hidePanel()
+		return
+	}
+	m.showPanel = true
+	if m.panel == "TERMINAL" {
+		if m.currentTerminal() == nil && m.newTerminal != nil {
+			m.newTerminal()
+		} else {
+			m.focusTerminal()
+		}
+	}
+}
 func (m *model) terminalPanelHeight(windowHeight float32) float32 {
 	return min(max(120, m.terminalHeight), max(120, windowHeight-180))
 }
@@ -384,6 +402,9 @@ func (m *model) terminalKeyboard(e ui.InputEvent) bool {
 	}
 	tab := m.currentTerminal()
 	if tab == nil || tab.session == nil || tab.frame == nil || tab.frame.Exited {
+		if e.Kind == ui.KeyPressed || e.Kind == ui.Character {
+			m.message = "Terminal is starting or has exited; input was not accepted"
+		}
 		return e.Kind == ui.KeyPressed || e.Kind == ui.Character
 	}
 	control, shift, command := e.Modifiers&ui.ModifierControl != 0, e.Modifiers&ui.ModifierShift != 0, e.Modifiers&ui.ModifierCommand != 0

@@ -33,6 +33,18 @@ func TestTerminalFocusAndCloseCancelPreserveEditor(t *testing.T) {
 	}
 }
 
+func TestHideTerminalReturnsTypingToEditor(t *testing.T) {
+	m := testModel(t)
+	d := m.current()
+	version := d.buffer.Version()
+	m.focusTerminal()
+	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'J', Modifiers: ui.ModifierControl})
+	m.input(nil, ui.InputEvent{Kind: ui.Character, Key: 'Y'})
+	if m.showPanel || m.terminalFocused || d.buffer.Version() == version {
+		t.Fatal("hidden terminal retained typing focus")
+	}
+}
+
 func TestTerminalSelectionUsesImmutableUnicodeCells(t *testing.T) {
 	f := &terminal.Frame{Size: terminal.Size{Columns: 6, Rows: 2}, Lines: [][]terminal.Cell{{{Text: "a", Width: 1}, {Text: "世", Width: 2}, {Width: 0}, {Text: "😀", Width: 2}, {Width: 0}, {Text: " ", Width: 1}}, {{Text: "b", Width: 1}, {Text: " ", Width: 1}, {Text: " ", Width: 1}, {Text: " ", Width: 1}, {Text: " ", Width: 1}, {Text: " ", Width: 1}}}}
 	tab := terminalTab{selectionFrame: f, anchor: 0, active: 7}

@@ -189,7 +189,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 			m.query = ""
 			return true
 		case 'J':
-			m.showPanel = !m.showPanel
+			m.togglePanel()
 			return true
 		case 'G':
 			m.palette = false
