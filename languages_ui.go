@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -104,14 +105,16 @@ func (m *model) applyLSPResult(name, method string, d *document, version int, po
 			m.message = err.Error()
 			return
 		}
-		m.open(path)
-		if target := m.findDocument(path); target != nil && target.buffer != nil {
+		m.openThen(context.Background(), path, func(target *document, openErr error) {
+			if openErr != nil || target == nil || target.buffer == nil {
+				return
+			}
 			column, err := target.buffer.RuneColumn(locations[0].Range.Start)
 			if err == nil {
 				m.moveCursor(target, locations[0].Range.Start.Line, column, false)
 			}
 			m.editing = true
-		}
+		})
 		if len(locations) > 1 {
 			m.message = fmt.Sprintf("Opened first of %d definitions", len(locations))
 		}

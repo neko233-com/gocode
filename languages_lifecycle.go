@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/copilotservice"
 	"github.com/neko233-com/gocode/internal/languageserver"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
@@ -42,6 +43,19 @@ func (m *model) bindLanguages(parent context.Context, dispatch func(func()) bool
 				case event, ok := <-b.service.Events():
 					if !ok {
 						return
+					}
+					if event.Diagnostics != nil {
+						path, err := languageserver.PathFromURI(event.Diagnostics.URI)
+						if err != nil {
+							continue
+						}
+						physical, err := canonicalPath(path)
+						if err != nil {
+							continue
+						}
+						copy := *event.Diagnostics
+						copy.URI = copilotservice.FileURI(physical)
+						event.Diagnostics = &copy
 					}
 					ack := make(chan struct{})
 					if !dispatch(func() {

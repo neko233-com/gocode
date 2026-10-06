@@ -4,7 +4,12 @@ package main
 
 import ui "github.com/neko233-com/godesktop"
 
-func captureCopilotAcceptance(string) error                                 { return nil }
+func captureCopilotAcceptance(string) error                 { return nil }
+func captureOpenAcceptance(string, string, ui.Bounds) error { return nil }
+func inputDuringOpen(_ *ui.Context, _ string, fallback func(), done func(error)) {
+	fallback()
+	done(nil)
+}
 func captureLargefileAcceptance(string) error                               { return nil }
 func captureLSPAcceptance(string) error                                     { return nil }
 func captureRecoveredLSPAcceptance(string, ui.Bounds, ui.Bounds) error      { return nil }

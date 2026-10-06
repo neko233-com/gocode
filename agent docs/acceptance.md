@@ -11,6 +11,12 @@
 - Large files: actual >=1 GiB baseline (higher user-selected target when supplied),
   bounded index/cache/read buffers, cancellation, first/middle/tail and huge-line
   navigation, file-change handling, responsive native frames and memory report.
+- Opening/Explorer: delayed real disk/scan workers, typing/resize/Cancel while
+  pending, cancelled/closed alias identity, newest focus, CLI goto barrier,
+  bounded traversal and actual awaited VSIX showTextDocument. -open-smoke gates
+  owned Windows input/GPU rows; the delay seam does not fabricate disk content.
+  Startup mouse tests wait for the actual final-position source row before using
+  fixed edit/save coordinates; Welcome/background alone is insufficient.
 - Language: real generic server initialization, edits/diagnostics, completion,
   formatting, hover/definition, save/close/restart and stale-result suppression.
   Real process crash/reinitialize, latest unsaved didOpen, independent other-server

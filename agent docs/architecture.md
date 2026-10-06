@@ -10,6 +10,12 @@ explicitly where full editing/language-service capabilities are limited.
 
 ## Services
 
+Native startup uses an empty model plus bounded Explorer/open workers. Live
+documents are UI-owned; disk jobs build private buffers, transfer once and dispose
+unadopted large indexes before continuing. Tickets guard focus/closed identity;
+VSIX/LSP/Problems navigation waits for the actual target. See files.md for queue,
+traversal/timeout bounds and the pre-ui.Run root/service setup still performed.
+
 Generic language servers use the framework LSP client. Route capabilities,
 document versions, diagnostics, formatting/navigation and server requests to the
 native UI. Copilot completion uses the official LSP, chat the official Go SDK.

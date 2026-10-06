@@ -1,5 +1,29 @@
 # Milestone ledger
 
+## Asynchronous opening/traversal v0.10.0 development (2026-10-07)
+
+New source uses one bounded disk opener and batched Explorer scan after the
+native window starts. VSIX/Problems/definition navigation waits for actual target
+documents; aliases preserve live dirty buffers. Cancelled transfers, closed-path/
+new-focus guards and dropped-dispatch large-index cleanup have race regressions.
+Local repeated worker/scan/RPC tests and real Windows race-built -open-smoke
+passed; owned pending-read/awaited-VSIX GPU PNGs were inspected: typed green text/
+dirty tab remain during held I/O, and the actual README renders after awaited
+extension navigation. The fixture source files stayed unchanged.
+
+The first full local Windows run failed TestNativeWorkbenchAMD64's fixed-coordinate
+save after asynchronous startup. Its old gate checked only editor background,
+which can precede loading or the loading banner's removal. The corrected gate
+waits for source-row pixels at final input coordinates. Two repeated actual
+workbench/OS-close regressions passed. Full local Windows amd64/GOAMD64=v1
+strict-cgo/race/vet/console+GUI/native opener/editor/four-close/large/terminal/
+file-watch validation passed (Repeat=1), as did no-cgo tests, two channel-policy
+Python tests, actionlint and diff checking. Five-platform CI, publication and user
+Real installed-managed gopls native formatting/hover/definition/completion/crash
+recovery and file-watch/VSIX/new-source-hover also passed from the new local binary.
+installation remain pending; the installed stable app is the verified v0.9.0
+source abadd6d below. Full production/VS Code parity remains active.
+
 ## Editable file watching v0.9.0 promotion (2026-10-07)
 
 Immutable app/package source `abadd6d0d53109f7445a41ee92652ada1491d7ff` passed

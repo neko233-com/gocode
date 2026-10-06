@@ -99,6 +99,7 @@ jobs:
             .cache/terminal-native/*.png
             .cache/filewatch-native/*.png
             .cache/filewatch-native-lsp/*.png
+            .cache/open-native/*.png
             .cache/copilot-health.json
             dist/*.zip
             dist/*.msi
@@ -132,6 +133,7 @@ jobs:
           mkdir -p bin
           go build -trimpath -ldflags="-s -w" -o bin/gocode .
           ./bin/gocode -workspace . -extensions-dir .cache/extensions -smoke
+          ./bin/gocode -extensions-dir .cache/extensions -open-smoke
           ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
           for mode in save discard cancel external; do
             ./bin/gocode -extensions-dir .cache/extensions -close-smoke "$mode"

@@ -10,6 +10,9 @@ import (
 )
 
 func (m *model) documentEvent(kind string, d *document, change textbuffer.ChangeEvent) {
+	if kind == "focus" {
+		m.openSequence++
+	}
 	if m.publishWatches != nil && kind != "selection" {
 		m.publishWatches()
 	}

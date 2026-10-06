@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -28,7 +29,15 @@ func TestWindowsShortPathPreservesUnsavedDocumentIdentity(t *testing.T) {
 	}
 	text(m, "// unsaved\n")
 	version, source := d.buffer.Version(), d.buffer.Text()
+	// Unknown aliases resolve on RPC/disk workers; pure UI lookup performs no
+	// EvalSymlinks/Stat fallback.
+	physical, err := canonicalRPCPath(context.Background(), m.workspace, short)
+	if err != nil || physical != d.path {
+		t.Fatal("worker alias resolution", physical, err)
+	}
+	mailbox := openActor(t, m, nil)
 	m.open(short)
+	drainOpens(t, m, mailbox)
 	if m.current() != d || len(m.docs) != 1 || d.buffer.Version() != version || d.buffer.Text() != source {
 		t.Fatalf("8.3 alias reopened unsaved source: %s => %s", short, d.path)
 	}

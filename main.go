@@ -126,6 +126,7 @@ func run() error {
 	lspConfig := flag.String("lsp-config", "", "User-owned JSON array of language server configurations")
 	lspEnabled := flag.Bool("lsp", true, "Run configured standard language servers")
 	lspSmoke := flag.Bool("lsp-smoke", false, "Verify real LSP formatting/hover/definition/completion/diagnostics in a native disposable workspace")
+	openSmoke := flag.Bool("open-smoke", false, "Verify native typing/resize/cancel and awaited VSIX opens during delayed disk workers")
 	installGopls := flag.Bool("install-gopls", false, "Install the pinned official gopls in gocode's per-user tools directory and exit")
 	installCopilot := flag.Bool("install-copilot", false, "Install pinned official Copilot sidecars in gocode's per-user tools directory (requires Node.js/npm)")
 	copilotRoot := flag.String("copilot-runtime", "", "Directory containing the pinned Copilot node_modules")
@@ -355,6 +356,22 @@ func run() error {
 		}
 		*extensionDir = filepath.Join(config, "gocode", "extensions")
 	}
+	if *openSmoke {
+		fixture, err := os.MkdirTemp("", "gocode-open-native-")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(fixture)
+		path := filepath.Join(fixture, "main.go")
+		if err := os.WriteFile(path, []byte("package main\nfunc main() {}\n"), 0600); err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(fixture, "README.md"), []byte(openReadmeFixture), 0600); err != nil {
+			return err
+		}
+		*workspace, paths = fixture, []string{path}
+		*copilotEnabled, *lspEnabled = false, false
+	}
 	if *install != "" {
 		e, err := extensions.Install(*extensionDir, *install)
 		if err != nil {
@@ -363,22 +380,17 @@ func run() error {
 		fmt.Println("Installed", e.ID(), e.Manifest.Version)
 		return nil
 	}
-	m, err := newModel(*workspace)
+	m, err := newWorkspaceModel(*workspace)
 	if err != nil {
 		return err
 	}
 	defer m.closeDocuments()
 	m.terminalAcceptance = *terminalSmoke
-	for _, path := range paths {
-		m.open(path)
-		if m.findDocument(path) == nil {
-			return errors.New(m.message)
-		}
-	}
+	gotoQuery := ""
 	if *goByte >= 0 {
-		m.goTo(fmt.Sprintf(":%d", *goByte))
+		gotoQuery = fmt.Sprintf(":%d", *goByte)
 	} else if *goLine > 0 {
-		m.goTo(fmt.Sprint(*goLine))
+		gotoQuery = fmt.Sprint(*goLine)
 	}
 	var languageConfigs []languageserver.Config
 	if *lspEnabled {
@@ -462,7 +474,15 @@ func run() error {
 	var closeSaves func()
 	var closeTerminals func()
 	var closeWatches func()
+	var closeOpens func()
+	var closeWorkspace func()
 	defer func() {
+		if closeWorkspace != nil {
+			closeWorkspace()
+		}
+		if closeOpens != nil {
+			closeOpens()
+		}
 		if closeWatches != nil {
 			closeWatches()
 		}
@@ -486,6 +506,13 @@ func run() error {
 		}
 	}()
 	var verified atomic.Bool
+	bootstrap := make(chan struct{})
+	var bootstrapReady bool
+	var bootstrapError error
+	var openingAcceptance *openAcceptance
+	if *openSmoke {
+		openingAcceptance = newOpenAcceptance()
+	}
 	var aiAcceptance copilotAcceptance
 	var largeAcceptance largefileAcceptance
 	var languageAcceptance lspAcceptance
@@ -502,6 +529,9 @@ func run() error {
 	if *terminalSmoke {
 		deadline = 60 * time.Second
 	}
+	if *openSmoke {
+		deadline = 60 * time.Second
+	}
 	if *filewatchSmoke {
 		deadline = 90 * time.Second
 	}
@@ -509,7 +539,7 @@ func run() error {
 		deadline = 2 * time.Minute
 	}
 	watchdog := time.AfterFunc(deadline, func() {
-		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" || *terminalSmoke || *filewatchSmoke {
+		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" || *terminalSmoke || *filewatchSmoke || *openSmoke {
 			fmt.Fprintln(os.Stderr, "gocode smoke timed out")
 			if *terminalSmoke {
 				_ = pprof.Lookup("goroutine").WriteTo(os.Stderr, 2)
@@ -522,11 +552,16 @@ func run() error {
 		if !started {
 			cx = viewContext
 			m.native = viewContext
+			var read func(context.Context, string) (*document, error)
+			if *openSmoke {
+				read = openingAcceptance.read
+			}
+			closeOpens = m.startFileOpens(hostCtx, viewContext.Dispatch, read)
 			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
 			closeWatches = m.startDocumentWatch(hostCtx, viewContext.Dispatch)
 			closeTerminals = m.startTerminals(hostCtx, viewContext)
 			closeIcon = applyAppIcon("gocode — " + filepath.Base(m.workspace))
-			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke && *closeSmoke == "" && !*terminalSmoke && !*filewatchSmoke {
+			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke && *closeSmoke == "" && !*terminalSmoke && !*filewatchSmoke && !*openSmoke {
 				closeUpdates = m.startUpdates(hostCtx, viewContext, updateRoot, updateConfigPath, updateConfig)
 				editing := m.editing
 				m.newTerminal()
@@ -542,6 +577,20 @@ func run() error {
 			if len(languageConfigs) > 0 {
 				closeLanguages = m.startLanguages(hostCtx, viewContext, languageConfigs)
 			}
+			var scan func(context.Context, string) workspaceScan
+			if *openSmoke {
+				scan = openingAcceptance.scan
+			}
+			closeWorkspace = m.startWorkspace(hostCtx, viewContext.Dispatch, paths, gotoQuery, scan, func(err error) {
+				bootstrapError, bootstrapReady = err, true
+				close(bootstrap)
+				if err != nil {
+					m.message = err.Error()
+					if *smoke || *largeSmoke || *lspSmoke || *copilotUISmoke || *closeSmoke != "" || *terminalSmoke || *filewatchSmoke || *openSmoke {
+						viewContext.Quit()
+					}
+				}
+			})
 			if host != nil {
 				go func() {
 					select {
@@ -551,6 +600,13 @@ func run() error {
 					}
 					for event := range host.Events {
 						event := event
+						if event.Type == "diagnostics" {
+							physical, err := canonicalRPCPath(hostCtx, m.workspace, event.Path)
+							if err != nil {
+								continue
+							}
+							event.Path = physical
+						}
 						viewContext.Dispatch(func() {
 							switch event.Type {
 							case "information", "warning", "error":
@@ -578,6 +634,14 @@ func run() error {
 			}
 			if *smoke {
 				go func() {
+					select {
+					case <-bootstrap:
+					case <-hostCtx.Done():
+						return
+					}
+					if bootstrapError != nil {
+						return
+					}
 					select {
 					case <-initialized:
 					case <-hostCtx.Done():
@@ -610,29 +674,41 @@ func run() error {
 				viewContext.Invalidate()
 			}
 		}
-		if *copilotUISmoke {
+		if *copilotUISmoke && bootstrapReady && bootstrapError == nil {
 			aiAcceptance.step(viewContext, m)
 		}
-		if *largeSmoke {
+		if *largeSmoke && bootstrapReady && bootstrapError == nil {
 			largeAcceptance.step(viewContext, m)
 		}
-		if *lspSmoke {
+		if *lspSmoke && bootstrapReady && bootstrapError == nil {
 			languageAcceptance.step(viewContext, m)
 		}
-		if *closeSmoke != "" {
+		if *closeSmoke != "" && bootstrapReady && bootstrapError == nil {
 			closingAcceptance.step(viewContext, m)
 		}
-		if *terminalSmoke {
+		if *terminalSmoke && bootstrapReady && bootstrapError == nil {
 			shellAcceptance.step(viewContext, m)
 		}
-		if *filewatchSmoke {
+		if *filewatchSmoke && bootstrapReady && bootstrapError == nil {
 			watchingAcceptance.step(viewContext, m)
+		}
+		if *openSmoke && bootstrapReady && bootstrapError == nil {
+			openingAcceptance.step(viewContext, m, hostCtx, host, initialized)
 		}
 
 		return m.view(viewContext)
 	})
 	if err != nil {
 		return err
+	}
+	if bootstrapError != nil {
+		return bootstrapError
+	}
+	if *openSmoke {
+		if err := openingAcceptance.verify(m); err != nil {
+			return err
+		}
+		fmt.Println("gocode async open acceptance passed: real disk/scan workers + native typing/resize/cancel + awaited VSIX + stale focus guards + unchanged source")
 	}
 	if *terminalSmoke {
 		if !shellAcceptance.verified {

@@ -41,6 +41,53 @@ Deleted, nonregular, binary and oversized replacements preserve editor contents.
 Watching pauses while accepted saves are queued/running and reconciles after UI
 acknowledgement, including unrelated external writes after our atomic rename.
 
+## Asynchronous opens and Explorer traversal
+
+Native startup constructs an empty workbench, then opens explicit CLI files and
+scans Explorer on separate workers. Root canonicalization/Stat and optional
+service discovery still occur before ui.Run; recursive traversal and document
+contents no longer execute inside native UI callbacks. Headless newModel is a
+synchronous fixture helper, not the production entry point.
+
+The UI owns at most 32 pending open jobs and one active transfer. One disk worker
+resolves physical paths and loads regular UTF-8 text up to 8 MiB, or constructs a
+bounded large-file index. It never touches an existing live buffer. Dispatch
+transfers ownership once; the worker waits for acknowledgement and disposes
+duplicate/discarded indexes before the next job. Atomic ownership handles an
+accepted dispatch dropped during window shutdown. Cleanup remains off the UI.
+
+Navigation tickets prevent slow results stealing newer focus. Windows 8.3 and
+symlink aliases reuse the original unsaved document; closed-path tickets reject
+older opens but permit an explicit later reopen. Cancel clears pending jobs and
+rejects even a completed read awaiting UI receipt. Cached opens check request
+cancellation. VSIX showTextDocument, Problems and LSP definition navigation wait
+for the actual target; superseded VSIX requests return an error. Extension edit/
+selection/save paths and generic diagnostic URIs resolve in RPC/service workers.
+UI findDocument performs only lexical/cache lookup.
+
+Explorer reads 128 entries per directory batch, retaining at most 250 files,
+256 queued directories, depth 64 and 32,768 visited entries. It skips symlink
+directories and existing .git/.cache/node_modules/bin/vendor exclusions. Sorted
+results expose scan limits/unreadable directories instead of implying complete
+workspace coverage. A late scan can populate Explorer but cannot start obsolete
+default navigation. CLI goto binds to the final requested file, even when that
+file is cached and an earlier open is still pending.
+
+Workers use 30-second cooperative contexts; OS calls may remain uninterruptible.
+One blocked read retains its slot without spawning replacement workers. Queues
+remain bounded and shutdown waits at most three seconds. Scan cancellation is
+independent of explicit file opens. Recursive live Explorer watching and complete
+tree/navigation behavior remain unfinished.
+
+-open-smoke deliberately holds worker latency, then executes the real disk
+reader/scanner and actual bundled Node VSIX. Windows sends owned native character
+messages, resizes the HWND and clicks Cancel/tab controls; GPU gates inspect the
+newly typed row and awaited README row. Mac exercises the same native model/view
+actions without claiming Windows pointer messages or screenshots. Source files
+are compared afterward. Race tests cover serial transfer/disposal, cancelled
+receipts, queue bounds, shutdown indexes, closed aliases, newer focus, dirty
+buffers, startup barriers/goto and traversal limits.
+
 ## Evidence and gates
 
 Real file/race tests exercise atomic replacement, deletion/recreation, paused
@@ -78,9 +125,9 @@ save file and at every retry; no permission override or silent replacement occur
 
 ## Remaining scope
 
-This watches open editable files, not the entire recursive workspace. Initial
-workspace traversal, canonical-path resolution and ordinary UI open callbacks
-still perform synchronous filesystem operations. Huge read-only browser index
+This watches open editable files, not the entire recursive workspace. Native
+ordinary opens/traversal are asynchronous in the new source; platform promotion
+and installed-release evidence must be read from status.md. Huge read-only browser index
 invalidation/reopen, deleted-file restoration, diff/merge conflict review, nested
 workspace watchers, VSIX filesystem-watch API and LSP watched-file registrations
 remain unfinished. The last disk-check/rename interval is not a transaction

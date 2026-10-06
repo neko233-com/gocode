@@ -3,14 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
-	"github.com/neko233-com/gocode/internal/filewatch"
 	"github.com/neko233-com/gocode/internal/update"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
@@ -99,6 +97,17 @@ type model struct {
 	reloadPrompt                                       *document
 	reloadBusy                                         bool
 	reloadError                                        string
+	pathAliases                                        map[string]*document
+	requestOpen                                        func(context.Context, string, func(*document, error))
+	openJobs                                           []openJob
+	openBusy                                           bool
+	openingPath                                        string
+	openSequence                                       uint64
+	cancelCurrentOpen, cancelPendingOpens              func()
+	closedDuringOpen                                   map[string]uint64
+	workspaceBusy                                      bool
+	workspaceStatus                                    string
+	cancelWorkspace                                    func()
 }
 
 type diagnostic struct {
@@ -117,7 +126,9 @@ type inlineSuggestion struct {
 type extensionCommand struct{ ID, Title string }
 type extensionInfo struct{ Name, ID, Description, Version string }
 
-func newModel(workspace string) (*model, error) {
+// Startup validates the root before launching services. Recursive traversal and
+// document contents are loaded only after the native window has started.
+func newWorkspaceModel(workspace string) (*model, error) {
 	absolute, err := canonicalPath(workspace)
 	if err != nil {
 		return nil, err
@@ -126,49 +137,22 @@ func newModel(workspace string) (*model, error) {
 	if err != nil || !info.IsDir() {
 		return nil, fmt.Errorf("workspace must be a directory: %s", absolute)
 	}
-	m := &model{workspace: absolute, active: -1, activity: "files", panel: "TERMINAL", showPanel: true, output: []string{"gocode", "Workspace opened."}}
-	err = filepath.WalkDir(absolute, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return nil
-		}
-		if path == absolute {
-			return nil
-		}
-		if entry.IsDir() {
-			switch entry.Name() {
-			case ".git", ".cache", "node_modules", "bin", "vendor":
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if entry.Type()&os.ModeSymlink != 0 {
-			return nil
-		}
-		rel, _ := filepath.Rel(absolute, path)
-		m.files = append(m.files, filepath.ToSlash(rel))
-		if len(m.files) >= 250 {
-			return fs.SkipAll
-		}
-		return nil
-	})
+	return &model{workspace: absolute, active: -1, activity: "files", panel: "TERMINAL", showPanel: true, output: []string{"gocode", "Workspace opened."}}, nil
+}
+
+// Synchronous fixture construction is kept for headless model/protocol tests.
+func newModel(workspace string) (*model, error) {
+	m, err := newWorkspaceModel(workspace)
 	if err != nil {
 		return nil, err
 	}
-	preferred := ""
-	for _, p := range m.files {
-		if strings.HasSuffix(p, "main.go") {
-			preferred = p
-			break
-		}
-		if preferred == "" && strings.HasSuffix(p, ".go") {
-			preferred = p
-		}
+	result := scanWorkspace(context.Background(), m.workspace)
+	if result.err != nil {
+		return nil, result.err
 	}
-	if preferred == "" && len(m.files) > 0 {
-		preferred = m.files[0]
-	}
-	if preferred != "" {
-		m.open(filepath.Join(absolute, preferred))
+	m.files, m.workspaceStatus = result.files, result.status()
+	if preferred := preferredFile(m.files); preferred != "" {
+		m.open(preferred)
 	}
 	return m, nil
 }
@@ -179,60 +163,7 @@ func (m *model) current() *document {
 	return m.docs[m.active]
 }
 func (m *model) open(path string) {
-	path, err := canonicalPath(path)
-	if err != nil {
-		m.message = err.Error()
-		return
-	}
-	for i, d := range m.docs {
-		if d.path == path {
-			m.active = i
-			m.documentEvent("focus", d, textbuffer.ChangeEvent{})
-			return
-		}
-	}
-	info, err := os.Stat(path)
-	if err != nil {
-		m.message = err.Error()
-		return
-	}
-	if !info.Mode().IsRegular() {
-		m.message = "Only regular UTF-8 text files can be opened"
-		return
-	}
-	if info.Size() > editableFileLimit {
-		d, err := openLargeDocument(path)
-		if err != nil {
-			m.message = err.Error()
-			return
-		}
-		m.docs = append(m.docs, d)
-		m.active = len(m.docs) - 1
-		m.editing = true
-		if m.native != nil {
-			m.startLargeDocument(d)
-		}
-		m.documentEvent("focus", d, textbuffer.ChangeEvent{})
-		return
-	}
-	result, _ := filewatch.Read(context.Background(), filewatch.Entry{Path: path})
-	if result.Kind != "text" {
-		m.message = "File is unavailable or changed while opening"
-		if result.Err != nil {
-			m.message = result.Err.Error()
-		}
-		return
-	}
-	buffer, err := textbuffer.New(result.Text)
-	if err != nil {
-		m.message = err.Error()
-		return
-	}
-	m.docs = append(m.docs, &document{path: path, buffer: buffer, diskHash: result.Hash, diskKnown: true})
-	m.active = len(m.docs) - 1
-	m.editing = true
-	m.documentEvent("open", m.current(), textbuffer.ChangeEvent{})
-	m.documentEvent("focus", m.current(), textbuffer.ChangeEvent{})
+	m.openThen(context.Background(), path, nil)
 }
 func (m *model) closeTab(index int) {
 	if index < 0 || index >= len(m.docs) {
@@ -247,6 +178,18 @@ func (m *model) closeTab(index int) {
 func (m *model) removeTab(index int) {
 	if index < 0 || index >= len(m.docs) {
 		return
+	}
+	if m.openBusy || len(m.openJobs) > 0 {
+		if m.closedDuringOpen == nil {
+			m.closedDuringOpen = map[string]uint64{}
+		}
+		m.openSequence++
+		m.closedDuringOpen[pathKey(m.docs[index].path)] = m.openSequence
+	}
+	for alias, d := range m.pathAliases {
+		if d == m.docs[index] {
+			delete(m.pathAliases, alias)
+		}
 	}
 	m.documentEvent("close", m.docs[index], textbuffer.ChangeEvent{})
 	if l := m.docs[index].large; l != nil {

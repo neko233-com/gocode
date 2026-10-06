@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -76,6 +77,13 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		crumb = strings.ReplaceAll(filepath.ToSlash(rel), "/", "  ›  ")
 	}
 	parts := []*ui.Element{ui.Row(tabs...).Height(35).Background(ui.RGB(outer)), ui.Row(label(crumb).PaddingXY(10, 0), spacer()).Height(24)}
+	if m.openBusy || len(m.openJobs) > 0 {
+		parts = append(parts, ui.Row(label("Opening "+filepath.Base(m.openingPath)+"…").Flex(1), button("Cancel", "cancel-open", func(*ui.Context) {
+			if m.cancelPendingOpens != nil {
+				m.cancelPendingOpens()
+			}
+		})).PaddingXY(8, 0).Height(32).Background(ui.RGB(0x252526)))
+	}
 	if d := m.current(); d != nil && d.diskConflict != nil {
 		parts = append(parts, m.diskBanner(d))
 	}
@@ -146,6 +154,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		}
 	}
 	visible := max(1, int((height-36-35-24-22-panelHeight)/20))
+	if m.openBusy || len(m.openJobs) > 0 {
+		visible = max(1, visible-2)
+	}
 	if m.message != "" {
 		visible = max(1, visible-2)
 	}
@@ -196,6 +207,15 @@ func (m *model) sidebar() *ui.Element {
 		children = append(children, m.updatesSidebar().Flex(1))
 	case "files":
 		children = append(children, ui.Row(ui.Icon("chevron-down").Width(22).Height(22), label(strings.ToUpper(filepath.Base(m.workspace))).FontSize(11)).Height(24))
+		if m.workspaceBusy {
+			children = append(children, ui.Row(label(m.workspaceStatus).Flex(1), button("Cancel", "cancel-workspace-scan", func(*ui.Context) {
+				if m.cancelWorkspace != nil {
+					m.cancelWorkspace()
+				}
+			})).Height(26))
+		} else if m.workspaceStatus != "" {
+			children = append(children, label(m.workspaceStatus).FontSize(11).Foreground(ui.RGB(muted)).PaddingXY(12, 0).Height(24))
+		}
 		lastDirectory := ""
 		for _, path := range m.files {
 			if len(children) > 40 {
@@ -395,12 +415,14 @@ func (m *model) panelView(width float32) *ui.Element {
 		problems := m.problems()
 		for i, p := range problems[:min(5, len(problems))] {
 			lines = append(lines, button(fmt.Sprintf("%s  %s:%d:%d", p.Message, filepath.Base(p.Path), p.Range.Start.Line+1, p.Range.Start.Character+1), fmt.Sprintf("problem-%d", i), func(*ui.Context) {
-				m.open(p.Path)
-				if d := m.current(); d != nil && d.buffer != nil {
+				m.openThen(context.Background(), p.Path, func(d *document, err error) {
+					if err != nil || d == nil || d.buffer == nil {
+						return
+					}
 					column, _ := d.buffer.RuneColumn(p.Range.Start)
 					m.moveCursor(d, p.Range.Start.Line, column, false)
 					m.editing = true
-				}
+				})
 			}).Height(20))
 		}
 		if len(problems) == 0 {

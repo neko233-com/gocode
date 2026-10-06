@@ -28,7 +28,7 @@ function Invoke-CheckedGUI {
     } finally { $taskGUI.Dispose() }
 }
 $taskRoot = Split-Path -Parent $PSScriptRoot
-$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GOCODE_FILEWATCH_SCREENSHOTS','GOCODE_CONPTY_DIR','GODESKTOP_READBACK')
+$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GOCODE_FILEWATCH_SCREENSHOTS','GOCODE_OPEN_SCREENSHOTS','GOCODE_CONPTY_DIR','GODESKTOP_READBACK')
 $taskSaved = @{}
 foreach ($taskName in $taskNames) { $taskSaved[$taskName] = [Environment]::GetEnvironmentVariable($taskName, 'Process') }
 Push-Location -LiteralPath $taskRoot
@@ -45,6 +45,7 @@ try {
     $env:GOCODE_LARGEFILE_SCREENSHOT=Join-Path $taskRoot '.cache/largefile-native-acceptance.png'
     $env:GOCODE_TERMINAL_SCREENSHOTS=Join-Path $taskRoot '.cache/terminal-native'
     $env:GOCODE_FILEWATCH_SCREENSHOTS=Join-Path $taskRoot '.cache/filewatch-native'
+    $env:GOCODE_OPEN_SCREENSHOTS=Join-Path $taskRoot '.cache/open-native'
     Invoke-CheckedGo run ./cmd/gocode-terminaltools -output (Join-Path $taskRoot '.cache/conpty-runtime')
     $env:GOCODE_CONPTY_DIR=Join-Path $taskRoot '.cache/conpty-runtime'
     & (Join-Path $PSScriptRoot 'build-windows-resources.ps1')
@@ -56,6 +57,9 @@ try {
     & ./bin/gocode.exe -workspace . -extensions-dir .cache/extensions -smoke
     if ($LASTEXITCODE -ne 0) { throw 'Workbench smoke failed.' }
     Invoke-CheckedGUI -workspace . -extensions-dir .cache/extensions -smoke
+    & ./bin/gocode.exe -extensions-dir .cache/extensions -open-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native delayed disk/scan and awaited VSIX opening acceptance failed.' }
+    Invoke-CheckedGUI -extensions-dir .cache/extensions -open-smoke
     & ./bin/gocode.exe -extensions-dir .cache/extensions -editor-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Versioned native editor acceptance failed.' }
     foreach ($taskCloseMode in @('save','discard','cancel','external')) {

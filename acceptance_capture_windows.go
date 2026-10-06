@@ -19,6 +19,60 @@ func captureCopilotAcceptance(workspace string) error {
 	file := os.Getenv("GOCODE_AI_SCREENSHOT")
 	return captureAcceptance(workspace, file)
 }
+func inputDuringOpen(cx *ui.Context, workspace string, _ func(), done func(error)) {
+	go func() {
+		window, err := winprobe.Find("gocode — "+filepath.Base(workspace), uint32(os.Getpid()))
+		if err == nil {
+			for _, r := range "// responsive " {
+				if err = window.Send(0x102, uintptr(r), 0); err != nil {
+					break
+				}
+			}
+		}
+		if err == nil {
+			_, err = resizeTerminalAcceptance(workspace)
+		}
+		cx.Dispatch(func() { done(err) })
+	}()
+}
+func captureOpenAcceptance(workspace, stage string, bounds ui.Bounds) error {
+	window, err := winprobe.Find("gocode — "+filepath.Base(workspace), uint32(os.Getpid()))
+	if err != nil {
+		return err
+	}
+	pixels, err := window.Capture()
+	if err != nil {
+		return err
+	}
+	scale := float64(window.DPI()) / 96
+	bounds.X += 68
+	bounds.Width = min(bounds.Width-68, 240)
+	region := image.Rect(int(float64(bounds.X)*scale), int(float64(bounds.Y)*scale), int(float64(bounds.X+bounds.Width)*scale), int(float64(bounds.Y+bounds.Height)*scale)).Intersect(pixels.Bounds())
+	ink := 0
+	for y := region.Min.Y; y < region.Max.Y; y++ {
+		for x := region.Min.X; x < region.Max.X; x++ {
+			r, g, b, _ := pixels.At(x, y).RGBA()
+			if stage == "pending-read" && matchesTerminalInk(uint32(r>>8)<<16|uint32(g>>8)<<8|uint32(b>>8), editor, 0x6a9955) || stage == "awaited-vsix" && r>>8 > 120 && g>>8 > 120 && b>>8 > 120 {
+				ink++
+			}
+		}
+	}
+	if ink < 30 {
+		return fmt.Errorf("%w: %s ink=%d", errOpenPixelsPending, stage, ink)
+	}
+	if dir := os.Getenv("GOCODE_OPEN_SCREENSHOTS"); dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+		f, err := os.Create(filepath.Join(dir, stage+".png"))
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		return png.Encode(f, pixels)
+	}
+	return nil
+}
 func activateFileWatchControl(cx *ui.Context, workspace string, bounds ui.Bounds, _ func(), done func(error)) {
 	go func() {
 		window, err := winprobe.Find("gocode — "+filepath.Base(workspace), uint32(os.Getpid()))

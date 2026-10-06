@@ -85,6 +85,9 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	unpin := w.Pin()
 	defer unpin()
 	until(t, func() bool { color, err := w.Pixel(500, 400); return err == nil && color == editor })
+	// Welcome and the pending-open banner can paint before startup finishes.
+	// Wait for the actual first source row at its final input coordinates.
+	until(t, func() bool { color, err := w.Pixel(600, 105); return err == nil && color == 0x282828 })
 	pixelWidth, pixelHeight, err := w.ClientSize()
 	if err != nil {
 		t.Fatal(err)

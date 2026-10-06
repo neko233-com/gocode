@@ -1,0 +1,337 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/neko233-com/gocode/internal/filewatch"
+	textbuffer "github.com/neko233-com/godesktop/editor"
+)
+
+const maxOpenJobs = 32
+
+var errOpenSuperseded = errors.New("opening was cancelled or superseded by newer navigation")
+
+type openJob struct {
+	ticket uint64
+	ctx    context.Context
+	path   string
+	done   func(*document, error)
+}
+
+func pathKey(path string) string {
+	path = filepath.Clean(path)
+	if runtime.GOOS == "windows" {
+		return strings.ToLower(path)
+	}
+	return path
+}
+func (m *model) lexicalPath(path string) string {
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(m.workspace, path)
+	}
+	return filepath.Clean(path)
+}
+func (m *model) rememberDocument(path string, d *document) {
+	if m.pathAliases == nil {
+		m.pathAliases = map[string]*document{}
+	}
+	m.pathAliases[pathKey(m.lexicalPath(path))] = d
+	m.pathAliases[pathKey(d.path)] = d
+}
+func closeUnownedDocument(d *document) {
+	if d != nil && d.large != nil {
+		d.large.close()
+	}
+}
+
+// loadDocument runs exclusively on disk workers in the native application.
+// Constructed buffers are transferred to the UI once; workers never mutate
+// existing live buffers. A cancelled large-file result closes its owned index.
+func loadDocument(ctx context.Context, path string) (*document, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	physical, err := canonicalPath(path)
+	if err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	info, err := os.Stat(physical)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, errors.New("Only regular UTF-8 text files can be opened")
+	}
+	if info.Size() > editableFileLimit {
+		d, err := openLargeDocument(physical)
+		if err == nil && ctx.Err() != nil {
+			closeUnownedDocument(d)
+			return nil, ctx.Err()
+		}
+		return d, err
+	}
+	result, _ := filewatch.Read(ctx, filewatch.Entry{Path: physical})
+	if result.Kind != "text" {
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		return nil, errors.New("file is unavailable or changed while opening")
+	}
+	buffer, err := textbuffer.New(result.Text)
+	if err != nil {
+		return nil, err
+	}
+	return &document{path: physical, buffer: buffer, diskHash: result.Hash, diskKnown: true}, nil
+}
+
+func (m *model) adoptDocument(requestPath string, loaded *document, focus bool) *document {
+	for index, d := range m.docs {
+		if pathKey(d.path) == pathKey(loaded.path) {
+			m.rememberDocument(requestPath, d)
+			if focus {
+				m.active = index
+				m.editing = true
+				m.documentEvent("focus", d, textbuffer.ChangeEvent{})
+			}
+			return d
+		}
+	}
+	m.docs = append(m.docs, loaded)
+	m.rememberDocument(requestPath, loaded)
+	if loaded.large != nil && m.native != nil {
+		m.startLargeDocument(loaded)
+	}
+	m.documentEvent("open", loaded, textbuffer.ChangeEvent{})
+	if focus {
+		m.active = len(m.docs) - 1
+		m.editing = true
+		m.documentEvent("focus", loaded, textbuffer.ChangeEvent{})
+	}
+	return loaded
+}
+
+// The UI owns the queue/tickets. One disk worker and one pending transfer keep
+// input responsive and memory bounded even when an OS read cannot be cancelled.
+func (m *model) startFileOpens(parent context.Context, dispatch func(func()) bool, read func(context.Context, string) (*document, error)) func() {
+	ctx, cancel := context.WithCancel(parent)
+	if read == nil {
+		read = loadDocument
+	}
+	var workers sync.WaitGroup
+	var next func()
+	next = func() {
+		if m.openBusy || len(m.openJobs) == 0 {
+			return
+		}
+		job := m.openJobs[0]
+		m.openJobs[0] = openJob{}
+		m.openJobs = m.openJobs[1:]
+		if err := errors.Join(ctx.Err(), job.ctx.Err()); err != nil {
+			if job.done != nil {
+				job.done(nil, err)
+			}
+			next()
+			return
+		}
+		m.openBusy = true
+		m.openingPath = job.path
+		request, stop := context.WithTimeout(ctx, 30*time.Second)
+		var abandoned atomic.Bool
+		m.cancelCurrentOpen = func() { abandoned.Store(true); stop() }
+		stopRequest := context.AfterFunc(job.ctx, stop)
+		workers.Go(func() {
+			loaded, failure := read(request, job.path)
+			// A context timeout after a successful large-file open still owns that
+			// result. Dispose it before posting; never leak a discarded index worker.
+			if failure == nil {
+				failure = errors.Join(request.Err(), job.ctx.Err())
+			}
+			stopRequest()
+			stop()
+			if failure != nil {
+				closeUnownedDocument(loaded)
+				loaded = nil
+			}
+			// An accepted dispatch can still be dropped during window shutdown.
+			// Transfer ownership atomically so cancellation can dispose a pending
+			// index without racing a UI callback that has adopted it.
+			var ownership atomic.Uint32
+			receipt := make(chan *document, 1)
+			if !dispatch(func() {
+				if !ownership.CompareAndSwap(0, 1) {
+					return
+				}
+				unused := loaded
+				defer func() { receipt <- unused }()
+				if ctx.Err() != nil {
+					return
+				}
+				err := errors.Join(failure, ctx.Err(), job.ctx.Err())
+				if abandoned.Load() {
+					err = errors.Join(err, errOpenSuperseded)
+				}
+				closed := loaded != nil && m.closedDuringOpen[pathKey(loaded.path)] > job.ticket
+				if err == nil && closed {
+					err = errOpenSuperseded
+				}
+				var d *document
+				if err == nil {
+					focused := job.ticket == m.openSequence
+					d = m.adoptDocument(job.path, loaded, focused)
+					if d == loaded {
+						unused = nil
+					}
+					if !focused {
+						err = errOpenSuperseded
+					}
+				}
+				if err != nil && job.ticket == m.openSequence {
+					m.message = err.Error()
+				}
+				if job.done != nil {
+					job.done(d, err)
+				}
+			}) {
+				closeUnownedDocument(loaded)
+				return
+			}
+			var unused *document
+			select {
+			case unused = <-receipt:
+			case <-ctx.Done():
+				if ownership.CompareAndSwap(0, 2) {
+					closeUnownedDocument(loaded)
+					return
+				}
+				unused = <-receipt
+			}
+			// Duplicate/discarded indexes may be waiting for OS reads. Finish
+			// disposing this result before starting the next worker.
+			closeUnownedDocument(unused)
+			dispatch(func() {
+				if ctx.Err() != nil {
+					return
+				}
+				m.openBusy = false
+				m.openingPath = ""
+				m.cancelCurrentOpen = nil
+				next()
+				if !m.openBusy && len(m.openJobs) == 0 {
+					m.closedDuringOpen = nil
+				}
+			})
+		})
+	}
+	m.requestOpen = func(request context.Context, path string, done func(*document, error)) {
+		if err := errors.Join(ctx.Err(), request.Err()); err != nil {
+			if done != nil {
+				done(nil, err)
+			}
+			return
+		}
+		path = m.lexicalPath(path)
+		m.openSequence++
+		ticket := m.openSequence
+		if d := m.findDocument(path); d != nil {
+			for i, candidate := range m.docs {
+				if candidate == d {
+					m.active = i
+					break
+				}
+			}
+			m.editing = true
+			m.documentEvent("focus", d, textbuffer.ChangeEvent{})
+			if done != nil {
+				done(d, nil)
+			}
+			return
+		}
+		if len(m.openJobs) >= maxOpenJobs {
+			err := fmt.Errorf("open queue is full (%d); existing documents are preserved", maxOpenJobs)
+			m.message = err.Error()
+			if done != nil {
+				done(nil, err)
+			}
+			return
+		}
+		m.openJobs = append(m.openJobs, openJob{ticket, request, path, done})
+		next()
+	}
+	m.cancelPendingOpens = func() {
+		m.openSequence++
+		if m.cancelCurrentOpen != nil {
+			m.cancelCurrentOpen()
+		}
+		jobs := m.openJobs
+		m.openJobs = nil
+		for _, job := range jobs {
+			if job.done != nil {
+				job.done(nil, errOpenSuperseded)
+			}
+		}
+	}
+	return func() {
+		cancel()
+		finished := make(chan struct{})
+		go func() { workers.Wait(); close(finished) }()
+		select {
+		case <-finished:
+		case <-time.After(3 * time.Second):
+		}
+	}
+}
+
+func (m *model) openThen(ctx context.Context, path string, done func(*document, error)) {
+	if m.requestOpen != nil {
+		m.requestOpen(ctx, path, done)
+		return
+	}
+	if err := ctx.Err(); err != nil {
+		if done != nil {
+			done(nil, err)
+		}
+		return
+	}
+	path = m.lexicalPath(path)
+	if d := m.findDocument(path); d != nil {
+		for i, candidate := range m.docs {
+			if candidate == d {
+				m.active = i
+				break
+			}
+		}
+		m.editing = true
+		m.documentEvent("focus", d, textbuffer.ChangeEvent{})
+		if done != nil {
+			done(d, nil)
+		}
+		return
+	}
+	loaded, err := loadDocument(ctx, path)
+	if err != nil {
+		m.message = err.Error()
+		if done != nil {
+			done(nil, err)
+		}
+		return
+	}
+	d := m.adoptDocument(path, loaded, true)
+	if d != loaded {
+		closeUnownedDocument(loaded)
+	}
+	if done != nil {
+		done(d, nil)
+	}
+}

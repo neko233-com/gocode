@@ -68,26 +68,92 @@ func onUI(cx *ui.Context, fn func(context.Context, json.RawMessage) (any, error)
 		}
 	}
 }
+
+func canonicalRPCPath(ctx context.Context, root, path string) (string, error) {
+	if path == "" || len(path) > 64<<10 {
+		return "", errors.New("invalid document path")
+	}
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(root, path)
+	}
+	physical, err := canonicalPath(path)
+	if err != nil {
+		return "", err
+	}
+	return physical, ctx.Err()
+}
+
+// Path resolution runs in the RPC worker before onUI. UI document lookup itself
+// is purely in-memory, including Windows short-name/symlink aliases.
+func resolveExtensionPaths(ctx context.Context, root string, raw json.RawMessage) (json.RawMessage, error) {
+	var request map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &request); err != nil {
+		return nil, err
+	}
+	resolve := func(object map[string]json.RawMessage) error {
+		if value, ok := object["path"]; ok {
+			var path string
+			if err := json.Unmarshal(value, &path); err != nil {
+				return err
+			}
+			physical, err := canonicalRPCPath(ctx, root, path)
+			if err != nil {
+				return err
+			}
+			object["path"], _ = json.Marshal(physical)
+		}
+		return nil
+	}
+	if err := resolve(request); err != nil {
+		return nil, err
+	}
+	if value, ok := request["documents"]; ok {
+		var documents []map[string]json.RawMessage
+		if err := json.Unmarshal(value, &documents); err != nil {
+			return nil, err
+		}
+		if len(documents) > 128 {
+			return nil, errors.New("edit exceeds 128-document policy")
+		}
+		for _, document := range documents {
+			if err := resolve(document); err != nil {
+				return nil, err
+			}
+		}
+		request["documents"], _ = json.Marshal(documents)
+	}
+	return json.Marshal(request)
+}
+
+func onDocumentUI(root string, cx *ui.Context, fn func(context.Context, json.RawMessage) (any, error)) lsp.Handler {
+	apply := onUI(cx, fn)
+	return func(ctx context.Context, raw json.RawMessage) (any, error) {
+		resolved, err := resolveExtensionPaths(ctx, root, raw)
+		if err != nil {
+			return nil, err
+		}
+		return apply(ctx, resolved)
+	}
+}
 func (m *model) findDocument(path string) *document {
-	path, _ = filepath.Abs(path)
+	path = m.lexicalPath(path)
+	if d := m.pathAliases[pathKey(path)]; d != nil {
+		return d
+	}
 	for _, d := range m.docs {
 		if d.path == path || (runtime.GOOS == "windows" && strings.EqualFold(d.path, path)) {
 			return d
-		}
-	}
-	physical, err := canonicalPath(path)
-	if err == nil && physical != path {
-		for _, d := range m.docs {
-			if d.path == physical || (runtime.GOOS == "windows" && strings.EqualFold(d.path, physical)) {
-				return d
-			}
 		}
 	}
 	return nil
 }
 
 func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *extensions.Host, storage string) <-chan struct{} {
-	host.Register("workspace/applyEdit", onUI(cx, func(_ context.Context, raw json.RawMessage) (any, error) {
+	root := m.workspace
+	host.Register("workspace/applyEdit", onDocumentUI(root, cx, func(_ context.Context, raw json.RawMessage) (any, error) {
 		var request struct {
 			Documents []struct {
 				Path    string            `json:"path"`
@@ -97,6 +163,9 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		}
 		if err := json.Unmarshal(raw, &request); err != nil {
 			return nil, err
+		}
+		if len(request.Documents) > 128 {
+			return nil, errors.New("edit exceeds 128-document policy")
 		}
 		seen := map[*document]bool{}
 		// Preflight the complete transaction before mutating any live buffer.
@@ -136,6 +205,11 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		if err := json.Unmarshal(raw, &request); err != nil {
 			return nil, err
 		}
+		physical, err := canonicalRPCPath(ctx, root, request.Path)
+		if err != nil {
+			return nil, err
+		}
+		request.Path = physical
 		type answer struct {
 			value any
 			err   error
@@ -176,21 +250,43 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 			return nil, ctx.Err()
 		}
 	})
-	host.Register("window/showTextDocument", onUI(cx, func(_ context.Context, raw json.RawMessage) (any, error) {
+	host.Register("window/showTextDocument", func(requestContext context.Context, raw json.RawMessage) (any, error) {
 		var request struct {
 			Path string `json:"path"`
 		}
 		if err := json.Unmarshal(raw, &request); err != nil {
 			return nil, err
 		}
-		m.open(request.Path)
-		d := m.findDocument(request.Path)
-		if !d.serviceEligible() {
-			return nil, errors.New(m.message)
+		type answer struct {
+			state *documentState
+			err   error
 		}
-		return map[string]any{"document": stateOf(d)}, nil
-	}))
-	host.Register("window/setSelection", onUI(cx, func(_ context.Context, raw json.RawMessage) (any, error) {
+		reply := make(chan answer, 1)
+		if !cx.Dispatch(func() {
+			m.openThen(requestContext, request.Path, func(d *document, err error) {
+				if err == nil && !d.serviceEligible() {
+					err = errors.New("document exceeds extension text policy")
+				}
+				if err != nil {
+					reply <- answer{err: err}
+					return
+				}
+				reply <- answer{state: stateOf(d)}
+			})
+		}) {
+			return nil, errors.New("native workbench closed")
+		}
+		select {
+		case result := <-reply:
+			if result.err != nil {
+				return nil, result.err
+			}
+			return map[string]any{"document": result.state}, nil
+		case <-requestContext.Done():
+			return nil, requestContext.Err()
+		}
+	})
+	host.Register("window/setSelection", onDocumentUI(root, cx, func(_ context.Context, raw json.RawMessage) (any, error) {
 		var request struct {
 			Path      string               `json:"path"`
 			Selection textbuffer.Selection `json:"selection"`

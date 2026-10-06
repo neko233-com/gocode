@@ -58,6 +58,26 @@ func TestNativeUnsavedClose(t *testing.T) {
 			width, height = width*96/int(window.DPI()), height*96/int(window.DPI())
 			discardX, discardY := width/2+50, height/2+31
 			until(t, func() bool { color, err := window.Pixel(500, 400); return err == nil && color == editor })
+			// An asynchronous startup can paint Welcome before the document is
+			// loaded. Wait for actual main.go tab glyphs before sending input.
+			until(t, func() bool {
+				pixels, err := window.Capture()
+				if err != nil {
+					return false
+				}
+				scale := float64(window.DPI()) / 96
+				ink := 0
+				for y := int(42 * scale); y < int(62*scale); y++ {
+					for x := int(323 * scale); x < int(375*scale); x++ {
+						r, g, b, _ := pixels.At(x, y).RGBA()
+						if r>>8 > 150 && g>>8 > 150 && b>>8 > 150 {
+							ink++
+						}
+					}
+				}
+				return ink > 30
+			})
+			until(t, func() bool { color, err := window.Pixel(600, 105); return err == nil && color == 0x282828 })
 			click := func(x, y int) {
 				t.Helper()
 				if err := window.Pointer(0x201, x, y); err != nil {
