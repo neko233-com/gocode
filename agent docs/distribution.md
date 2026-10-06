@@ -57,14 +57,18 @@ The local installation target is the user's per-user Programs directory, with a
 gocode command and Start Menu/desktop access; verify real installed launch/update
 settings. Never install test payloads over an unrelated application.
 
-Current verified install: v0.8.1/source 9a498ab4 payload selected by the original
+Current verified install: v0.9.0/source abadd6d0 payload selected by the original
 v0.5.1 MSI stable launcher through its actual -update command and signed/hashed
 public ZIP. The baseline installer and launcher file versions remain 0.5.1 until
-an MSI upgrade; -version reports the selected 0.8.1 source. The embedded official
+an MSI upgrade; -version reports the selected 0.9.0 source. The embedded official
 ConPTY runtime, actual native highlighted terminal, icons/GUI/settings and real
-gopls crash/reinitialize/unsaved replay/final-pixel checks passed after installation.
+gopls crash/reinitialize/unsaved replay/final-pixel checks and actual external
+file-watch/reload/conflict/VSIX/gopls controls passed after installation.
 Auto=true/mode=auto is retained. The owned update
 root rolled back to the original v0.4.0 and rendered its GUI with shared extensions.
-v0.8.1 automatic ghfast.top routing and a separate full direct GitHub download succeeded;
+v0.9.0 automatic direct GitHub routing and a separate full direct download succeeded;
 manual ghfast.top also passed signed SHA256. The earlier v0.6.0 direct timeout
 remains historical evidence; a range probe alone never establishes body success.
+The unmodified fsnotify BSD notice is appended to existing packaged LICENSE.txt.
+An added root FSNOTIFY-LICENSE.txt was rejected by the real legacy-layout package
+gate and was not published. Keep this old-client layout compatibility check.

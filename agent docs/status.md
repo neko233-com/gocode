@@ -1,6 +1,44 @@
 # Milestone ledger
 
-## Editable disk watching in development (2026-10-07)
+## Editable file watching v0.9.0 promotion (2026-10-07)
+
+Immutable app/package source `abadd6d0d53109f7445a41ee92652ada1491d7ff` passed
+all five jobs in [CI 37518877841](https://github.com/neko233-com/gocode/actions/runs/37518877841):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. This includes actual external
+atomic replacements, native conflict/cancel/confirmed reload, EOL undo/redo,
+VSIX diagnostic changes, actual gopls hover of reloaded source, language recovery,
+terminal, Windows 2025 real GiB browsing and MSI lifecycle, and Mac packages.
+The passing Windows 2022 conflict/dialog/final owned-GPU captures were downloaded
+and visually inspected. Public godesktop v0.5.3/source d22bf93 passed all five
+in 37513434533 and is independently pinned with GOWORK=off.
+
+[Publication 37520177277](https://github.com/neko233-com/gocode/actions/runs/37520177277)
+reused the exact tested packages and created stable v0.9.0. Generated metadata
+`626671a5897052929ff0bfe8c714f93b6ec01773` changes only the seven known channel/
+checksum/install files; local two Python hash/input-policy tests passed. No
+additional full-platform metadata CI is claimed. Public Windows ZIP SHA256 is
+`42fe5d4552df91dc23df58900b2f9a92ea9a5571dc8f9019fcac0b15fe2b2c25`;
+MSI SHA256 is `7342039b456539422ec26b1c9e20c988e21467bedddce74d8d66df440907974e`.
+Actual signed automatic direct-GitHub update, separate full direct download and
+manual ghfast.top full download passed integrity. Released-byte large browsing,
+four close modes, VSIX edit/save, terminal, recovered-gopls and file-watch/gopls
+native checks passed. The owned root then rolled back to real v0.4.0/source
+cfcd3513 and rendered its GUI with the same extension store.
+
+The user's existing stable launcher applied v0.9.0 through its actual old -update
+command, direct GitHub. Selected payload/source is 0.9.0/abadd6d; MSI/stable-launcher
+baseline remains 0.5.1. Installed version/update metadata, official embedded
+ConPTY, actual file-watch/gopls controls and pixels, recovered-gopls, highlighted
+terminal, save, GUI/icons/Settings/source preservation, shortcuts/icon files and
+normalized user PATH passed. Auto=true/mode=auto is retained. Installed final
+reload/Problems and Settings captures were inspected: new external function,
+clean tab, gopls ready and Up to date (0.9.0) are visible. Installed official
+Copilot authenticated/LSP/SDK=true, networkPromptSent=false. No new AI prompt.
+Framework/child harness and coverage ledger remain active: recursive watching,
+asynchronous ordinary opens/traversal, huge-browser reindex, diff/merge and full
+VS Code/official Copilot VSIX compatibility are unfinished (see files.md).
+
+## Editable disk watching development and negative controls (2026-10-07)
 
 Initial source 6001f54 CI 37515729600 passed Ubuntu and Mac ARM but Windows 2022
 failed its new actual-gopls/file-watch native fixture: external atomic rename
@@ -16,15 +54,17 @@ adding the required NUL storage (excluded from FileNameLength) passed the ten ru
 The original CI's other four jobs passed, including MSI on Windows 2025. The final
 complete local Windows rerun passed, followed by targeted target/cancel tests,
 rebuilt actual-gopls watch/native pixels and the no-cgo suite. Packaging includes
-the exact pinned fsnotify BSD notice on Windows/Mac. New full-source CI is pending.
+the exact pinned fsnotify BSD notice on Windows/Mac. Final promotion is above.
 No native gate
 is suppressed and no failed source has been published.
 
 Local committed-source 0ad8fec package extraction rejected the added standalone
 FSNOTIFY-LICENSE.txt because prior updater versions permit a fixed root layout.
-It was not published; its in-flight source CI is superseded. The package now
+It was not published; CI 37518524702 also failed Mac ARM package extraction before
+being superseded/cancelled. The package now
 appends the unmodified BSD notice to existing LICENSE.txt, retaining the legacy
-layout and integrity/health checks. Clean-source ZIP and final source CI are pending.
+layout and integrity/health checks. Clean-source ZIP/native health and final source
+CI passed at abadd6d, as recorded above.
 
 Public godesktop v0.5.3/source d22bf93187911a2fd829c993a6b096338e9a1b64 passed
 all five jobs in CI 37513434533 and is independently pinned with GOWORK=off.
@@ -38,9 +78,8 @@ with Repeat=1 after the shared bounded reader and parent-recreation test landed.
 The first rerun caught the binary-file error classification changing; the restored
 Binary/UTF-8 diagnostic passed the final complete rerun. Final actual gopls recovery
 and file-watch/gopls modes, no-cgo suite, two channel tests, workflow lint and
-PowerShell parsing passed. Final all-platform source CI, packages,
-signed public-byte update/rollback and user installation promotion are pending.
-The installed stable payload remains v0.8.1/source 9a498ab. Full scope is active;
+PowerShell parsing passed. The final all-platform source/packages/public-byte/
+installation evidence is recorded in the v0.9.0 promotion above. Full scope is active;
 files.md lists recursive-watch, large-browser and asynchronous-open gaps.
 
 ## Language recovery v0.8.1 promotion (2026-10-07)

@@ -37,6 +37,13 @@
 Normal CI never needs a paid Copilot prompt, certificate or notarization service.
 Real-account AI acceptance is an additional synthetic-workspace check.
 
+v0.9.0/source abadd6d passed all five source jobs in 37518877841, publication
+37520177277, signed public automatic/direct/manual-route bytes and actual v0.4.0
+native rollback. Windows 2022 source-CI and installed reload/Settings pixels were
+visually inspected. Installed SDK/LSP handshake passed without a new prompt. The
+initial Windows sharing, legacy rename, Win32 NUL and added root-license negative
+controls are recorded in files.md/status.md; failed sources were not published.
+
 v0.7.0/source 8a0fa076 passed all five source jobs in 37498949904, publication
 37500332017, actual signed public ZIP/native update and real v0.4.0 GUI rollback.
 Windows 2022 source-CI GPU captures and installed v0.7.0 Settings/terminal GPU
