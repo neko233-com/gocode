@@ -31,7 +31,7 @@ reverses, Ctrl/Cmd+PageUp/Down use tab order, Ctrl/Cmd+W retains dirty-close gua
 and the terminal's word-delete chord. Width policy, pinned/wrapped/preview tabs,
 MRU switcher overlay, tab reorder/drop, split groups and full menus remain gaps.
 
-Candidate `-tabs-smoke` opens 40 real files, captures completed GPU viewport,
+`-tabs-smoke` opens 40 real files, captures completed GPU viewport,
 selected indicator and scrollbar pixels, exercises native ordered/MRU keys,
 positioned horizontal wheel and owned thumb drag, then replaces a pressed close
 target with a new document at the same path/index before releasing. It checks
@@ -41,8 +41,15 @@ keyboard-state table; Mac uses owned native pointer/key NSEvents and real
 CG/NSEvent scroll deltas plus Quartz-to-owned-view coordinate conversion. The
 unposted CGEvent lacks an AppKit window attachment, so it enters scrollWheel's
 shared native delivery method after that conversion. No global input is posted.
-Windows console/GUI gates pass at 1280×820 logical / 150%; Mac normal/1.5/2 and
-public dependency/release promotion remain pending for this candidate.
+Windows console/GUI gates pass at 1280×820 logical / 150%. Public v0.7.0 dependency
+and app source def207c pass all five jobs in 37541346744. Mac Intel/ARM normal/
+1.5/2 gates pass actual wheel, pointer/drag, ordered/MRU keys and Control release.
+Source Windows 100%, ARM 150% stable-release and Intel 200% second-MRU captures
+were visually reviewed. Stable v0.12.0 is published and installed; released-byte
+and installed 40-tab gates pass. Installed 150% last-tab and Settings PNGs were
+visually inspected, showing Up to date (0.12.0), automatic route and gopls ready.
+Exact source/package/install evidence is in status.md; full tab/VS Code parity
+remains unfinished.
 
 `gocode -ui-smoke` opens actual main.go, README.md and a Chinese Markdown file in
 an owned temporary workspace, renders the production view, checks final caption

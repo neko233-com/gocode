@@ -1,5 +1,45 @@
 # Milestone ledger
 
+## Native overflow v0.12.0 promotion (2026-10-07)
+
+Immutable application/package source `def207c289953b51fe87ab33d28a69e1b7dab3ab`
+passed all five jobs in [CI 37541346744](https://github.com/neko233-com/gocode/actions/runs/37541346744):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. GOWORK=off independently uses
+public godesktop v0.7.0/source 5e7789b (all-five core CI 37540201901). Final local
+public-module three-repeat race/strict-cgo/vet and console/GUI native suites also
+pass. New 40-tab GPU/input gates exercise clipping, wheel/drag routing, same-path
+reopen capture identity, ordered/MRU navigation and Control release. Existing
+VSIX/opener, four close guards, reload/conflicts, recovered-gopls, real highlighted
+terminal, Windows 2025 actual GiB/MSI lifecycle and free package gates stay green.
+
+Mac normal/1.5/2 runs use actual native pointer/key/drag events and real CG/NSEvent
+wheel deltas with owned coordinate conversion. ARM logical 1024×684 produces
+1024×684 / 1536×1026 / 2048×1368; Intel logical 1280×820 produces 1280×820 /
+1920×1230 / 2560×1640. Source Windows 2022 captures 1024×728 at 100%. Windows last
+tab, ARM 150% stable-release and Intel 200% second-MRU PNGs were visually reviewed.
+
+[Publication 37542564399](https://github.com/neko233-com/gocode/actions/runs/37542564399)
+reused those exact tested packages and published stable v0.12.0. Tag source is
+verified as def207c. Metadata `c9a424446ce15adf4254387bc4a0c0805c458d76` changes
+only seven known channel/hash/install files; two Python policy tests pass. Windows
+ZIP SHA256 is `a9677e599420e65e39378cd03576e183ad937ffba925838ff11158f8e613e6da`;
+MSI SHA256 is `40921cb3e0d5fa5a9acd39bba477e86d3ef87e1bbb74cfd64e158da6f7396e4c`.
+Real signed automatic direct-GitHub update, separate full direct and manual
+ghfast.top ZIP downloads pass integrity. Released bytes pass large browsing,
+VSIX/edit/save, four close guards, real terminal, recovered-gopls, file-watch,
+delayed opening, measured-caption and 40-tab gates. The owned root then actually
+renders the original v0.4.0/source cfcd3513 GUI after rollback with shared extensions.
+
+The user's actual v0.11.0 updater selected 0.12.0/source def207c via direct GitHub.
+Stable MSI/launcher baseline remains 0.5.1. Installed GUI/icons/Settings/source
+preservation, caption and 40-tab native gates, official embedded ConPTY and update
+checks pass. Settings/last-tab captures at 1920×1230 / 150% were visually inspected:
+Up to date (0.12.0), automatic route and gopls ready. Desktop/nested Start Menu
+targets and normalized user PATH remain valid. Auto=true/mode=auto and both mirror
+URLs remain intact. Installed official Copilot authenticated/LSP/SDK=true and
+networkPromptSent=false. Full production/VS Code/official Copilot VSIX parity
+remains active; the accepted official SDK/Language Server route is retained.
+
 ## Native overflow candidate (2026-10-07)
 
 Clipped virtualized tab entries, document-instance input identity, manual wheel/
