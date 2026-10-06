@@ -8,6 +8,9 @@ from another program reject the write instead of overwriting that program's file
 VSIX acknowledgement and notifications emit one success event per saved revision.
 File-watch/conflict resolution and filesystem coordination are future work.
 
+Builtin sample extensions use versioned managed storage, preserving the shared
+user extension directory so a prior application can still start after rollback.
+
 gocode adds free Windows x64 MSI/portable packages and macOS Intel/Apple Silicon
 bundles, pinned command installation scripts and maintained winget/Scoop/Homebrew
 manifests. Public package-registry acceptance is separate from these custom channels.

@@ -175,3 +175,23 @@ cancel-in-progress control is still needed. A kernel-blocked write/fsync can out
 the worker context; explicit forced shutdown has a bounded three-second wait.
 Regular open/tree I/O, filesystem watchers/transactional conflicts and the broader
 editor/services/function coverage ledger remain unfinished.
+
+Promotion audit found a builtin rollback regression in `23ac180...`: installing
+the sample VSIX v0.4.0 into the shared user root made the real v0.5.1 executable
+fail startup with "extension version already installed". An owned local negative
+control ran the actual installed old release, new source, then old release again
+and reproduced that failure. This source must not be promoted even if its CI passes.
+Builtin payloads are now stored in hidden .gocode-bundled/<version>/ roots; the
+shared old installation stays untouched. Cross-platform unit checks verify
+idempotent new selection and byte-preserved old manifests. Real old-release GUI,
+new managed VSIX save/GUI, then old-release GUI rollback now pass using one owned
+extension root. Live signed release acceptance must also render the prior release
+after rollback, not merely print its version.
+
+CI `37473079133` did pass all five jobs at `23ac180ed0a36cadd9bcd4f729e092dc71040559`,
+including four Mac close modes, Windows DPI-derived discard clicks, GiB browsing,
+official gopls/Copilot and MSI/package gates. The separate actual-release rollback
+negative control above still prevented promotion. The corrected builtin isolation
+passed local real old/new/old native startup plus acknowledged VSIX save, full
+strict-cgo race tests, vet, workflow lint and diff checks. Publish only after the
+next exact-source CI verifies this final correction.

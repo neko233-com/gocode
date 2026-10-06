@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -29,13 +30,16 @@ var bundled embed.FS
 //go:embed tools/copilot-runtime/package.json tools/copilot-runtime/package-lock.json
 var copilotPackage embed.FS
 
+const bundledID = "gocode.hello-native"
+const bundledVersion = "0.4.0"
+
 func installBundled(root string) error {
 	installed, err := extensions.List(root)
 	if err != nil {
 		return err
 	}
 	for _, e := range installed {
-		if e.ID() == "gocode.hello-native" && e.Manifest.Version == "0.4.0" {
+		if e.ID() == bundledID && e.Manifest.Version == bundledVersion {
 			return nil
 		}
 	}
@@ -63,6 +67,30 @@ func installBundled(root string) error {
 	}
 	_, err = extensions.Install(root, name)
 	return err
+}
+
+// Keep builtin payloads versioned and hidden from the shared user VSIX store.
+// A rollback's older installer must still see its own builtin version there.
+func workbenchExtensions(root string) ([]extensions.Extension, error) {
+	managed := filepath.Join(root, ".gocode-bundled", bundledVersion)
+	if err := installBundled(managed); err != nil {
+		return nil, err
+	}
+	user, err := extensions.List(root)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]extensions.Extension, 0, len(user)+1)
+	for _, extension := range user {
+		if !strings.EqualFold(extension.ID(), bundledID) {
+			result = append(result, extension)
+		}
+	}
+	known, err := extensions.List(managed)
+	if err != nil {
+		return nil, err
+	}
+	return append(result, known...), nil
 }
 func main() {
 	if err := run(); err != nil {
@@ -316,10 +344,7 @@ func run() error {
 	if *copilotCheck || *copilotSmoke {
 		return checkCopilot(*copilotRoot, m.workspace, *copilotSmoke)
 	}
-	if err = installBundled(*extensionDir); err != nil {
-		return err
-	}
-	installed, err := extensions.List(*extensionDir)
+	installed, err := workbenchExtensions(*extensionDir)
 	if err != nil {
 		return err
 	}

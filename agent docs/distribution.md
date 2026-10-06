@@ -46,6 +46,13 @@ Icons are sourced from the referenced microsoft/vscode Code-OSS repository with
 its exact resource revision/license retained. Keep installer, shortcut, executable
 and macOS bundle icon metadata synchronized.
 
+Built-in sample VSIX payloads live under the extension root's hidden
+.gocode-bundled/<version>/ store. They never upgrade the shared user VSIX store;
+rollback executables retain their expected old builtin installation there. The
+native workbench selects its own embedded builtin and preserves other user VSIXs.
+Acceptance must launch both the new and real prior release with the same user
+extension root; a -version/health-only rollback check does not prove GUI startup.
+
 The local installation target is the user's per-user Programs directory, with a
 gocode command and Start Menu/desktop access; verify real installed launch/update
 settings. Never install test payloads over an unrelated application.
