@@ -69,13 +69,13 @@ locks, next-launch activation and rollback. Fixed 512 MiB archive/expansion boun
 An MSI baseline supersedes stale update pointers and remains the rollback target.
 Real Windows mouse/keyboard settings persistence and owned GPU capture passed:
 `.cache/updates-native-settings.png`. Automatic/manual routing and toggle were saved
-without changing the active document. No final installed-app live release update yet.
+without changing the active document. Final published/install evidence is below.
 
 `gocode -install-copilot` installs the embedded npm lockfile with no lifecycle scripts
 into the per-user versioned tools directory. This machine's managed runtime passed
 real authenticated LSP initialization and SDK connection without an AI prompt.
 
-Remaining promotion gates: new exact-source CI (including macOS packages and MSI),
+Prototype promotion gates were: new exact-source CI (including macOS packages and MSI),
 published immutable installers/signed manifest/custom channels, real published-byte
 update/rollback and final local installation. Public registry acceptance is separate.
 Never publish dirty/synthetic prototype packages or private signing keys.
@@ -94,3 +94,24 @@ also drops a separate empty optional mirror argument; the maintained bootstrap
 now passes `-update-mirror=` and MSI acceptance executes that actual default CLI
 installer with an isolated user config. Released app/installer/ZIP bytes remain
 immutable; a corrected `install-windows.ps1` helper is published separately.
+
+Final local install (2026-10-06): corrected PowerShell 5 command installer downloaded
+the actual v0.5.1 public MSI over direct GitHub, verified its pinned SHA256 and
+installed to `C:\Users\14170\AppData\Local\Programs\gocode`. Version/platform/source
+match `0.5.1 windows/amd64 e7f2d69011040b6c458cb54fc73f4cff695015b6`.
+Start Menu/desktop shortcuts target the stable GUI launcher with icon metadata;
+user PATH includes the install root, launcher VERSIONINFO reports 0.5.1. Both native
+icon handles, a real owned-GPU Settings frame and source preservation passed.
+Screenshot `.cache/installed-acceptance/updates-native.png` was visually inspected:
+Automatic true, Automatic route, GitHub, Up to date (0.5.1), gopls ready.
+
+Installed Copilot runtime/gopls commands succeeded; official SDK/LSP handshake
+reports authenticated=true without a prompt. Installed real gopls native formatting,
+hover/definition/completion/diagnostic clearing also passed with owned GPU capture.
+Live signed public ZIP update from the original v0.4.0 source binary to v0.5.1
+passed extraction/health/launcher/native large-file rendering. Direct and manual
+ghfast downloads passed signed-asset SHA256, and rollback launched the exact
+v0.4.0 source again. These are owned acceptance roots, separate from the final
+MSI install. Installed -update-check and -update verify current GitHub metadata
+and report up-to-date. No all-feature or full production parity claim.
+Unsaved-window close protection is next framework work.
