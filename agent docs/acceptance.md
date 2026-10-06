@@ -56,6 +56,14 @@
 Normal CI never needs a paid Copilot prompt, certificate or notarization service.
 Real-account AI acceptance is an additional synthetic-workspace check.
 
+v0.13.0/source d4a869e passed all five source jobs in 37547147426; publication
+37548090734 reused tested artifacts. New search includes real unsaved/Unicode/
+regex/ignore/stale-result input, actual Windows 2025 GiB scan/native navigation
+and both Mac normal/1.5/2 completed-drawable gates. Public bytes/route/rollback
+and installed GUI/search/tabs/terminal/SDK-LSP-without-prompt checks pass.
+Windows 100%, ARM 150%, Intel 200% and installed 150% meaningful search/Settings
+captures were visually reviewed. Exact numbers, source and hashes are in status.md.
+
 v0.11.0/source 05439ef passed all five source jobs in 37534367695, publication
 37535500899 reused tested artifacts, and released-byte/route/rollback/installed
 gates passed. Windows actual GPU-logo/caption/native-tab checks and both Mac

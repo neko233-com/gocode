@@ -78,6 +78,22 @@ case/word/regex/ignore, Unicode selection, actual disk-stale rejection, file-bac
 tail navigation and unchanged source hashes. Selected-Unicode and large-navigation
 GPU PNGs were visually inspected at 1920×1230 / 150%.
 
-CI wires Windows console/GUI, Windows 2025 actual GiB, and both Mac native
-normal/1.5/2 drawable-density gates. Mac/public release/installation evidence
-remains pending for this candidate; promotion must name the exact successful source.
+Immutable v0.13.0 source `d4a869e24c9acc2d93cd9aefb17f9303064423b2` passed all
+five jobs in [CI 37547147426](https://github.com/neko233-com/gocode/actions/runs/37547147426),
+including Windows console/GUI, Windows 2025 actual GiB and Mac Intel/ARM native
+normal/1.5/2 drawable-density gates. The Windows 2025 race-enabled actual GiB
+literal scan reported 16.8320796 s / 811,736 new Go allocation bytes and the same
+2,147,492,044 measured I/O bytes. This is distinct from the local non-race result.
+Mac character probes construct actual owned-view NSEvents; punctuation is kept
+separate from virtual-key codes (`[` must not become Command). No global input
+is posted. ARM 150% selected-Unicode, Intel 200% large-navigation and Windows
+100% literal-result PNGs were visually inspected.
+Windows 2025 actual GiB tail-navigation pixels at 1024×720 / 100% were also
+reviewed: Read-only 1.00 GiB / byte 1,073,741,573 and the actual needle page.
+
+[Publication 37548090734](https://github.com/neko233-com/gocode/actions/runs/37548090734)
+reused the tested packages. Public released bytes passed native search alongside
+existing acceptance, real signed automatic/direct/manual mirror integrity and
+actual prior-source GUI rollback. The user's actual installed 0.13.0 GUI passed
+the same search gate; selected-Unicode and Settings PNGs were visually reviewed
+at 1920×1230 / 150%. See status.md for exact package hashes and installation scope.

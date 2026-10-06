@@ -1,5 +1,57 @@
 # Milestone ledger
 
+## Native workspace search v0.13.0 promotion (2026-10-07)
+
+Immutable source/package `d4a869e24c9acc2d93cd9aefb17f9303064423b2` passed all
+five jobs in [CI 37547147426](https://github.com/neko233-com/gocode/actions/runs/37547147426):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. GOWORK=off independently uses
+public godesktop v0.7.0. Native content search now covers unsaved snapshots,
+Unicode folding, case/word/Go regex, include/exclude and nested Git ignore,
+grouped virtual results, cancellation and verified UTF-16/file-backed navigation.
+Existing editor/VSIX, tabs, opener, close guards, file watch, recovered gopls,
+highlighted ConPTY/PTY, MSI lifecycle and free packaging gates stay green.
+
+Actual Windows 2025 race-enabled single-line 1,073,741,824-byte search reported
+16.8320796 s / 811,736 new Go allocation bytes / 2,147,492,044 measured I/O bytes.
+Actual GiB native query/regex/control/result/tail navigation also passed with
+unchanged source hashes. The local non-race 1.53 s / 360,624-byte result is a
+separate run, not a cross-device guarantee. Search package coverage is 81.8%.
+Two prior fuzz passes and regex/Git oracles are recorded in search.md.
+
+Mac Intel/ARM normal/1.5/2 search captures pass actual owned NSEvent input and
+completed Metal pixels. ARM dimensions are 1024×684 / 1536×1026 / 2048×1368;
+Intel dimensions are 1280×820 / 1920×1230 / 2560×1640. The dedicated Mac character
+probe fixes the ASCII `[` / diagnostic Command-key collision. Windows 100%
+literal-results, ARM 150% selected-Unicode and Intel 200% large-navigation PNGs
+were visually inspected. Superseded dc2e1f5 CI 37546900949 was cancelled; only
+the final d4a869e source is promoted.
+Windows 2025 actual GiB tail-navigation PNG was also inspected at 1024×720 / 100%:
+Read-only 1.00 GiB, actual byte 1,073,741,573, completed index and needle page.
+
+[Publication 37548090734](https://github.com/neko233-com/gocode/actions/runs/37548090734)
+reused those exact tested packages and published v0.13.0 at d4a869e. Metadata
+`c708e34ec719c9d1b00dfa76562854bd0876d9f0` changes only seven known channel files;
+two Python policy tests pass. Windows ZIP SHA256 is
+`e6eaa330329b54d5bf1fc08885259c6c53ed1b37b7ce47aa102d001150f577f7`; MSI is
+`cc4be54ecfde6580c1332bf9246412637f84d02e9ba3e1a56e974468f35a1ee0`.
+Real signed automatic direct-GitHub update, independent full direct and manual
+ghfast.top ZIP body/hash checks pass. Released bytes pass new search and existing
+large/editor/VSIX/four-close/terminal/recovered-gopls/watch/opener/UI/tabs gates.
+The owned install then renders actual v0.4.0/source cfcd3513 after rollback with
+shared extensions; a health-only rollback claim is insufficient.
+
+The user's actual v0.12.0 updater selected 0.13.0/source d4a869e via direct GitHub.
+Stable MSI/launcher baseline remains 0.5.1. Actual installed GUI/icons/Settings,
+search, 40-tab and measured-caption gates, highlighted terminal, official embedded
+ConPTY 1.25.260930003 and update checks pass. Search selected-Unicode and Settings
+1920×1230 / 150% PNGs were visually reviewed: Up to date (0.13.0), automatic
+route and gopls ready. Auto=true/mode=auto, both mirror URLs, desktop/nested Start
+Menu stable launcher targets and normalized user PATH are preserved. Installed
+official Copilot authenticated/LSP/SDK=true, networkPromptSent=false. Full
+production/GPUI/VS Code/official Copilot VSIX parity remains active; workspace
+replace and other explicit search gaps remain open. The accepted SDK/LSP route
+is retained.
+
 ## Native workspace search candidate (2026-10-07)
 
 The filename-only activity is replaced with native content search, unsaved
