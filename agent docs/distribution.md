@@ -1,5 +1,13 @@
 # Free distribution contract
 
+Latest promotion: v0.11.0/source 05439ef, five-platform source CI 37534367695 and
+publication 37535500899 reusing tested artifacts. Seven generated metadata files
+at b6c7af4 passed local policy tests and real signed automatic/direct/manual ZIP
+body checks. Released native gates and actual v0.4.0 GUI rollback passed. User
+selected payload is 0.11.0; stable MSI/launcher baseline remains 0.5.1. Actual
+installed native/visual/SDK-LSP-without-prompt gates passed with Auto=true/mode=auto.
+Exact hashes and source references are in status.md and distribution/SHA256SUMS.
+
 Maintained channels: Windows unsigned MSI/portable ZIP and pinned PowerShell install;
 macOS Intel/ARM .app/tar.gz, updater ZIP and shell install; custom winget manifests,
 Scoop bucket and Homebrew cask. Generated manifests are not public registry acceptance.

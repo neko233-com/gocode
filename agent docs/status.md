@@ -1,5 +1,42 @@
 # Milestone ledger
 
+## Native image / measured captions v0.11.0 promotion (2026-10-07)
+
+Immutable application/package source `05439efb84156feeb14b1d45f76631bd1d0673cc`
+passed all five jobs in [CI 37534367695](https://github.com/neko233-com/gocode/actions/runs/37534367695):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. Independent GOWORK=off uses
+public godesktop v0.6.0/source 3bf3e4d (core CI 37532765849, all five green).
+The new native caption/selection/tab and Windows GPU-logo gates pass; both Macs
+capture real completed Metal drawable pixels at normal/1.5/2 density. Existing
+opener/VSIX, file reload/conflicts, recovered-gopls, highlighted terminal, Windows
+2025 actual GiB/MSI lifecycle and package gates remain green. Exact-source Windows
+2022 README, Mac ARM 150%/closed 200% and Intel 200% PNGs were visually inspected.
+
+[Publication 37535500899](https://github.com/neko233-com/gocode/actions/runs/37535500899)
+reused those actual tested packages and created stable v0.11.0. Generated metadata
+`b6c7af4a7543d2f1e0d0872cc49ba430bd7e6aae` changes only the seven known channel/
+hash/install files; two local Python policy tests passed. No separate full-platform
+metadata CI is claimed. Windows ZIP SHA256 is
+`780fe10b91fafc191312723feaf781f4d1ce17d545cfa343e8d65bf298232530`;
+MSI SHA256 is `ce6af9189d4955d47e1ca8fd4e5817a14256219597d5c66e68c7cde148227950`.
+Real signed automatic direct-GitHub update, separate full direct and manual
+ghfast.top full ZIP downloads passed integrity. Released-byte visual/tab, opener,
+VSIX/save, four close modes, large browsing, terminal, recovered-gopls and file-watch
+checks passed. The owned root then actually rendered the original v0.4.0/source
+cfcd3513 after rollback with shared extensions.
+
+The user's actual v0.10.0 -update command selected 0.11.0/source 05439ef via direct
+GitHub. Stable MSI/launcher baseline remains 0.5.1. Installed version/update,
+embedded official ConPTY, native visual/tab/opener, VSIX edit/save, recovered-gopls,
+file watch/gopls, highlighted terminal, close save, GUI/icons/Settings and source
+preservation passed. Actual desktop/nested Start Menu targets, icon handles and
+normalized user PATH remain valid. Auto=true/mode=auto and both mirror URLs are
+preserved. Installed official Copilot authenticated/LSP/SDK=true and
+networkPromptSent=false. Installed README and Settings GPU PNGs were visually
+reviewed: complete Latin/CJK names, actual logo, Up to date (0.11.0), automatic
+route and gopls ready. Full production/VS Code/official Copilot VSIX parity remains
+active; the accepted official SDK/Language Server path is retained.
+
 ## Native image / measured captions development (2026-10-07)
 
 The workbench now renders the upstream immutable Code-OSS PNG in the Windows

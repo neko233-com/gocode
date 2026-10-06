@@ -46,6 +46,12 @@
 Normal CI never needs a paid Copilot prompt, certificate or notarization service.
 Real-account AI acceptance is an additional synthetic-workspace check.
 
+v0.11.0/source 05439ef passed all five source jobs in 37534367695, publication
+37535500899 reused tested artifacts, and released-byte/route/rollback/installed
+gates passed. Windows actual GPU-logo/caption/native-tab checks and both Mac
+normal/1.5/2 completed-drawable checks are now verified; passing source/installed
+Windows and source Mac captures were visually reviewed. Full parity remains open.
+
 v0.10.0/source 0a86cec passed all five source jobs in 37527105167, publication
 37528232380, signed actual direct/mirror bytes, released native opener/VSIX/editor/
 terminal/gopls/reload and v0.4.0 native rollback. The initial a335ff0 failed both

@@ -35,5 +35,16 @@ Assertions must be followed by visual inspection of meaningful passing captures.
 Local Windows candidate checks passed at 1280×820 logical pixels / 150% DPI.
 Initial README and selected/closed-tab PNGs are in .cache/workbench-ui. Restoring
 the previous rune-based sizing produced a real native failure: README.md caption
-overlapped the close target. Restored measurement sizing passed. Public-dependency
-and exact-source Mac/Windows CI promotion remain pending in the status ledger.
+overlapped the close target. Restored measurement sizing passed. Final public
+v0.6.0 dependency and source 05439ef passed all five jobs in CI 37534367695; stable
+v0.11.0 was published and installed. Actual released-byte and installed visual/tab
+checks passed, alongside signed routes and real prior-source GUI rollback.
+
+Exact-source capture sizes: Windows 2022 1024×728 at 100%; installed Windows
+1920×1230 for 1280×820 logical pixels / 150% DPI. Mac ARM actual logical viewport
+was screen-constrained to 1024×684, yielding 1024×684 / 1536×1026 / 2048×1368.
+Mac Intel viewport was 1280×820, yielding 1280×820 / 1920×1230 / 2560×1640.
+Windows source/installed README and installed Settings, Mac ARM 150%/closed 200%
+and Intel 200% passing captures were visually inspected. Metal drawable readback
+contains the native-rendered workbench; AppKit traffic lights/window chrome are
+separate native controls and are not part of the drawable PNG.
