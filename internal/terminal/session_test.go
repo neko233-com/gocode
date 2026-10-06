@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -78,14 +79,39 @@ func TestTerminalChild(t *testing.T) {
 		}
 	}
 }
+
+var fixtureTraces sync.Map
+
+type fixtureTrace struct {
+	mu   sync.Mutex
+	tail []string
+}
+
+func (r *fixtureTrace) record(kind string, value []byte) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.tail = append(r.tail, fmt.Sprintf("%s %q", kind, value[:min(len(value), 512)]))
+	if len(r.tail) > 20 {
+		r.tail = r.tail[len(r.tail)-20:]
+	}
+}
+func (r *fixtureTrace) text() string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return strings.Join(r.tail, "\n")
+}
 func childSession(t *testing.T, size Size) *Session {
 	t.Helper()
 	config := Config{Command: []string{os.Args[0], "-test.run=^TestTerminalChild$"}, Directory: t.TempDir(), Environment: append(os.Environ(), "GOCODE_PTY_CHILD=1"), History: 16}
+	trace := &fixtureTrace{}
+	config.trace = trace.record
 	s, err := Start(context.Background(), config, size)
 	if err != nil {
 		t.Fatal(err)
 	}
+	fixtureTraces.Store(s, trace)
 	t.Cleanup(func() {
+		defer fixtureTraces.Delete(s)
 		if err := s.CloseAndWait(); err != nil {
 			t.Error(err)
 		}
@@ -105,6 +131,9 @@ func terminalUntil(t *testing.T, s *Session, condition func(*Frame) bool) *Frame
 		case <-s.Updates():
 		case <-time.After(20 * time.Millisecond):
 		case <-deadline.C:
+			if trace, ok := fixtureTraces.Load(s); ok {
+				t.Log("owned fixture IO:\n" + trace.(*fixtureTrace).text())
+			}
 			t.Fatalf("terminal condition timed out: size=%+v generation=%d exited=%t code=%d error=%s\n%s", frame.Size, frame.Generation, frame.Exited, frame.ExitCode, frame.Error, frame.Text())
 		}
 	}

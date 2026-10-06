@@ -36,6 +36,7 @@ type Config struct {
 	Name        string
 	History     int
 	cleanup     func()
+	trace       func(string, []byte) // Internal owned-fixture diagnostics only.
 }
 type Cell struct {
 	Text                   string
@@ -102,6 +103,7 @@ type Session struct {
 	title         string
 	workers       sync.WaitGroup
 	stopOnce      sync.Once
+	trace         func(string, []byte)
 }
 
 func Start(parent context.Context, config Config, size Size) (_ *Session, failure error) {
@@ -161,6 +163,7 @@ func Start(parent context.Context, config Config, size Size) (_ *Session, failur
 	ctx, cancel := context.WithCancel(parent)
 	s := &Session{backend: backend, emulator: vt.NewEmulator(size.Columns, size.Rows), ctx: ctx, cancel: cancel, requests: make(chan request, 64), writes: make(chan []byte, 64), updates: make(chan struct{}, 1), done: make(chan struct{}), outputDone: make(chan struct{}), cursorVisible: true, exitCode: -1}
 	s.emulator.SetScrollbackSize(config.History)
+	s.trace = config.trace
 	s.emulator.SetDefaultForegroundColor(color.RGBA{0xcc, 0xcc, 0xcc, 255})
 	s.emulator.SetDefaultBackgroundColor(color.RGBA{0x18, 0x18, 0x18, 255})
 	palette := []uint32{0, 0xcd3131, 0x0dbc79, 0xe5e510, 0x2472c8, 0xbc3fbc, 0x11a8cd, 0xe5e5e5, 0x666666, 0xf14c4c, 0x23d18b, 0xf5f543, 0x3b8eea, 0xd670d6, 0x29b8db, 0xffffff}
@@ -327,7 +330,13 @@ func (s *Session) writeInput() {
 		case <-s.ctx.Done():
 			return
 		case value := <-s.writes:
+			if s.trace != nil {
+				s.trace("input", value)
+			}
 			n, err := s.backend.Write(value)
+			if s.trace != nil {
+				s.trace("write-result", []byte(fmt.Sprintf("%d %v", n, err)))
+			}
 			if err != nil || n != len(value) {
 				s.fail(fmt.Errorf("terminal input: %w", errors.Join(err, io.ErrShortWrite)))
 				return
@@ -376,6 +385,9 @@ func (s *Session) readOutput() {
 	for {
 		n, err := s.backend.Read(buffer)
 		if n > 0 && s.ctx.Err() == nil {
+			if s.trace != nil {
+				s.trace("output", buffer[:n])
+			}
 			filtered := filter.feed(buffer[:n])
 			s.mu.Lock()
 			_, writeErr := s.emulator.Write(filtered)
