@@ -20,6 +20,12 @@ the exact pinned fsnotify BSD notice on Windows/Mac. New full-source CI is pendi
 No native gate
 is suppressed and no failed source has been published.
 
+Local committed-source 0ad8fec package extraction rejected the added standalone
+FSNOTIFY-LICENSE.txt because prior updater versions permit a fixed root layout.
+It was not published; its in-flight source CI is superseded. The package now
+appends the unmodified BSD notice to existing LICENSE.txt, retaining the legacy
+layout and integrity/health checks. Clean-source ZIP and final source CI are pending.
+
 Public godesktop v0.5.3/source d22bf93187911a2fd829c993a6b096338e9a1b64 passed
 all five jobs in CI 37513434533 and is independently pinned with GOWORK=off.
 The new worker uses fsnotify v1.10.1 parent watches plus bounded reconciliation.
