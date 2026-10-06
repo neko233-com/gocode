@@ -1,3 +1,7 @@
+v0.5.1 corrects Windows PowerShell 5 ZIP paths and validates every actual generated
+updater archive through production extraction and native executable health checks.
+v0.5.0's Windows updater archive was rejected safely; its immutable assets remain.
+
 gocode adds free Windows x64 MSI/portable packages and macOS Intel/Apple Silicon
 bundles, pinned command installation scripts and maintained winget/Scoop/Homebrew
 manifests. Public package-registry acceptance is separate from these custom channels.

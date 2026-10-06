@@ -48,6 +48,9 @@ task_zip="$task_output/gocode-$task_version-darwin-$task_arch.zip"
 task_tar="$task_output/gocode-$task_version-darwin-$task_arch.tar.gz"
 if [ -e "$task_zip" ] || [ -e "$task_tar" ]; then echo 'Package output already exists' >&2; exit 1; fi
 (cd "$task_payload" && zip -q -r "$task_zip" .)
+task_probe=true
+case "$task_commit" in *-dirty) task_probe=false;; esac
+GOWORK=off CGO_ENABLED=0 go run ./cmd/gocode-packagecheck -archive "$task_zip" -platform "darwin/$task_arch" -version "$task_version" -source "${task_commit%-dirty}" -probe="$task_probe"
 tar -C "$task_stage" -czf "$task_tar" gocode.app
 "$task_app/Contents/MacOS/gocode" -version
 plutil -lint "$task_app/Contents/Info.plist"

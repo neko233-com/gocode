@@ -45,7 +45,18 @@ try {
     Copy-Item -LiteralPath (Join-Path $taskRoot 'assets/code-oss/LICENSE.txt') -Destination (Join-Path $taskPayload 'CODE-OSS-LICENSE.txt')
     $taskZip=Join-Path $taskOutput "gocode-$Version-windows-amd64.zip"
     if(Test-Path -LiteralPath $taskZip){throw "Artifact exists: $taskZip"}
-    Compress-Archive -Path (Join-Path $taskPayload '*') -DestinationPath $taskZip -CompressionLevel Optimal
+    # Windows PowerShell 5 Compress-Archive writes backslash ZIP entry names.
+    # ZIP paths must be canonical forward slashes for the strict updater.
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $taskArchive=[IO.Compression.ZipFile]::Open($taskZip,[IO.Compression.ZipArchiveMode]::Create)
+    try{foreach($taskFile in (Get-ChildItem -LiteralPath $taskPayload -File -Recurse)){
+        $taskRelative=$taskFile.FullName.Substring($taskPayload.Length+1).Replace('\','/')
+        [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($taskArchive,$taskFile.FullName,$taskRelative,[IO.Compression.CompressionLevel]::Optimal)
+    }}finally{$taskArchive.Dispose()}
+    $taskCheckSource=$taskCommit.Replace('-dirty','');$taskProbe='true';if($taskDirty){$taskProbe='false'}
+    & go run ./cmd/gocode-packagecheck -archive $taskZip -platform windows/amd64 -version $Version -source $taskCheckSource "-probe=$taskProbe"
+    if($LASTEXITCODE -ne 0){throw 'Generated updater archive extraction/health failed.'}
     & (Join-Path $taskPayload 'gocode.exe') -version
     if($LASTEXITCODE -ne 0){throw 'Packaged command launcher failed.'}
     if(-not $SkipMSI){& (Join-Path $PSScriptRoot 'build-msi.ps1') -PayloadDirectory $taskPayload -Version $Version -OutputPath (Join-Path $taskOutput "gocode-$Version-windows-amd64.msi")}

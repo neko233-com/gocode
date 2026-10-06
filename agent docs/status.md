@@ -79,3 +79,11 @@ Remaining promotion gates: new exact-source CI (including macOS packages and MSI
 published immutable installers/signed manifest/custom channels, real published-byte
 update/rollback and final local installation. Public registry acceptance is separate.
 Never publish dirty/synthetic prototype packages or private signing keys.
+
+Distribution source `8bccd29b23cd181e074f1c8cdefc6be1ea2e8f59` passed all five
+jobs in CI `37459941417` and publication workflow `37461001171`. Real published
+Windows ZIP update acceptance then exposed PowerShell 5 backslash ZIP paths.
+The strict updater rejected it and kept the immutable v0.4.0 baseline selected.
+v0.5.0 was held as a prerelease; no final user install occurred. v0.5.1 uses
+canonical ZIP paths and a new package gate that exercises production Stage and
+real native Probe on the exact generated Windows/macOS archives before publishing.
