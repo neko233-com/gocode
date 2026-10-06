@@ -1,14 +1,50 @@
 # Milestone ledger
 
-## Terminal v0.7.0 development (2026-10-06)
+## Terminal v0.7.0 promotion (2026-10-07)
 
-Real native ConPTY/PTY terminal and shell input highlighting are implemented in
-the working revision. Local Windows strict-cgo/race and owned GPU acceptance pass,
+Real native ConPTY/PTY terminal and shell input highlighting are published at
+immutable source `8a0fa07670a3018b42ab86eb2dd45e814099c7c7`. All five source CI
+jobs passed in `37498949904`: Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu.
+Publication `37500332017` reused those exact tested Windows MSI/ZIP and Mac
+bundles, signed the update metadata and created v0.7.0. Generated channel metadata
+is `cacee0d8b5228f63eb37748269721a266530a279`; all five jobs also passed at
+that exact metadata commit in manual CI `37500982783`, including MSI lifecycle,
+real GiB native browsing, gopls/Copilot and Mac bundle packaging. This evidence
+commit changes documentation only; application/package source gates are retained.
+Local Windows strict-cgo/race and owned GPU acceptance pass,
 including PowerShell 7/5.1, truecolor, Unicode, resize, alternate screen, Ctrl+C,
 final exit output, bounded flood/scrollback and owned descendant cleanup. Native
 keyboard focus leaves the editor unchanged. See terminal.md for bounds/provenance
-and explicit gaps. Exact-source Windows/Mac Intel/ARM/Ubuntu CI and immutable
-release are pending; installed stable remains verified v0.6.0 until promotion.
+and explicit gaps. Independently downloaded source-CI Windows 2022 GPU captures
+were visually inspected: distinct pre-Enter command/string colors, readable
+truecolor output, native panel background and actual resized shell columns.
+
+Actual signed public v0.7.0 ZIP acceptance passed automatic direct-GitHub download,
+native large-file/four-close/VSIX-save/terminal checks and separate full direct
+and manual ghfast.top downloads, each verified against signed SHA256
+`11bed5aa26e66c76b5fb7eb1db356a15d1f033af2161014c9e27b2dddecc0087`.
+The owned root then rolled back to v0.4.0/source cfcd3513 and rendered that real
+prior native GUI with the same extension store. Its original baseline is intact.
+User installation is promoted and checked separately below.
+
+The user's actual stable v0.5.1 launcher updated the existing v0.6.0 selection
+to v0.7.0/source 8a0fa076 via its own -update command using the complete direct
+GitHub ZIP. Root remains `C:\Users\14170\AppData\Local\Programs\gocode`;
+MSI/launcher baseline stays 0.5.1, actual payload is 0.7.0. Installed -version,
+-terminal-runtime-check, real highlighted -terminal-smoke and native GUI/icon/
+Settings/source-preservation checks passed. Owned Settings/input/output captures
+under .cache/installed-acceptance were visually inspected: Automatic true,
+Automatic route, Up to date (0.7.0), gopls ready, distinct input syntax and output
+truecolor with correct resized columns. Installed real gopls formatting/hover/
+definition/completion/versioned diagnostic clearing passed. -update-check returns
+0.7.0/source 8a0fa076; auto=true/mode=auto is retained. Official installed Copilot
+check reports authenticated/lspInitialized/sdkConnected=true,
+networkPromptSent=false. No new AI prompt was sent. These checks do not establish
+full official Copilot VSIX or all VS Code API/function/UI compatibility.
+Desktop and Start Menu shortcuts still target the stable gocode-launch.exe;
+their installer-owned icon files and normalized per-user PATH remain valid.
+
+### Development negative controls before promotion
 
 Do not promote source 32a4d5a/CI 37490630980 or 3121950/CI 37492140590.
 Windows runners needed a raw/VT-input full-screen fixture and a longer bounded
@@ -18,7 +54,7 @@ inherited interruption status 130; acceptance now explicitly requests `exit 0`.
 Small runner fonts and asynchronous GPU completion exposed the exact-RGB/early
 snapshot predicate. The gate now waits for actual colored ink in the process-owned
 terminal grid and accounts for foreground/background glyph coverage. It retains
-both real VT-color and native pixel checks. Next exact-source CI is required.
+both real VT-color and native pixel checks. The later promoted CI gates these fixes.
 
 Bounded IO from source 6f9d398 / CI 37495036441 confirmed Windows 2022 did not
 forward either DEC 1049 switch. No primary command was sent because the initial
@@ -26,16 +62,16 @@ alternate-state condition never became true. Earlier interpretation as an input
 stall/raw-mode problem was incomplete. The same source's Mac ARM/Intel, Ubuntu
 and Windows 2025 terminal checks passed. Do not publish it as cross-platform proof.
 
-Next source uses Microsoft's free pinned ConPTY 1.25.260930003, verified native
+The correction uses Microsoft's free pinned ConPTY 1.25.260930003, verified native
 DLL/helper hashes and embedded executable resources, with no system replacement.
 Local full Windows race/strict-cgo/native console+GUI/editor/save/close/large-file
 and terminal checks pass. Fresh owned cache extraction and native terminal passed
-with an unreachable HTTPS proxy, proving offline resources work. New exact-source
-Windows 2022/2025, Mac Intel/ARM, Ubuntu and package CI is still required.
+with an unreachable HTTPS proxy, proving offline resources work. Exact-source
+Windows 2022/2025, Mac Intel/ARM, Ubuntu and package CI subsequently passed above.
 
 ## Verified foundation
 
-- Public independent gocode submodule; godesktop dependency now v0.4.0.
+- Public independent gocode submodule; public godesktop dependency now v0.5.2.
 - Native Dark Modern workbench, UTF-16 buffers, selections/undo/clipboard/CRLF,
   versioned VSIX edits, language providers and diagnostics.
 - Official Copilot LSP/Go SDK real initialization and authenticated synthetic

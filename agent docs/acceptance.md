@@ -24,6 +24,13 @@
 Normal CI never needs a paid Copilot prompt, certificate or notarization service.
 Real-account AI acceptance is an additional synthetic-workspace check.
 
+v0.7.0/source 8a0fa076 passed all five source jobs in 37498949904, publication
+37500332017, actual signed public ZIP/native update and real v0.4.0 GUI rollback.
+Windows 2022 source-CI GPU captures and installed v0.7.0 Settings/terminal GPU
+captures were visually inspected. Installed real terminal/gopls and official
+Copilot protocol checks passed; account check networkPromptSent=false. See
+status.md for immutable metadata-CI and installation evidence and explicit gaps.
+
 Close/save acceptance uses real immutable-snapshot disk writes and a deterministic
 UI acknowledgement mailbox to reproduce newer edits, serial saves, cancellation,
 queue bounds, external changes and closed documents. Native Windows tests send

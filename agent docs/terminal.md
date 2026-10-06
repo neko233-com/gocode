@@ -91,8 +91,17 @@ the PowerShell helper explicitly waits on the owned GUI process. Hide-window
 startup prevented rendering in an early helper, so it now suppresses only console
 allocation and lets the tested native window render.
 
-New-source cross-platform CI/release/installed acceptance is pending. This is
-not proof of full VS Code terminal parity. Missing: VSIX terminal API, full shell
+Source `8a0fa07670a3018b42ab86eb2dd45e814099c7c7` passed all five jobs in CI
+37498949904, including real Windows 2022/2025 console/GUI, Mac Intel/ARM terminal
+and package checks. Publication 37500332017 reused these packages for v0.7.0.
+The downloaded Windows 2022 input/output GPU captures were visually inspected.
+Real signed public ZIP update/native-terminal/prior-release-GUI rollback passed;
+separate direct GitHub and manual ghfast.top full-body SHA256 checks passed.
+All five generated-metadata jobs also passed in 37500982783 at cacee0d8.
+Installed v0.7.0 real terminal/GUI/Settings and inspected GPU captures passed;
+immutable installation evidence is recorded in status.md.
+
+This is not proof of full VS Code terminal parity. Missing: VSIX terminal API, full shell
 integration/command history, terminal settings/profiles UI, clickable links,
 Windows UI Automation/Mac accessibility, IME composition, full bold/italic/bidi
 glyph handling, advanced keyboard protocols, arbitrary rich graphics and POSIX

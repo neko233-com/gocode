@@ -57,10 +57,13 @@ The local installation target is the user's per-user Programs directory, with a
 gocode command and Start Menu/desktop access; verify real installed launch/update
 settings. Never install test payloads over an unrelated application.
 
-Current verified install: v0.6.0 payload selected by the original v0.5.1 MSI stable
-launcher through actual signed/hashed public ZIP update. The baseline installer
-and launcher file versions remain 0.5.1 until an MSI upgrade; -version reports
-the selected 0.6.0 source. Actual prior-release GUI rollback with shared extensions
-passed in an owned root. Direct probe reachability does not guarantee a full body
-download: v0.6.0 direct timed out, while auto and explicit gh-proxy downloads passed
-signature/SHA256 and the user installation succeeded without relaxing integrity.
+Current verified install: v0.7.0/source 8a0fa076 payload selected by the original
+v0.5.1 MSI stable launcher through its actual -update command and signed/hashed
+public ZIP. The baseline installer and launcher file versions remain 0.5.1 until
+an MSI upgrade; -version reports the selected 0.7.0 source. The embedded official
+ConPTY runtime, actual native highlighted terminal, icons/GUI/settings and real
+gopls passed after installation. Auto=true/mode=auto is retained. The owned update
+root rolled back to the original v0.4.0 and rendered its GUI with shared extensions.
+v0.7.0 automatic routing and a separate full direct GitHub download succeeded;
+manual ghfast.top also passed signed SHA256. The earlier v0.6.0 direct timeout
+remains historical evidence; a range probe alone never establishes body success.

@@ -40,7 +40,7 @@
 ## 后续实现顺序
 
 1. 免费安装包/CLI/更新与本机安装，完善 LSP 重启/语言功能、全文搜索替换和编辑文件外部修改处理。
-2. ConPTY/PTY 终端、Git/diff/merge、DAP、tasks/testing，以真实进程作为验收。
+2. 深化已验证的 ConPTY/PTY 终端及其扩展 API，加入 Git/diff/merge、DAP、tasks/testing，以真实进程作为验收。
 3. 扩展贡献点、JSONC/主题/snippet、webview/TreeView/SecretStorage，并逐一验收目标 VSIX 的依赖。
 4. Copilot Agent 权限/工具及官方 VSIX、远程/多窗口、多光标/IME/accessibility，增加平台和视觉回归。
 
