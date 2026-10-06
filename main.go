@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -464,6 +465,9 @@ func run() error {
 	watchdog := time.AfterFunc(deadline, func() {
 		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" || *terminalSmoke {
 			fmt.Fprintln(os.Stderr, "gocode smoke timed out")
+			if *terminalSmoke {
+				_ = pprof.Lookup("goroutine").WriteTo(os.Stderr, 2)
+			}
 			os.Exit(2)
 		}
 	})

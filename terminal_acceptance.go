@@ -21,6 +21,7 @@ type terminalAcceptance struct {
 	editorVersion  int
 	resizeWidth    float32
 	started        time.Time
+	loggedPhase    int
 }
 
 func terminalHasColor(f *terminal.Frame, text string, color uint32) bool {
@@ -55,6 +56,10 @@ func shellPromptReady(f *terminal.Frame) bool {
 	return strings.TrimSpace(line.String()) == "gocode-test>"
 }
 func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
+	if a.loggedPhase != a.phase {
+		fmt.Fprintln(os.Stderr, "native terminal phase", a.phase)
+		a.loggedPhase = a.phase
+	}
 	fail := func(err error) { a.failure = err.Error(); cx.Quit() }
 	if a.started.IsZero() {
 		a.started = time.Now()

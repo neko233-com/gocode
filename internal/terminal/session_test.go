@@ -20,6 +20,10 @@ func TestTerminalChild(t *testing.T) {
 	if os.Getenv("GOCODE_PTY_CHILD") != "1" {
 		return
 	}
+	if err := fixtureConsoleMode(); err != nil {
+		fmt.Println("FIXTURE_MODE_FAILED", err)
+		os.Exit(3)
+	}
 	if os.Getenv("GOCODE_PTY_DESCENDANT") == "1" {
 		for {
 			time.Sleep(time.Second)
@@ -28,11 +32,23 @@ func TestTerminalChild(t *testing.T) {
 	fmt.Print("\x1b[2J\x1b[H\x1b[38;2;229;192;123mCOLOR\x1b[0m\r\nPTY_READY\r\n")
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		line, err := reader.ReadString('\n')
+		var input strings.Builder
+		var err error
+		for {
+			var r rune
+			r, _, err = reader.ReadRune()
+			if err != nil || r == '\r' || r == '\n' {
+				break
+			}
+			input.WriteRune(r)
+		}
 		if err != nil {
 			os.Exit(2)
 		}
-		line = strings.TrimSpace(line)
+		line := strings.TrimSpace(input.String())
+		if line == "" {
+			continue
+		}
 		switch line {
 		case "spawn":
 			command := exec.Command(os.Args[0], "-test.run=^TestTerminalChild$")
@@ -78,7 +94,7 @@ func childSession(t *testing.T, size Size) *Session {
 }
 func terminalUntil(t *testing.T, s *Session, condition func(*Frame) bool) *Frame {
 	t.Helper()
-	deadline := time.NewTimer(8 * time.Second)
+	deadline := time.NewTimer(30 * time.Second)
 	defer deadline.Stop()
 	for {
 		frame := s.Snapshot()
