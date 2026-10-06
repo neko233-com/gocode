@@ -73,6 +73,12 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		w, err = winprobe.Find("gocode — "+filepath.Base(workspace), uint32(cmd.Process.Pid))
 		return err == nil
 	})
+	for _, kind := range []uintptr{0, 1} {
+		until(t, func() bool {
+			icon, _, _ := syscall.NewLazyDLL("user32.dll").NewProc("SendMessageW").Call(uintptr(w), 0x7f, kind, 0)
+			return icon != 0
+		})
+	}
 	w.Raise()
 	unpin := w.Pin()
 	defer unpin()
@@ -124,11 +130,26 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	// Select the first shaped CJK character through actual captured mouse input,
+	// then replace the selection without splitting the following surrogate pair.
+	if err := w.Pointer(0x201, 358, 105); err != nil {
+		t.Fatal(err)
+	}
+	moveX, moveY := int16(370*dpi), int16(105*dpi)
+	if err := w.Send(0x200, 1, uintptr(uint32(uint16(moveX))|uint32(uint16(moveY))<<16)); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Pointer(0x202, 370, 105); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Send(0x102, 0x754c, 0); err != nil {
+		t.Fatal(err)
+	}
 	click(54, 16)
 	click(430, 146)
 	until(t, func() bool {
 		data, _ := os.ReadFile(filepath.Join(workspace, "main.go"))
-		return strings.HasPrefix(string(data), "你😀package main")
+		return strings.HasPrefix(string(data), "界😀package main")
 	})
 	// Close the save notification, then execute an installed VSIX from its UI.
 	click(viewWidth-15, 110)

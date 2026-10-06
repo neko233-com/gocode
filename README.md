@@ -2,66 +2,69 @@
 
 [![CI](https://github.com/neko233-com/gocode/actions/workflows/ci.yml/badge.svg)](https://github.com/neko233-com/gocode/actions/workflows/ci.yml)
 
-用 **Go 1.27 + [godesktop](https://github.com/neko233-com/godesktop)** 实现的原生编辑器工作区。Windows x86-64 / amd64 和 macOS Intel / Apple Silicon，UI 使用 Win32/Direct3D 12/DXIL/DirectWrite 或 AppKit/Metal/CoreText。两平台采用三帧异步资源环、R8 字形图集和显示同步调度。独立公开 Git 仓库，同时作为 `godesktop/gocode` 的 submodule。
+Go 1.27 的原生编辑器，以 [godesktop](https://github.com/neko233-com/godesktop) 为核心框架，支持 Windows x86-64/amd64 和 macOS Intel/Apple Silicon。UI 使用 Direct3D 12/DirectWrite 或 Metal/CoreText，没有 WebView。独立公开仓库，同时作为 godesktop 的 Git submodule 和持续验收应用。
 
-界面按 VS Code Dark Modern 的布局实现：自定义标题栏、活动栏、文件树、标签页、面包屑、代码行号/着色、缩略图、底部面板、状态栏和命令列表。目标是接近其前端外观；当前是可运行原型，未宣称像素完全一致或完整替代 VS Code。
+目标是覆盖 VS Code 工作台、编辑器和扩展能力。目前已贯通版本化编辑、VSIX 编辑/语言提供者和官方 Copilot 接入，完整覆盖情况见 [功能矩阵](docs/vscode-parity.md)。Dark Modern 布局是实现参考，尚未通过和 VS Code 的逐像素对照验收。
 
 ## 运行
 
-需要 Go 1.27、cgo 和原生编译工具链。Windows 使用 64 位 MinGW-w64 的 gcc/g++；macOS 使用 Xcode Command Line Tools。扩展宿主需要 Node.js 22+（CI 使用 24）；缺少 Node 时仍可启动 UI，会显示扩展宿主不可用的原因。
+需要 Go 1.27、cgo、Node.js 22+（CI 使用 24）。Windows 使用 x86-64 MinGW-w64 gcc/g++，macOS 使用 Xcode Command Line Tools。
 
 ```powershell
 git clone https://github.com/neko233-com/gocode.git
 cd gocode
 $env:CGO_ENABLED='1'
+npm ci --prefix tools/copilot-runtime --no-audit --no-fund
 go run . -workspace .
 ```
 
-```sh
-# macOS
-CGO_ENABLED=1 go run . -workspace .
-```
+macOS 使用 `CGO_ENABLED=1 go run . -workspace .`。Windows GUI 构建：`go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .`。
 
-Windows 构建：
+go.mod 固定依赖已发布的 godesktop v0.4.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
-```powershell
-go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .
-```
+## 编辑与扩展
 
-本仓库通过 `go.mod` 固定依赖 `godesktop v0.3.1`，没有本地 `replace`；可以独立 clone/build。在父仓库同时开发时，用父目录的 `go work init . ./gocode` 连接本地源码。应用代码在子仓库提交/推送，随后在父仓库提交 submodule 的新指针。独立验证使用 `GOWORK=off`，避免本地框架源码掩盖发布依赖问题。该版本隔离 D3D12 的异步通知与关闭/缩放同步等待，原生错误会先于 smoke 成功信息返回。
+- UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。
+- Ctrl/Cmd+S 保存；Ctrl/Cmd+Z 撤销；Ctrl/Cmd+Shift+Z 或 Ctrl+Y 重做；Ctrl/Cmd+A/C/X/V；保存保留 LF/CRLF。
+- Ctrl/Cmd+P 命令列表；Ctrl/Cmd+J 面板；Ctrl+Space 请求 VSIX 补全和 Copilot；Enter 选择补全，Tab 接受 Copilot 建议。
+- 已安装 VSIX 可以读取未保存的活动文档、执行原生编辑/保存、接收文档事件、注册补全/悬停/定义、发布 Problems 诊断、持久保存 workspaceState/globalState。
 
-## 当前交互
+`go run . -install-extension ./extension.vsix` 安装可信本地 VSIX。内置 Hello Native 经标准 VSIX 安装，验证命令、版本化编辑、补全、诊断、输出和消息。未知 VS Code API 明确报错；[框架 API 范围](https://github.com/neko233-com/godesktop/blob/main/docs/extensions.md) 列出已实现的子集。
 
-- 点击文件树打开 UTF-8 文件，切换/关闭标签，未保存文件关闭时提示先保存。
-- 基础字符输入、中文/emoji Unicode 字符、方向键、行拆分/合并、退格/Delete、四空格 Tab；点击代码行设置插入位置。
-- Ctrl/Cmd+S 保存；Ctrl/Cmd+P 命令列表；Ctrl/Cmd+J 显示/隐藏底部面板；滚轮浏览代码。
-- Search 按文件名过滤；Extensions 显示已安装扩展及其命令；消息、扩展输出和状态栏使用原生 UI。
-- 标题栏空白区域可拖动，Windows 有最小化/最大化/关闭按钮；macOS 保留原生窗口按钮。
+普通文件最多 8 MiB 使用版本化编辑；较大的 UTF-8 文件进入有界内存的只读浏览。Ctrl/Cmd+G 输入行号或 `:字节位置`，滚轮/PageUp/PageDown/拖动滚动条导航；超长单行通过字节视图浏览，Ctrl/Cmd+C 复制当前页面。真实 1 GiB 文本和单行文件均有验收。[大文件策略](docs/large-files.md) 记录内存、速度和边界。
 
-文件预览限制为 1 MiB UTF-8 文本，文件树最多 250 项；跳过 `.git`、`.cache`、node_modules、vendor、bin 和符号链接。基础编辑不包含选区、撤销、剪贴板、完整 IME 组合协议、精确复杂字形点击定位或 LSP；保存使用 LF。终端、调试器、Git 操作、Problems 和 Ports 面板目前为界面占位。
+文件树目前最多 250 项，普通编辑视图单行显示最多 400 个 rune。跳过 .git、.cache、node_modules、vendor、bin 和符号链接。完整 IME、字素簇/双向文本导航、多光标、终端、Git 操作、DAP、webview、远程扩展等仍需实现。
 
-## 本地 VSIX
+## 通用语言服务
 
-```powershell
-go run . -install-extension ./your-extension.vsix
-# 安装后重启编辑器
-go run . -workspace .
-```
+`go run . -install-gopls` 在 gocode 的用户工具目录安装固定版本的官方 gopls；下次启动自动连接。也可以通过 `-lsp-config <JSON>` 配置其他标准语言服务器，或用 `-lsp=false` 关闭。支持原生补全、版本化诊断、Shift+Alt+F 格式化、F12 定义跳转、Ctrl/Cmd+K 悬停信息。[配置与策略](docs/language-servers.md) 说明协议边界和配置格式。
 
-扩展默认保存在用户配置目录 `gocode/extensions`，可通过 `-extensions-dir` 指定。内置 Hello Native 使用真实的 `require('vscode')`，通过标准 VSIX 路径安装；从扩展面板或命令列表执行，可以显示消息、输出、状态栏并打开工作区 README。
+标准 LSP、VSIX、Copilot 同步的源码快照上限为 2 MiB，以保证有界协议消息；超大文件不会被整体发送给这些服务。编辑和浏览模式不会将截断内容保存回原文件。
 
-兼容的是 [godesktop 明确实现的 API 子集](https://github.com/neko233-com/godesktop/blob/main/docs/extensions.md)：命令注册/执行、部分 window/workspace API、基础类型和进程内 Memento。未知 API 明确报错。没有承诺全部现有 VS Code 扩展兼容；Marketplace、语言服务、调试、webview、终端和远程扩展尚不支持。只安装可信 VSIX，扩展宿主使用当前用户权限。
+## GitHub Copilot
 
-## 验证
+采用官方 Language Server 做补全，官方 Go SDK 做聊天；没有把当前接入当作官方 Copilot VSIX 已兼容。[使用与验收](docs/copilot.md) 说明固定版本、账号登录和测试方式。
+
+Ctrl/Cmd+I 打开原生聊天面板，Enter 发送，Cancel/Esc 取消。语言服务器的设备登录入口位于聊天面板和命令列表。聊天需要官方 CLI 可用的 GitHub/Copilot 登录状态；当前模式禁用工作区工具，提供文本聊天和取消/重试。Agent 工具执行和完整 Copilot VSIX 是后续目标。
+
+运行时通过项目内 `tools/copilot-runtime` 安装，或使用 `-copilot-runtime <目录>` 指定；`-copilot=false` 关闭连接。核心编辑器可在未安装 Copilot 运行时的情况下启动。
+
+## 自动验收
 
 ```powershell
-powershell -File scripts/test-windows-amd64.ps1
+powershell -ExecutionPolicy Bypass -File scripts/test-windows-amd64.ps1
+go run . -editor-smoke -extensions-dir .cache/acceptance-extensions
+go run . -largefile-smoke -largefile-smoke-mib 1024
+go run . -lsp-smoke
+go run . -copilot-check
+# 以下使用合成样例发送真实 Copilot 请求，需要有可用账号：
+go run -race . -copilot-ui-smoke -copilot-runtime tools/copilot-runtime
 ```
 
-脚本执行三轮 race/随机顺序测试、vet、普通与 GUI EXE 构建及原生 smoke。Windows 真实 HWND 测试检查 amd64 PE 和系统 DLL、原生颜色、标题栏拖动/边框命中、中文/emoji 输入、保存文件、从 UI 执行 VSIX 命令、最大化/还原/最小化/关闭及最大化后的状态栏。测试只操作通过 PID/标题确认的自身窗口，截图保存在 `.cache/workbench-windows.png`。
+Windows 测试使用 GOAMD64=v1、race、严格 cgo，检查 AMD64 PE、真实 HWND/GPU 像素、Unicode 输入、鼠标拖选和替换、保存、VSIX 命令、最大化/还原/最小化/关闭。截图仅来自拥有的 HWND 的 D3D12 帧。`-editor-smoke` 在临时工作区中验证 VSIX→Go 编辑、CRLF 保存、撤销重做和新版本补全。
 
-CI 在 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd64 和 Ubuntu 上验证；Ubuntu 仅检查可移植模型。原生 smoke 要求真实绘制提交和已安装 VSIX 的命令返回值，Windows 使用 `GOAMD64=v1` 和严格 cgo 检查。Go 核心/原生桥接和扩展安装/宿主测试在 `godesktop` 仓库独立运行。构建产物、截图和覆盖率上传到 Actions artifacts。
+CI 覆盖 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd64，以及 Ubuntu 的可移植测试。所有原生平台安装固定的官方 Copilot 运行时并验证协议握手，CI 不发送付费模型请求。真实账号下的补全、聊天、取消和重试另由 `-copilot-ui-smoke` 验收。
 
-Windows 像素验证需要可用桌面会话。测试读取当前进程拥有的 HWND 对应、fence 完成后的实际 D3D12 帧，并核对后端和 amd64 系统 DLL 导入；截图只包含该窗口的 GPU 输出。窗口恢复后立即点击关闭按钮，要求命中当前客户区布局。正常运行按需重绘。覆盖范围不代表全部 Windows 设备、显卡、缩放比例和输入法均已验证。
+MIT License。VS Code 界面/API 作为参考，项目与 Microsoft 无隶属关系。官方 Copilot 运行时按其上游许可通过 npm 单独安装。
 
-MIT License。VS Code 界面和 API 作为参考，项目与 Microsoft 无隶属关系。
+工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到最新 main `ff275a2`；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，来源和 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。

@@ -1,0 +1,10 @@
+{
+  "name": "gocode-copilot-runtime",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pinned official GitHub Copilot language server sidecar for gocode",
+  "dependencies": {
+    "@github/copilot": "1.0.92",
+    "@github/copilot-language-server": "1.551.2"
+  }
+}

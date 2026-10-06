@@ -33,35 +33,35 @@ func text(m *model, s string) {
 func TestUnicodeEditAndSave(t *testing.T) {
 	m := testModel(t)
 	d := m.current()
-	d.column = len([]rune(d.lines[0]))
+	d.column = len([]rune(d.buffer.Line(0)))
 	key(m, 13)
 	text(m, "// 你好 😀")
-	if d.lines[1] != "// 你好 😀" || !d.dirty {
+	if d.buffer.Line(1) != "// 你好 😀" || !d.buffer.Dirty() {
 		t.Fatalf("Unicode insertion: %#v", d)
 	}
 	key(m, 8)
-	if d.lines[1] != "// 你好 " {
+	if d.buffer.Line(1) != "// 你好 " {
 		t.Fatal("backspace split Unicode rune")
 	}
 	key(m, 36)
 	key(m, 46)
-	if d.lines[1] != "/ 你好 " {
+	if d.buffer.Line(1) != "/ 你好 " {
 		t.Fatal("delete failed")
 	}
 	if err := m.save(); err != nil {
 		t.Fatal(err)
 	}
 	data, _ := os.ReadFile(d.path)
-	if !strings.Contains(string(data), "/ 你好 ") || d.dirty {
-		t.Fatalf("save %q dirty=%v", data, d.dirty)
+	if !strings.Contains(string(data), "/ 你好 ") || d.buffer.Dirty() {
+		t.Fatalf("save %q dirty=%v", data, d.buffer.Dirty())
 	}
 	key(m, 36)
 	key(m, 8)
-	if len(d.lines) != 4 {
+	if d.buffer.LineCount() != 4 {
 		t.Fatal("line merge failed")
 	}
 	key(m, 9)
-	if !strings.Contains(d.lines[0], "    ") {
+	if !strings.Contains(d.buffer.Line(0), "    ") {
 		t.Fatal("indent failed")
 	}
 }
@@ -73,12 +73,12 @@ func TestTabsAndFileValidation(t *testing.T) {
 	if len(m.docs) != 2 || m.current() != first {
 		t.Fatal("duplicate file tab")
 	}
-	first.dirty = true
+	text(m, "changed")
 	m.closeTab(0)
 	if len(m.docs) != 2 || m.message == "" {
 		t.Fatal("unsaved tab closed")
 	}
-	first.dirty = false
+	first.buffer.MarkSaved()
 	m.closeTab(0)
 	if len(m.docs) != 1 || m.current() == nil {
 		t.Fatal("tab selection lost")
@@ -119,7 +119,7 @@ func TestCommandsAndSearchInput(t *testing.T) {
 	}
 	m.activity = "files"
 	m.input(nil, ui.InputEvent{Kind: ui.Scroll, Y: -200})
-	if m.current().scroll != len(m.current().lines)-1 {
+	if m.current().scroll != m.current().buffer.LineCount()-1 {
 		t.Fatal("scroll clamping")
 	}
 	for _, line := range []string{"func main() {", `fmt.Println("hello") // comment`, "// 你好", "var n = 123", "\treturn nil"} {

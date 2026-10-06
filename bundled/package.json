@@ -1,7 +1,7 @@
 {
   "name": "hello-native",
   "publisher": "gocode",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "displayName": "Hello Native",
   "description": "A real VS Code API sample extension",
   "engines": { "vscode": "^1.90.0" },
@@ -9,7 +9,8 @@
   "contributes": {
     "commands": [
       { "command": "gocode.hello", "title": "Hello Native: Say hello" },
-      { "command": "gocode.readme", "title": "Hello Native: Open workspace README" }
+      { "command": "gocode.readme", "title": "Hello Native: Open workspace README" },
+      { "command": "gocode.edit", "title": "Hello Native: Insert header through VS Code editor API" }
     ]
   }
 }

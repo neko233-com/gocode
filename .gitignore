@@ -4,3 +4,5 @@
 *.out
 go.work
 go.work.sum
+node_modules/
+*.syso

@@ -28,6 +28,8 @@ jobs:
       CC: gcc
       CXX: g++
       GOCODE_SCREENSHOT: .cache/workbench-windows.png
+      GOCODE_LSP_SCREENSHOT: .cache/gopls-native-acceptance.png
+      GODESKTOP_READBACK: '1'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
@@ -40,6 +42,31 @@ jobs:
       - name: Validate Windows amd64
         shell: powershell
         run: ./scripts/test-windows-amd64.ps1
+      - name: Verify actual GiB text and native long-line browsing
+        if: matrix.os == 'windows-2025'
+        shell: powershell
+        env:
+          GOCODE_LARGEFILE_GIB: '1'
+          GOCODE_LARGEFILE_SCREENSHOT: .cache/largefile-gib-native.png
+        run: |
+          go test -race -run '^TestGiBBrowsing$' -v -timeout 3m ./internal/largefile
+          if ($LASTEXITCODE -ne 0) { throw 'GiB file acceptance failed.' }
+          & ./bin/gocode.exe -largefile-smoke -largefile-smoke-mib 1024 -extensions-dir .cache/extensions
+          if ($LASTEXITCODE -ne 0) { throw 'GiB native browsing failed.' }
+      - name: Install pinned official Copilot sidecars
+        run: npm ci --prefix tools/copilot-runtime --no-audit --no-fund
+      - name: Verify official Copilot protocol without paid requests
+        shell: powershell
+        run: |
+          & ./bin/gocode.exe -workspace . -copilot-check | Tee-Object -FilePath .cache/copilot-health.json
+          if ($LASTEXITCODE -ne 0) { throw 'Copilot runtime handshake failed.' }
+      - name: Verify pinned official gopls in the native workbench
+        shell: powershell
+        run: |
+          & ./bin/gocode.exe -install-gopls
+          if ($LASTEXITCODE -ne 0) { throw 'Gopls installation failed.' }
+          & ./bin/gocode.exe -lsp-smoke -extensions-dir .cache/extensions
+          if ($LASTEXITCODE -ne 0) { throw 'Native LSP acceptance failed.' }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -48,6 +75,10 @@ jobs:
             bin/*.exe
             coverage.out
             .cache/workbench-windows.png
+            .cache/largefile-native-acceptance.png
+            .cache/largefile-gib-native.png
+            .cache/gopls-native-acceptance.png
+            .cache/copilot-health.json
           include-hidden-files: true
           if-no-files-found: warn
   macos:
@@ -77,12 +108,24 @@ jobs:
           mkdir -p bin
           go build -trimpath -ldflags="-s -w" -o bin/gocode .
           ./bin/gocode -workspace . -extensions-dir .cache/extensions -smoke
+          ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
+          ./bin/gocode -extensions-dir .cache/extensions -largefile-smoke
+      - name: Install pinned official Copilot sidecars
+        run: npm ci --prefix tools/copilot-runtime --no-audit --no-fund
+      - name: Verify official Copilot protocol without paid requests
+        run: ./bin/gocode -workspace . -copilot-check > .cache/copilot-health.json
+      - name: Verify pinned official gopls in the native workbench
+        run: |
+          ./bin/gocode -install-gopls
+          ./bin/gocode -lsp-smoke -extensions-dir .cache/extensions
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: gocode-${{ runner.os }}-${{ runner.arch }}
           path: |
             bin/gocode
             coverage.out
+            .cache/copilot-health.json
+          include-hidden-files: true
           if-no-files-found: error
   portable:
     name: Portable model / Ubuntu

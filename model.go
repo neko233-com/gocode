@@ -10,29 +10,74 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/neko233-com/gocode/internal/copilotservice"
 	ui "github.com/neko233-com/godesktop"
+	textbuffer "github.com/neko233-com/godesktop/editor"
 )
 
 type document struct {
-	path                 string
-	lines                []string
-	dirty                bool
-	line, column, scroll int
+	path                         string
+	buffer                       *textbuffer.Buffer
+	large                        *largeDocument
+	serviceBytes, serviceVersion int
+	line, column, scroll         int
 }
 type model struct {
-	workspace                   string
-	files                       []string
-	docs                        []*document
-	active                      int
-	activity, panel             string
-	showPanel, palette, editing bool
-	query, message, status      string
-	output                      []string
-	commands                    []extensionCommand
-	installed                   []extensionInfo
-	execute                     func(string)
-	pointerX                    float32
-	smoke                       bool
+	workspace                             string
+	files                                 []string
+	docs                                  []*document
+	active                                int
+	activity, panel                       string
+	showPanel, palette, editing           bool
+	query, message, status                string
+	output                                []string
+	commands                              []extensionCommand
+	installed                             []extensionInfo
+	execute                               func(string)
+	pointerX                              float32
+	smoke                                 bool
+	pointerShift                          bool
+	readClipboard                         func() (string, error)
+	writeClipboard                        func(string) error
+	onDocument                            func(string, *document, textbuffer.ChangeEvent)
+	requestInline                         func(*document)
+	cancelInline                          func()
+	acceptInline                          func(copilotservice.InlineItem)
+	acceptedInline                        uint64
+	suggestion                            *inlineSuggestion
+	askChat                               func(string)
+	cancelChat                            func()
+	signInCopilot                         func()
+	signInChat                            func()
+	chatLoginBusy                         bool
+	chatPrompt, chatAnswer, copilotStatus string
+	chatContext, chatContextLabel         string
+	chatFocused, chatBusy                 bool
+	chatGeneration                        uint64
+	inlineGeneration                      uint64
+	requestCompletions                    func(*document)
+	completions                           []completionSuggestion
+	pointerSelecting                      bool
+	diagnostics                           map[string][]diagnostic
+	native                                *ui.Context
+	navigation, largeScrollbar            bool
+	requestLSP                            func(*document, string)
+	lspStatus                             string
+	completionSources                     map[string][]completionSuggestion
+}
+
+type diagnostic struct {
+	Range    textbuffer.Range `json:"range"`
+	Message  string           `json:"message"`
+	Severity int              `json:"severity"`
+	Path     string           `json:"-"`
+}
+
+type inlineSuggestion struct {
+	path     string
+	version  int
+	position textbuffer.Position
+	item     copilotservice.InlineItem
 }
 type extensionCommand struct{ ID, Title string }
 type extensionInfo struct{ Name, ID, Description, Version string }
@@ -107,6 +152,7 @@ func (m *model) open(path string) {
 	for i, d := range m.docs {
 		if d.path == path {
 			m.active = i
+			m.documentEvent("focus", d, textbuffer.ChangeEvent{})
 			return
 		}
 	}
@@ -115,8 +161,23 @@ func (m *model) open(path string) {
 		m.message = err.Error()
 		return
 	}
-	if !info.Mode().IsRegular() || info.Size() > 1<<20 {
-		m.message = "Only UTF-8 text files up to 1 MiB can be opened"
+	if !info.Mode().IsRegular() {
+		m.message = "Only regular UTF-8 text files can be opened"
+		return
+	}
+	if info.Size() > editableFileLimit {
+		d, err := openLargeDocument(path)
+		if err != nil {
+			m.message = err.Error()
+			return
+		}
+		m.docs = append(m.docs, d)
+		m.active = len(m.docs) - 1
+		m.editing = true
+		if m.native != nil {
+			m.startLargeDocument(d)
+		}
+		m.documentEvent("focus", d, textbuffer.ChangeEvent{})
 		return
 	}
 	data, err := os.ReadFile(path)
@@ -128,25 +189,47 @@ func (m *model) open(path string) {
 		m.message = "Binary files are not supported"
 		return
 	}
-	m.docs = append(m.docs, &document{path: path, lines: strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n")})
+	buffer, err := textbuffer.New(string(data))
+	if err != nil {
+		m.message = err.Error()
+		return
+	}
+	m.docs = append(m.docs, &document{path: path, buffer: buffer})
 	m.active = len(m.docs) - 1
 	m.editing = true
+	m.documentEvent("open", m.current(), textbuffer.ChangeEvent{})
+	m.documentEvent("focus", m.current(), textbuffer.ChangeEvent{})
 }
 func (m *model) closeTab(index int) {
-	if m.docs[index].dirty {
+	if index < 0 || index >= len(m.docs) {
+		return
+	}
+	if m.docs[index].dirty() {
 		m.message = "Save this file before closing its tab (Ctrl/Cmd+S)"
 		return
+	}
+	m.documentEvent("close", m.docs[index], textbuffer.ChangeEvent{})
+	if l := m.docs[index].large; l != nil {
+		l.cancel()
+		go l.close()
 	}
 	m.docs = append(m.docs[:index], m.docs[index+1:]...)
 	if index < m.active {
 		m.active--
 	}
 	m.active = min(m.active, len(m.docs)-1)
+	m.documentEvent("focus", m.current(), textbuffer.ChangeEvent{})
 }
 func (m *model) save() error {
 	d := m.current()
 	if d == nil {
 		return errors.New("no active document")
+	}
+	return m.saveDocument(d)
+}
+func (m *model) saveDocument(d *document) error {
+	if d.buffer == nil {
+		return errors.New("large-file browsing is read-only; the file on disk has not been changed")
 	}
 	info, err := os.Stat(d.path)
 	if err != nil {
@@ -158,7 +241,7 @@ func (m *model) save() error {
 	}
 	name := f.Name()
 	defer os.Remove(name)
-	_, writeErr := f.WriteString(strings.Join(d.lines, "\n"))
+	_, writeErr := f.WriteString(d.buffer.Text())
 	syncErr := f.Sync()
 	closeErr := f.Close()
 	if err = errors.Join(writeErr, syncErr, closeErr); err != nil {
@@ -170,145 +253,10 @@ func (m *model) save() error {
 	if err = os.Rename(name, d.path); err != nil {
 		return err
 	}
-	d.dirty = false
+	d.buffer.MarkSaved()
+	m.documentEvent("save", d, textbuffer.ChangeEvent{})
 	m.message = "Saved " + filepath.Base(d.path)
 	return nil
-}
-func (m *model) input(_ *ui.Context, e ui.InputEvent) bool {
-	if e.Kind == ui.PointerPressed {
-		m.pointerX = e.X
-		m.editing = false
-		return false
-	}
-	if e.Kind == ui.Scroll {
-		if d := m.current(); d != nil {
-			d.scroll = max(0, min(len(d.lines)-1, d.scroll-int(e.Y)))
-		}
-		return true
-	}
-	if e.Kind == ui.KeyPressed && e.Modifiers&(ui.ModifierControl|ui.ModifierCommand) != 0 {
-		switch e.Key {
-		case 'S':
-			if err := m.save(); err != nil {
-				m.message = err.Error()
-			}
-			return true
-		case 'P':
-			m.palette = !m.palette
-			m.query = ""
-			return true
-		case 'J':
-			m.showPanel = !m.showPanel
-			return true
-		}
-	}
-	if m.palette || m.activity == "search" {
-		if e.Kind == ui.Character {
-			m.query += string(rune(e.Key))
-			return true
-		}
-		if e.Kind == ui.KeyPressed {
-			switch e.Key {
-			case 27:
-				m.palette = false
-				m.query = ""
-				return true
-			case 8:
-				r := []rune(m.query)
-				if len(r) > 0 {
-					m.query = string(r[:len(r)-1])
-				}
-				return true
-			}
-		}
-	}
-	d := m.current()
-	if !m.editing || d == nil {
-		return false
-	}
-	r := []rune(d.lines[d.line])
-	d.column = min(d.column, len(r))
-	if e.Kind == ui.Character {
-		if e.Key < 32 || !utf8.ValidRune(rune(e.Key)) {
-			return true
-		}
-		r = append(r[:d.column], append([]rune{rune(e.Key)}, r[d.column:]...)...)
-		d.lines[d.line] = string(r)
-		d.column++
-		d.dirty = true
-		return true
-	}
-	if e.Kind != ui.KeyPressed {
-		return false
-	}
-	switch e.Key {
-	case 32:
-		// The following character event inserts the space. Consume its key event
-		// so generic button activation does not reset the editor's caret.
-		return true
-	case 37:
-		if d.column > 0 {
-			d.column--
-		} else if d.line > 0 {
-			d.line--
-			d.column = len([]rune(d.lines[d.line]))
-		}
-	case 39:
-		if d.column < len(r) {
-			d.column++
-		} else if d.line+1 < len(d.lines) {
-			d.line++
-			d.column = 0
-		}
-	case 38:
-		d.line = max(0, d.line-1)
-	case 40:
-		d.line = min(len(d.lines)-1, d.line+1)
-	case 36:
-		d.column = 0
-	case 35:
-		d.column = len(r)
-	case 8:
-		if d.column > 0 {
-			d.lines[d.line] = string(append(r[:d.column-1], r[d.column:]...))
-			d.column--
-			d.dirty = true
-		} else if d.line > 0 {
-			before := d.lines[d.line-1]
-			d.column = len([]rune(before))
-			d.lines[d.line-1] = before + d.lines[d.line]
-			d.lines = append(d.lines[:d.line], d.lines[d.line+1:]...)
-			d.line--
-			d.dirty = true
-		}
-	case 46:
-		if d.column < len(r) {
-			d.lines[d.line] = string(append(r[:d.column], r[d.column+1:]...))
-			d.dirty = true
-		} else if d.line+1 < len(d.lines) {
-			d.lines[d.line] += d.lines[d.line+1]
-			d.lines = append(d.lines[:d.line+1], d.lines[d.line+2:]...)
-			d.dirty = true
-		}
-	case 13:
-		d.lines[d.line] = string(r[:d.column])
-		after := string(r[d.column:])
-		d.lines = append(d.lines[:d.line+1], append([]string{after}, d.lines[d.line+1:]...)...)
-		d.line++
-		d.column = 0
-		d.dirty = true
-	case 9:
-		d.lines[d.line] = string(r[:d.column]) + "    " + string(r[d.column:])
-		d.column += 4
-		d.dirty = true
-	default:
-		return false
-	}
-	d.column = min(d.column, len([]rune(d.lines[d.line])))
-	if d.line < d.scroll {
-		d.scroll = d.line
-	}
-	return true
 }
 
 type fragment struct {
