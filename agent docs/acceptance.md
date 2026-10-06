@@ -15,6 +15,11 @@
 - Distribution: real MSI install/uninstall/upgrade in an owned root, portable and
   CLI install, icons/shortcuts/PATH, update probe/hash/metadata/rollback tests,
   published asset checks, then the explicitly requested local install.
+- Terminal: real ConPTY/PTY, pre-Enter PSReadLine/zsh input colors, ANSI/truecolor,
+  Unicode/alternate screens, actual shell grid after window resize, Ctrl+C/exit,
+  bounded output history and descendant cleanup. Windows console/GUI subsystem
+  probes wait on the owned process sequentially and assert owned GPU color pixels.
+  Mac Intel/ARM native smoke does not by itself establish a Mac screenshot claim.
 
 Normal CI never needs a paid Copilot prompt, certificate or notarization service.
 Real-account AI acceptance is an additional synthetic-workspace check.

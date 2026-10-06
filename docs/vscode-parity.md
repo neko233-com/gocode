@@ -15,7 +15,7 @@
 | LSP | 部分 | 用户服务器配置、gopls 固定安装、UTF-16 能力协商、增量/完整同步、版本诊断/清除、save/close/取消/进程回收；缺崩溃重启、文件监听、多工作区和完整语言能力 |
 | VSIX 宿主 | 部分 | 本地安装、CommonJS 激活、活动文档/事务/事件、语言提供者、持久状态；大量 API 和贡献点尚缺，未知 API 抛错 |
 | 配置/主题 | 部分 | 扩展读取/更新 JSON 配置；缺 JSONC、配置 UI、schema/defaults、主题/语法贡献和配置实际应用到全部编辑器行为 |
-| 终端 | 未实现 | 需要 Windows ConPTY、macOS PTY、VT 解析、resize/输入/进程生命周期、终端扩展 API |
+| 终端 | 部分 | Windows ConPTY/macOS PTY、真实 shell 输入高亮、VT/真彩色/Unicode/备用屏、网格 resize、输入/中断/退出、标签/选区/滚动与有界历史；终端扩展 API、shell integration、链接、完整 IME/字形样式待实现；各平台新源码验证状态见 harness |
 | Git / SCM / Diff | 未实现 | 需要仓库状态、stage/commit、diff/merge、历史与扩展 SCM API |
 | Debug / DAP | 未实现 | 需要会话/断点/变量/调用栈、launch.json、debug adapter 与扩展 API |
 | Tasks / Testing | 未实现 | 需要任务和测试树/结果、进程/问题匹配器、tasks.json 与 testing API |

@@ -1,4 +1,17 @@
-v0.6.0 protects unsaved native windows and tabs with Save, Don't Save and Cancel.
+v0.7.0 adds a real native terminal: Windows ConPTY with PowerShell and macOS PTY
+with zsh/custom shell. PowerShell 7/5.1 PSReadLine and embedded BSD-licensed
+zsh-syntax-highlighting color the command line before Enter. Existing user
+profiles stay intact; acceptance uses isolated owned profiles/history.
+
+Native terminal tabs render ANSI/truecolor, Unicode, alternate screens, cursor
+and selection. Window/panel resizing updates the actual shell grid. Keyboard,
+paste/copy, bounded scrollback, Ctrl+C, final output/exit and owned descendant
+cleanup have real process tests. Native smoke verifies shell input/output colors,
+resize and interrupt without editing the open document. The UI remains Go/GPU.
+Full terminal extension API, shell integration, rich glyph styles, IME and
+accessibility are still pending. POSIX detached jobs need further supervision.
+
+Unsaved native windows and tabs remain protected with Save, Don't Save and Cancel.
 Cancel restores editing focus; failed saves keep the window and unsaved buffer.
 Native Windows/macOS close requests follow the framework's guarded close path.
 

@@ -100,6 +100,12 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		}
 		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
 	}
+	if m.terminalPointer(cx, e) {
+		return true
+	}
+	if e.Kind == ui.PointerPressed {
+		m.terminalFocused = false
+	}
 	if d := m.current(); d != nil && d.large != nil && (e.Kind == ui.PointerPressed || e.Kind == ui.PointerMoved || e.Kind == ui.PointerReleased || e.Kind == ui.InputCancelled || e.Kind == ui.Scroll) {
 		return m.largeInput(cx, d, e)
 	}
@@ -150,7 +156,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 	}
 	command := e.Modifiers&(ui.ModifierControl|ui.ModifierCommand) != 0
 	shift := e.Modifiers&ui.ModifierShift != 0
-	if e.Kind == ui.KeyPressed && m.requestLSP != nil && m.current() != nil {
+	if e.Kind == ui.KeyPressed && !m.terminalFocused && m.requestLSP != nil && m.current() != nil {
 		method := ""
 		if e.Key == 123 {
 			method = "textDocument/definition"
@@ -166,6 +172,13 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 	}
 	if e.Kind == ui.KeyPressed && command {
 		switch e.Key {
+		case 192, '`':
+			if m.currentTerminal() == nil && m.newTerminal != nil {
+				m.newTerminal()
+			} else {
+				m.focusTerminal()
+			}
+			return true
 		case 'S':
 			m.saveActive()
 			return true
@@ -192,6 +205,9 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 			m.chatFocused = true
 			return true
 		}
+	}
+	if m.terminalKeyboard(e) {
+		return true
 	}
 	if m.chatFocused && m.panel == "COPILOT" && m.showPanel {
 		if e.Kind == ui.KeyPressed && command && e.Key == 'V' {

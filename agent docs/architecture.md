@@ -33,6 +33,11 @@ and stronger platform-specific coordination are still required for full parity.
 
 ## UI
 
+Real terminal processes and VT parsing are worker-owned. Immutable cell snapshots
+reach native views through coalesced dispatches; shell input does not pass through
+document editing. See terminal.md for PTY/ConPTY, bounded queues/history, isolated
+profiles, default-shell highlighting and process lifecycle constraints.
+
 The workbench uses native platform GPU rendering, virtual rows and bounded
 measurement/cache state. Window dragging/resizing/maximize/restore and current
 DPI hit testing are part of acceptance. Keep the latest VS Code source reference

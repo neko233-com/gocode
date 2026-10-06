@@ -1,5 +1,15 @@
 # Milestone ledger
 
+## Terminal v0.7.0 development (2026-10-06)
+
+Real native ConPTY/PTY terminal and shell input highlighting are implemented in
+the working revision. Local Windows strict-cgo/race and owned GPU acceptance pass,
+including PowerShell 7/5.1, truecolor, Unicode, resize, alternate screen, Ctrl+C,
+final exit output, bounded flood/scrollback and owned descendant cleanup. Native
+keyboard focus leaves the editor unchanged. See terminal.md for bounds/provenance
+and explicit gaps. Exact-source Windows/Mac Intel/ARM/Ubuntu CI and immutable
+release are pending; installed stable remains verified v0.6.0 until promotion.
+
 ## Verified foundation
 
 - Public independent gocode submodule; godesktop dependency now v0.4.0.

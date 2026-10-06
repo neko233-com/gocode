@@ -113,6 +113,7 @@ func run() error {
 	smoke := flag.Bool("smoke", false, "Verify a native frame and a real extension command, then exit")
 	editorSmoke := flag.Bool("editor-smoke", false, "Verify native versioned VSIX edits, save, undo/redo and completion in a disposable workspace")
 	closeSmoke := flag.String("close-smoke", "", "Verify native save/discard/cancel/external close protection in a disposable workspace")
+	terminalSmoke := flag.Bool("terminal-smoke", false, "Verify real shell input highlighting, ANSI colors, keyboard, resize, interrupt and exit in a native owned workspace")
 	largeSmoke := flag.Bool("largefile-smoke", false, "Verify file-backed browsing and direct long-line byte navigation in a native window")
 	largeSmokeMiB := flag.Int("largefile-smoke-mib", 16, "Size of the native large-file acceptance fixture (16 to 10240 MiB)")
 	goLine := flag.Int64("goto-line", 0, "Open at a 1-based line number")
@@ -299,6 +300,18 @@ func run() error {
 		*workspace, paths = fixture, nil
 		*copilotEnabled, *lspEnabled = false, false
 	}
+	if *terminalSmoke {
+		fixture, err := os.MkdirTemp("", "gocode-terminal-native-")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(fixture)
+		if err := os.WriteFile(filepath.Join(fixture, "main.go"), []byte("package main\nfunc main() {}\n"), 0600); err != nil {
+			return err
+		}
+		*workspace, paths = fixture, nil
+		*copilotEnabled, *lspEnabled = false, false
+	}
 	if *extensionDir == "" {
 		config, err := os.UserConfigDir()
 		if err != nil {
@@ -319,6 +332,7 @@ func run() error {
 		return err
 	}
 	defer m.closeDocuments()
+	m.terminalAcceptance = *terminalSmoke
 	for _, path := range paths {
 		m.open(path)
 		if m.findDocument(path) == nil {
@@ -407,7 +421,11 @@ func run() error {
 	var closeUpdates func()
 	var closeIcon func()
 	var closeSaves func()
+	var closeTerminals func()
 	defer func() {
+		if closeTerminals != nil {
+			closeTerminals()
+		}
 		if closeSaves != nil {
 			closeSaves()
 		}
@@ -429,6 +447,7 @@ func run() error {
 	var largeAcceptance largefileAcceptance
 	var languageAcceptance lspAcceptance
 	closingAcceptance := closeAcceptance{mode: *closeSmoke}
+	var shellAcceptance terminalAcceptance
 	deadline := 25 * time.Second
 	if *copilotUISmoke {
 		deadline = 90 * time.Second
@@ -436,11 +455,14 @@ func run() error {
 	if *lspSmoke {
 		deadline = 60 * time.Second
 	}
+	if *terminalSmoke {
+		deadline = 60 * time.Second
+	}
 	if *largeSmoke && *largeSmokeMiB > 16 {
 		deadline = 2 * time.Minute
 	}
 	watchdog := time.AfterFunc(deadline, func() {
-		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" {
+		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" || *terminalSmoke {
 			fmt.Fprintln(os.Stderr, "gocode smoke timed out")
 			os.Exit(2)
 		}
@@ -451,9 +473,13 @@ func run() error {
 			cx = viewContext
 			m.native = viewContext
 			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
+			closeTerminals = m.startTerminals(hostCtx, viewContext)
 			closeIcon = applyAppIcon("gocode — " + filepath.Base(m.workspace))
-			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke && *closeSmoke == "" {
+			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke && *closeSmoke == "" && !*terminalSmoke {
 				closeUpdates = m.startUpdates(hostCtx, viewContext, updateRoot, updateConfigPath, updateConfig)
+				editing := m.editing
+				m.newTerminal()
+				m.terminalFocused, m.editing = false, editing
 			}
 			started = true
 			if host != nil {
@@ -545,11 +571,20 @@ func run() error {
 		if *closeSmoke != "" {
 			closingAcceptance.step(viewContext, m)
 		}
+		if *terminalSmoke {
+			shellAcceptance.step(viewContext, m)
+		}
 
 		return m.view(viewContext)
 	})
 	if err != nil {
 		return err
+	}
+	if *terminalSmoke {
+		if !shellAcceptance.verified {
+			return fmt.Errorf("terminal native acceptance: %s", shellAcceptance.failure)
+		}
+		fmt.Println("gocode terminal acceptance passed: real shell input syntax colors + native ANSI truecolor + keyboard + grid resize + Ctrl+C + exit + unchanged editor")
 	}
 	if *closeSmoke != "" {
 		if err := closingAcceptance.verify(m); err != nil {

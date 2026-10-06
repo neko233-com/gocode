@@ -132,6 +132,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	panelHeight := float32(0)
 	if m.showPanel {
 		panelHeight = 181
+		if m.panel == "TERMINAL" {
+			panelHeight = m.terminalPanelHeight(height)
+		}
 		if m.panel == "COPILOT" {
 			panelHeight = 250
 		}
@@ -147,7 +150,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	parts = append(parts, m.codeView(visible).Flex(1))
 	if m.showPanel {
 		width, _ := cx.WindowSize()
-		parts = append(parts, m.panelView(max(120, width-318)))
+		parts = append(parts, m.panelView(max(120, width-290)))
 	}
 	center := ui.Column(parts...).Flex(1).Background(ui.RGB(editor))
 	body := ui.Row(activity, ui.Column().Width(1).Background(ui.RGB(border)), m.sidebar().Width(240), ui.Column().Width(1).Background(ui.RGB(border)), center).Flex(1)
@@ -322,6 +325,14 @@ func (m *model) panelView(width float32) *ui.Element {
 		header = append(header, button(name, "panel-"+name, func(*ui.Context) { m.panel = name }).FontSize(11).Foreground(ui.RGB(color)))
 	}
 	header = append(header, spacer(), icon("chevron-down", "panel-toggle", func(*ui.Context) { m.showPanel = false }), icon("close", "panel-close", func(*ui.Context) { m.showPanel = false }))
+	if m.panel == "TERMINAL" {
+		windowHeight := float32(820)
+		if m.native != nil {
+			_, windowHeight = m.native.WindowSize()
+		}
+		height := m.terminalPanelHeight(windowHeight)
+		return ui.Column(ui.Column().Height(4).Background(ui.RGB(border)).Key("panel-resize").OnClick(func(*ui.Context) {}), ui.Row(header...).Height(34), m.terminalBody(width, height).Flex(1)).Height(height).Background(ui.RGB(editor))
+	}
 	lines := []*ui.Element{}
 	if m.panel == "COPILOT" {
 		status := m.copilotStatus
@@ -364,8 +375,6 @@ func (m *model) panelView(width float32) *ui.Element {
 				m.signInChat()
 			}
 		})).Height(28))
-	} else if m.panel == "TERMINAL" {
-		lines = append(lines, label("A shell terminal is not connected in this preview.").Height(20).Foreground(ui.RGB(muted)), label(filepath.Base(m.workspace)+" >").FontFamily(codeFont()).Height(20))
 	} else if m.panel == "OUTPUT" {
 		for _, line := range m.output[max(0, len(m.output)-5):] {
 			lines = append(lines, label(strings.TrimSuffix(line, "\n")).FontFamily(codeFont()).Height(20))

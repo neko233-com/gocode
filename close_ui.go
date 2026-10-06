@@ -33,6 +33,7 @@ func (m *model) beginClose(target *document) {
 	}
 	if !m.closePrompt {
 		m.closeEditing, m.closeChatFocused, m.closeUpdateFocused = m.editing, m.chatFocused, m.updateFocused
+		m.closeTerminalFocused = m.terminalFocused
 	}
 	m.closePrompt = true
 	m.closeTarget = target
@@ -41,6 +42,7 @@ func (m *model) beginClose(target *document) {
 	m.chatFocused = false
 	m.updateFocused = false
 	m.pointerSelecting = false
+	m.terminalFocused, m.terminalSelecting, m.panelResizing = false, false, false
 }
 func (m *model) cancelClose() {
 	if m.closeBusy {
@@ -50,6 +52,7 @@ func (m *model) cancelClose() {
 	m.closeTarget = nil
 	m.closeError = ""
 	m.editing, m.chatFocused, m.updateFocused = m.closeEditing, m.closeChatFocused, m.closeUpdateFocused
+	m.terminalFocused = m.closeTerminalFocused
 }
 func (m *model) closePlans() []closeSave {
 	plans := []closeSave{}

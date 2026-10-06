@@ -83,6 +83,14 @@ type model struct {
 	requestSave                                        func(context.Context, []*document, func(error))
 	saveJobs                                           []saveJob
 	saveBusy                                           bool
+	terminals                                          []*terminalTab
+	activeTerminal                                     int
+	terminalFocused, terminalSelecting, panelResizing  bool
+	terminalHeight, panelDragY, panelDragHeight        float32
+	newTerminal                                        func()
+	killTerminal                                       func(*terminalTab)
+	closeTerminalFocused                               bool
+	terminalAcceptance                                 bool
 }
 
 type diagnostic struct {

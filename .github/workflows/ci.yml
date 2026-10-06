@@ -93,6 +93,7 @@ jobs:
             .cache/gopls-native-acceptance.png
             .cache/updates-native-settings.png
             .cache/close-native/*.png
+            .cache/terminal-native/*.png
             .cache/copilot-health.json
             dist/*.zip
             dist/*.msi
@@ -131,6 +132,7 @@ jobs:
             ./bin/gocode -extensions-dir .cache/extensions -close-smoke "$mode"
           done
           ./bin/gocode -extensions-dir .cache/extensions -largefile-smoke
+          ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
       - name: Install pinned official Copilot sidecars
         run: ./bin/gocode -install-copilot
       - name: Verify official Copilot protocol without paid requests

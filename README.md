@@ -43,7 +43,7 @@ go run . -workspace .
 
 macOS 使用 `CGO_ENABLED=1 go run . -workspace .`。Windows GUI 构建：`go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .`。
 
-go.mod 固定依赖已发布的 godesktop v0.4.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
+go.mod 固定依赖已发布的 godesktop v0.5.2，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
 
@@ -59,7 +59,20 @@ go.mod 固定依赖已发布的 godesktop v0.4.0，没有本地 replace，可以
 
 普通文件最多 8 MiB 使用版本化编辑；较大的 UTF-8 文件进入有界内存的只读浏览。Ctrl/Cmd+G 输入行号或 `:字节位置`，滚轮/PageUp/PageDown/拖动滚动条导航；超长单行通过字节视图浏览，Ctrl/Cmd+C 复制当前页面。真实 1 GiB 文本和单行文件均有验收。[大文件策略](docs/large-files.md) 记录内存、速度和边界。
 
-文件树目前最多 250 项，普通编辑视图单行显示最多 400 个 rune。跳过 .git、.cache、node_modules、vendor、bin 和符号链接。完整 IME、字素簇/双向文本导航、多光标、终端、Git 操作、DAP、webview、远程扩展等仍需实现。
+文件树目前最多 250 项，普通编辑视图单行显示最多 400 个 rune。跳过 .git、.cache、node_modules、vendor、bin 和符号链接。完整 IME、字素簇/双向文本导航、多光标、Git 操作、DAP、webview、远程扩展等仍需实现。
+
+## 原生终端
+
+Windows 使用真实 ConPTY/PowerShell；macOS 使用 PTY 和用户 shell，默认 zsh。
+Ctrl/Cmd+` 聚焦或新建终端，+ 新建标签，× 回收进程；拖动面板上边缘改变高度，
+窗口缩放会更新真实终端网格。支持 ANSI/真彩色、Unicode、备用屏、历史滚动、
+鼠标选区、Ctrl+Shift+C（Mac Cmd+C）复制、Ctrl+V/Cmd+V 粘贴和 Ctrl+C 中断。
+
+PowerShell 7 和 Windows PowerShell 5.1 使用 PSReadLine 输入高亮；zsh 使用内嵌
+BSD 授权的 zsh-syntax-highlighting 0.8.0，在现有用户配置后加载。只写入 gocode
+拥有的临时会话配置，不改用户 .zshrc/PowerShell profile。无需安装 Oh My Zsh。
+已有 Oh My Zsh 配置会被读取。完整终端扩展 API、shell integration、链接点击、
+IME/完整字形样式仍待实现。详见 [终端契约](agent%20docs/terminal.md)。
 
 ## 通用语言服务
 

@@ -9,3 +9,4 @@
 *.py text eol=lf
 *.json text eol=lf
 VERSION text eol=lf
+*.zsh text eol=lf
