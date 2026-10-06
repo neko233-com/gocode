@@ -1,6 +1,40 @@
 # Milestone ledger
 
-## Language recovery v0.8.1 development (2026-10-07)
+## Language recovery v0.8.1 promotion (2026-10-07)
+
+Immutable source `9a498ab4ae866419a1a8e1c08eb49b15a3be9db5` passed all five
+jobs in CI `37509901232`, including both Windows amd64 runners, Mac Intel/ARM,
+native recovered-gopls/final-pixel gates, actual GiB browsing and MSI lifecycle.
+Publication `37511249130` reused those tested packages and created stable v0.8.1.
+The earlier same-source CI `37508299422` passed four jobs, but Windows 2025's
+official Copilot LSP initialize reached its 20-second timeout. A local protocol
+check passed; the unchanged source passed the complete next run, including that
+handshake. No source workaround or weaker gate was used. The corrected first-run
+Windows 2022 owned-GPU capture was inspected before publication: greeting(),
+retained dirty source, recovered Problems diagnostic and ready status are visible.
+
+Generated channel metadata `5b3a7f309610d5ed095fb38c4e7d8361b6b93392` changes
+only the seven known installation/checksum/channel files. Local Python channel
+hash/input-policy checks passed. Source gates were not replaced with metadata-only
+checks. Actual signed public Windows ZIP SHA256
+`e7e0d615ff5748f21bdd354b17667316cf7ef23ce8ebc60a76739665456740cb` passed
+automatic ghfast.top, separate full direct GitHub and manual ghfast.top downloads.
+Released-byte native large-file/four-close/VSIX-save/terminal/recovered-gopls
+acceptance passed. The owned test root then rolled back to v0.4.0/source cfcd3513
+and rendered that real prior GUI with the same extension store.
+
+The user's stable v0.5.1 launcher updated the existing v0.7.0 selection to v0.8.1
+through its actual -update command via direct GitHub. Selected source is 9a498ab;
+MSI/launcher baseline remains 0.5.1. Installed version/runtime, real recovered
+gopls/final pixels, native GUI/icon/Settings/source-preservation and update-check
+passed. Installed highlighted terminal/resize/interrupt/exit acceptance also passed.
+Auto=true/mode=auto remains set. Actual Settings/gopls GPU captures under
+.cache/installed-acceptance were visually inspected: Up to date (0.8.1), automatic
+route, gopls ready, full greeting() and recovered diagnostic. Shortcut/icon files
+and normalized user PATH remain valid. Installed official Copilot protocol reports
+authenticated/lspInitialized/sdkConnected=true, networkPromptSent=false; no new AI
+prompt was sent. Production/full VS Code and official Copilot VSIX parity remain
+active and incomplete.
 
 Each configured language server now has an independent process supervisor with
 four exponential-backoff retries in a rolling three-minute failure window. The
@@ -11,6 +45,8 @@ payloads retain at most 2,000 items and 256 KiB of UTF-8 message text per event.
 Disconnect cancels old work and clears only that server's diagnostics/completions;
 new initialize replays current eligible unsaved snapshots without stacking hooks.
 Result guards include the server session, document identity, version and cursor.
+
+### Development evidence before promotion
 
 Owned real stdio process crash/reinitialize/manual restart, crash-loop budget,
 request/job bounds and workbench unsaved replay tests pass. Three randomized
@@ -29,8 +65,8 @@ three randomized race repetitions, including 3,000 actual wire diagnostics with
 UTF-8/text/item bounds, repaired-runtime manual recovery, and an actual initialize
 handler marker before cancellation/reaping. A stopped-after-crash negative control
 failed the real-process test; restoring the source passed. Workflow lint/ShellCheck
-and diff checks passed. Exact cross-platform CI and immutable promotion are next. Installed
-stable stays v0.7.0 until the next source/package gates pass.
+and diff checks passed. At this development checkpoint, exact cross-platform
+promotion was still required and installed stable remained v0.7.0.
 
 Source b767b83787c0cbc9a628e41857efc25928b9a0af passed all five jobs in
 37505379810 and publication 37506593322 created v0.8.0. Inspecting downloaded
@@ -38,7 +74,7 @@ Windows 2022 GPU evidence then found the final capture still showed the precedin
 greet()/Output state despite the successful model checks. A submitted frame count
 alone did not prove the newly completed text/panel reached the owned drawable.
 v0.8.0 is held as a prerelease without replacing its immutable artifacts/tag;
-the user installation stays at v0.7.0. Generated metadata source d7b9dbd came
+the user installation was retained at v0.7.0 during correction. Metadata d7b9dbd came
 from that publication, not a corrected visual source.
 
 The correction waits three submitted frames and also checks actual owned GPU ink:
@@ -48,7 +84,8 @@ the regions; screenshot bytes are saved only from the exact passing capture.
 No product UI marker or artificial acceptance glyph is added. Corrected full
 Windows race/vet/native console+GUI/editor/close/large-file/terminal checks passed;
 three repeated real-gopls final-pixel runs plus a GUI subsystem run passed. The
-positive capture was visually inspected. Exact new CI is required.
+positive capture was visually inspected. The later exact-source CI/promotion above
+gates this correction.
 
 ## Terminal v0.7.0 promotion (2026-10-07)
 
@@ -148,8 +185,8 @@ Windows 2022/2025, Mac Intel/ARM, Ubuntu and package CI subsequently passed abov
 6. Install latest validated gocode on this Windows computer and verify launch,
    command, shortcuts/icons/update settings and installed-app behavior.
 
-Distribution/updates are being validated below. Large-file editing, language
-crash restart and broader parity remain pending. Record immutable commits/runs
+Distribution/updates are recorded below. Large-file editing, file watching,
+broader language capabilities and full parity remain pending. Record immutable commits/runs
 and actual deployment evidence when promoting each milestone.
 Do not claim the active production/full-parity goal is complete.
 

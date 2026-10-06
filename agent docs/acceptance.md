@@ -38,6 +38,15 @@ captures were visually inspected. Installed real terminal/gopls and official
 Copilot protocol checks passed; account check networkPromptSent=false. See
 status.md for immutable metadata-CI and installation evidence and explicit gaps.
 
+v0.8.1/source 9a498ab passed all five source jobs in 37509901232 and publication
+37511249130. Its final Windows LSP gate checks actual completed-token/diagnostic
+pixels. Downloaded Windows 2022 and installed recovered-gopls/Settings captures
+were inspected. Actual signed public direct/mirror update, released-byte native
+checks and prior v0.4.0 GUI rollback passed; the installed v0.8.1 recovered-gopls,
+highlighted terminal, icons/settings and no-prompt Copilot protocol also passed.
+Generated 5b3a7f3 channel metadata changes only known seven files and passed local
+hash/input-policy tests. Exact application code is the source-CI/release commit.
+
 Close/save acceptance uses real immutable-snapshot disk writes and a deterministic
 UI acknowledgement mailbox to reproduce newer edits, serial saves, cancellation,
 queue bounds, external changes and closed documents. Native Windows tests send
