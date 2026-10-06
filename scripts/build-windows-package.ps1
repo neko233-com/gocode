@@ -43,6 +43,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $taskRoot 'README.md') -Destination (Join-Path $taskPayload 'README.md')
     Copy-Item -LiteralPath (Join-Path $taskRoot 'assets/code-oss/code.ico') -Destination (Join-Path $taskPayload 'gocode.ico')
     Copy-Item -LiteralPath (Join-Path $taskRoot 'assets/code-oss/LICENSE.txt') -Destination (Join-Path $taskPayload 'CODE-OSS-LICENSE.txt')
+    Copy-Item -LiteralPath (Join-Path $taskRoot 'assets/fsnotify/LICENSE.txt') -Destination (Join-Path $taskPayload 'FSNOTIFY-LICENSE.txt')
     $taskZip=Join-Path $taskOutput "gocode-$Version-windows-amd64.zip"
     if(Test-Path -LiteralPath $taskZip){throw "Artifact exists: $taskZip"}
     # Windows PowerShell 5 Compress-Archive writes backslash ZIP entry names.

@@ -11,6 +11,16 @@ one pending UI acknowledgement/body. It reads one file per 100 ms tick, at most
 8 MiB through 128 KiB chunks, validates regular UTF-8/NUL-free text, and compares
 the descriptor and final pathname identity/size/mtime before publishing. A racing
 replacement is retried. Native event storms cannot queue multiple text bodies.
+Windows observation/hash reads use non-inheritable CreateFile handles sharing
+read/write/delete, including extended Unicode/long paths. Windows modern native
+FileRenameInfoEx/POSIX replacement preserves those readers' old descriptors;
+the original legacy os.Rename held-handle negative control still failed despite
+deletion sharing and prevented a premature success claim. Unsupported OS/filesystem
+classes fall back to ordinary rename with the same bounded retry. The modern path
+checks unrelated deletion-sharing conflicts before replacing and does not ignore
+read-only attributes. Other processes may omit deletion sharing: atomic
+replacement retries only Windows sharing/lock/access-denied failures for at most
+two seconds with cancellation and a disk-hash check before every save retry.
 Cancellation rejects pending callbacks; shutdown waits at most three seconds for
 an uninterruptible OS read. Initial small-file opening also uses this bounded
 reader instead of an unbounded Stat/ReadFile race.
@@ -53,6 +63,18 @@ CI runs both VSIX-only and actual-gopls native modes on Windows/Mac, and portabl
 race/no-cgo policy tests. Local Windows captures are in .cache/filewatch-native
 and .cache/filewatch-native-lsp; final source CI/public installation evidence is
 recorded in status.md only after it passes.
+
+Source 6001f54 failed Windows 2022 native gopls/file-watch CI 37515729600:
+the second external fixture rename returned Access denied while gopls was reading.
+It was not published. Go 1.27 syscall.Open shares read/write but omits delete;
+both our readers and unrelated readers can interfere with rename. A real held
+descriptor regression now proves our long Unicode-path reader permits rename.
+Actual save regressions hold a legacy reader across rename, release it, edit the
+disk during retry, and cancel retry: only the authorized unchanged revision may
+be written. The native external-editor fixture also uses the bounded Windows
+replacement path; actual replacement/notification/pixel requirements remain.
+Read-only and nonregular save targets are rejected before creating a temporary
+save file and at every retry; no permission override or silent replacement occurs.
 
 ## Remaining scope
 

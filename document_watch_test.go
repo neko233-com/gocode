@@ -35,7 +35,7 @@ func replaceOnDisk(t *testing.T, path, text string) {
 	if err := os.WriteFile(temp, []byte(text), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Rename(temp, path); err != nil {
+	if err := filewatch.Replace(context.Background(), temp, path, nil); err != nil {
 		t.Fatal(err)
 	}
 }

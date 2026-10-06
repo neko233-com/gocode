@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/neko233-com/gocode/internal/filewatch"
 	"io"
 	"os"
 	"path/filepath"
@@ -16,10 +17,26 @@ import (
 // Refuse to overwrite a file changed by another program since open/last save.
 // Large files never reach this writer; reads/writes remain bounded and cancellable.
 func checkDiskVersion(ctx context.Context, path string, expected *[32]byte) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	pathInfo, err := os.Lstat(path)
+	if err != nil {
+		return err
+	}
+	if !pathInfo.Mode().IsRegular() {
+		return errors.New("disk path is no longer a regular file; unsaved buffer was preserved")
+	}
+	if pathInfo.Mode().Perm()&0222 == 0 {
+		return errors.New("disk file is read-only; unsaved buffer was preserved")
+	}
+	if pathInfo.Size() > editableFileLimit {
+		return errors.New("file changed on disk; reopen it before saving")
+	}
 	if expected == nil {
 		return nil
 	}
-	f, err := os.Open(path)
+	f, err := filewatch.OpenRead(path)
 	if err != nil {
 		return err
 	}
@@ -69,7 +86,7 @@ func writeDocumentSnapshot(ctx context.Context, path string, snapshot textbuffer
 	if err := checkDiskVersion(ctx, path, expected); err != nil {
 		return hash, err
 	}
-	info, err := os.Stat(path)
+	info, err := os.Lstat(path)
 	if err != nil {
 		return hash, err
 	}
@@ -123,11 +140,5 @@ func writeDocumentSnapshot(ctx context.Context, path string, snapshot textbuffer
 	if err := os.Chmod(name, info.Mode().Perm()); err != nil {
 		return hash, err
 	}
-	if err := checkDiskVersion(ctx, path, expected); err != nil {
-		return hash, err
-	}
-	if err := ctx.Err(); err != nil {
-		return hash, err
-	}
-	return hash, os.Rename(name, path)
+	return hash, filewatch.Replace(ctx, name, path, func(c context.Context) error { return checkDiskVersion(c, path, expected) })
 }

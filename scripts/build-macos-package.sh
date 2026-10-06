@@ -24,6 +24,7 @@ printf '{"owner":"neko233-com/gocode","schema":1,"version":"%s","source":"%s"}\n
 cp LICENSE "$task_payload/LICENSE.txt"
 cp README.md "$task_payload/README.md"
 cp assets/code-oss/LICENSE.txt "$task_payload/CODE-OSS-LICENSE.txt"
+cp assets/fsnotify/LICENSE.txt "$task_payload/FSNOTIFY-LICENSE.txt"
 task_app="$task_stage/gocode.app"
 mkdir -p "$task_app/Contents/MacOS" "$task_app/Contents/Resources"
 cp -R "$task_payload/." "$task_app/Contents/MacOS/"

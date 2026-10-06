@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/neko233-com/gocode/internal/filewatch"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,7 +34,7 @@ func (a *filewatchAcceptance) write(cx *ui.Context, path, value string) {
 		temp := filepath.Join(filepath.Dir(path), ".external-editor-save")
 		err := os.WriteFile(temp, []byte(value), 0600)
 		if err == nil {
-			err = os.Rename(temp, path)
+			err = filewatch.Replace(context.Background(), temp, path, nil)
 		}
 		cx.Dispatch(func() {
 			if err != nil {

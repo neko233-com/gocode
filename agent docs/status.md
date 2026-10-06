@@ -2,6 +2,24 @@
 
 ## Editable disk watching in development (2026-10-07)
 
+Initial source 6001f54 CI 37515729600 passed Ubuntu and Mac ARM but Windows 2022
+failed its new actual-gopls/file-watch native fixture: external atomic rename
+returned Access denied during a concurrent gopls read. That source is not released.
+The correction uses deletion-sharing Windows observation/hash handles and bounded
+sharing-failure rename retries, rechecking the expected disk hash on each attempt.
+Actual held-descriptor/long Unicode-path save/retry/external-write/cancel tests
+passed repeated local race checks, including ten repeated stale-read/reload/save
+sharing runs and ten long Unicode-path descriptor runs. The legacy rename held
+handle test failed despite deletion sharing, requiring FileRenameInfoEx/POSIX.
+A local exact-size Win32 filename buffer then exposed intermittent invalid paths;
+adding the required NUL storage (excluded from FileNameLength) passed the ten runs.
+The original CI's other four jobs passed, including MSI on Windows 2025. The final
+complete local Windows rerun passed, followed by targeted target/cancel tests,
+rebuilt actual-gopls watch/native pixels and the no-cgo suite. Packaging includes
+the exact pinned fsnotify BSD notice on Windows/Mac. New full-source CI is pending.
+No native gate
+is suppressed and no failed source has been published.
+
 Public godesktop v0.5.3/source d22bf93187911a2fd829c993a6b096338e9a1b64 passed
 all five jobs in CI 37513434533 and is independently pinned with GOWORK=off.
 The new worker uses fsnotify v1.10.1 parent watches plus bounded reconciliation.

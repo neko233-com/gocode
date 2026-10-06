@@ -135,7 +135,7 @@ func Read(ctx context.Context, entry Entry) (Result, os.FileInfo) {
 		result.Kind, result.Err = "unavailable", err
 		return result, info
 	}
-	f, err := os.Open(entry.Path)
+	f, err := OpenRead(entry.Path)
 	if err != nil {
 		result.Kind, result.Err = "unavailable", err
 		return result, info
