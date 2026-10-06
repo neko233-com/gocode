@@ -1,5 +1,28 @@
 # Milestone ledger
 
+## Native image / measured captions development (2026-10-07)
+
+The workbench now renders the upstream immutable Code-OSS PNG in the Windows
+titlebar (35/16 logical-pixel slot/image from current VS Code main 4861e8b).
+Tabs use actual system-font width, preserving final Latin/CJK caption glyphs
+before their close controls. New -ui-smoke uses production native views, real
+temporary files, completed GPU pixels, native Windows clicks and source bytes;
+Mac normal/1.5/2 drawable capture gates are wired for the exact-source CI.
+Local 150%-DPI Windows candidate passes used an ignored modfile pointing to the
+unreleased core. A real old-width negative control failed the caption/close gate;
+the corrected capture was visually inspected. These are candidate results,
+not independent public-dependency/CI/release success. Promotion is pending.
+
+Public godesktop v0.6.0 now resolves independently with GOWORK=off, source
+3bf3e4dfd1b4a221eb61018f201295b1ce3404f7, all five core jobs green in 37532765849.
+The child full local Windows strict-cgo/race/vet/native suite (Repeat=1) passed
+with that exact public module, including console/GUI visual gates, opener/VSIX,
+four close modes, large browsing, terminal and file watching. No-cgo and two
+Python distribution-policy checks passed. Extra real gopls recovery/watch passed;
+the first extra invocation lacked GODESKTOP_READBACK and failed its diagnostic
+capture, then the correctly configured invocation passed. No source correction
+was needed for that harness setup. Final child source CI/publication is next.
+
 ## Asynchronous opening/traversal v0.10.0 promotion (2026-10-07)
 
 Immutable application/package source `0a86cec6e6a56aa439c1474c4bfc82a047ce5122`

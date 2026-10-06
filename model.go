@@ -27,6 +27,7 @@ type document struct {
 	diskConflict                 *diskConflict
 }
 type model struct {
+	logo                                               *ui.Bitmap
 	workspace                                          string
 	files                                              []string
 	docs                                               []*document

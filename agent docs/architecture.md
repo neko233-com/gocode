@@ -67,3 +67,12 @@ integrity-checked metadata/artifacts. Stage before switching; preserve rollback.
 
 Do not require a paid installer tool or OS signing certificate. Free metadata
 integrity verification is separate from optional platform publisher signing.
+
+## Immutable images and native visual evidence
+
+The titlebar bitmap is decoded/copied once before Run and reused by views through
+the independently published godesktop v0.6.0 API. Native GPU residency/lifetime
+is owned by the framework; application image identity is immutable. Mac visual
+acceptance reads only the owned completed drawable through testing/metalprobe.
+Tabs use platform UI-font measurements; complete captions retain a separate close
+target. See ui.md for the current source pin, pixel/action gates and scope gaps.

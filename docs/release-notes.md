@@ -1,9 +1,24 @@
-gocode v0.9.0 observes external changes to open editable files with native parent-directory watches and bounded reconciliation. Clean files reload automatically. Dirty files retain unsaved edits and show Reload from Disk / Overwrite Disk. Reload requires confirmation and re-reads current disk contents; a newer accepted VSIX edit cancels a pending discard. Overwrite still verifies the observed disk hash before writing and before atomic rename.
+gocode v0.11.0 replaces the Windows titlebar's debug placeholder with the actual
+upstream Code-OSS icon, rendered as an immutable native GPU image. Tabs use real
+system-font measurements, so README.md and Chinese filenames retain their final
+caption glyphs before the close button. Current VS Code stable 1.140.0 / main
+4861e8b supplies the visual measurements; the MIT asset provenance is retained.
 
-Reload uses public godesktop v0.5.3: document identity and protocol versions remain continuous, LF/CRLF and prior text are undoable, and redo returns to the external saved revision. VSIX receives actual content changes; standard language services receive the new snapshot/version. Real gopls hover verifies the external function after reload and undo/redo.
+The public godesktop bitmap API provides premultiplied RGBA, aspect-preserving
+clipping, static upload reuse, bounded 128-image / 64 MiB native CPU residency,
+frame pinning and fence-owned textures across eviction/device recovery. A new
+native UI gate checks actual completed caption/selection pixels, tab selection
+and close, and unchanged real source files. Mac Intel/ARM additionally capture
+owned Metal drawable pixels at normal, 1.5 and 2 density, without desktop capture.
 
-The watcher bounds 128 open editable files, one pending file body/UI acknowledgement, 8 MiB reads and fixed read chunks. Atomic replacement, deletion/recreation, parent recreation, event storms, stale reads, close/reopen, save acknowledgement races and explicit reload versus newer VSIX edits have real filesystem/race regressions. Windows readers share deletion, and modern native replacement retains old descriptors with bounded retries for other readers. Each save retry verifies the disk revision; cancellation, changed disk and read-only targets preserve local text. Long Unicode-path and held-reader regressions cover these semantics. Windows native acceptance operates actual owned mouse controls and checks completed function, banner/modal and Problems GPU pixels; Mac executes the same native UI model actions. No Mac screenshot claim follows from smoke alone.
+Existing bounded asynchronous file opening/Explorer startup, acknowledged VSIX
+document synchronization, editable-file reload/conflict handling, generic language
+server recovery, real highlighted ConPTY/PTY terminals and read-only GiB browsing
+remain available. Copilot follows the official SDK/Language Server route while
+VSIX compatibility continues to expand. Free MSI/ZIP/Mac packages and maintained
+CLI/custom winget/Scoop/Homebrew distribution use signed/hash-verified updates.
 
-Existing native highlighted ConPTY/PTY terminals, language-server recovery, read-only bounded GiB browsing, free MSI/portable/Mac packages, custom installation channels and signed/hashed automatic/manual-route updates remain available. The UI is Go/platform GPU; Node is an isolated optional extension/AI host. Copilot uses the official SDK/LSP route.
-
-This remains an engineering preview. Recursive workspace watching, VSIX file-watch APIs, large-browser reopen, asynchronous ordinary open/traversal, diff/merge conflicts, the full official Copilot VSIX and full VS Code/GPUI parity are unfinished. Exact source CI, public-byte rollback and installed-app evidence are recorded in agent docs/status.md as they pass; existing release tags/assets are immutable.
+This remains an engineering preview. Full VS Code/GPUI parity, the full official
+Copilot VSIX, tab overflow, recursive workspace watching, DAP/SCM, full search and
+advanced editing remain unfinished. Exact-source CI, released-byte rollback and
+installed-app evidence are recorded in agent docs/status.md as they pass.

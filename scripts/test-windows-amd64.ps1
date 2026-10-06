@@ -57,6 +57,9 @@ try {
     & ./bin/gocode.exe -workspace . -extensions-dir .cache/extensions -smoke
     if ($LASTEXITCODE -ne 0) { throw 'Workbench smoke failed.' }
     Invoke-CheckedGUI -workspace . -extensions-dir .cache/extensions -smoke
+    & ./bin/gocode.exe -ui-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native workbench logo/caption/tab GPU acceptance failed.' }
+    Invoke-CheckedGUI -ui-smoke
     & ./bin/gocode.exe -extensions-dir .cache/extensions -open-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native delayed disk/scan and awaited VSIX opening acceptance failed.' }
     Invoke-CheckedGUI -extensions-dir .cache/extensions -open-smoke

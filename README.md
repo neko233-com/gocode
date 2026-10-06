@@ -43,11 +43,12 @@ go run . -workspace .
 
 macOS 使用 `CGO_ENABLED=1 go run . -workspace .`。Windows GUI 构建：`go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .`。
 
-go.mod 固定依赖已发布的 godesktop v0.5.3，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
+go.mod 固定依赖已发布的 godesktop v0.6.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
 
 - UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。
+- 原生标题栏复用 Code-OSS 图片纹理；标签按系统字体实测宽度，完整显示 README.md 和中文文件名。源代码参照和原生像素验收见 [UI 工程记录](agent%20docs/ui.md)。
 - v0.10.0 将普通打开和有界 Explorer 扫描放到后台；慢读取期间可继续输入、缩放和取消，旧结果不会抢回新标签或覆盖未保存内容。VSIX/Problems/定义跳转等待实际目标，扩展命令等待文档同步确认；五平台和实际安装证据见 harness。
 - 未保存的窗口／标签页关闭会显示保存、丢弃、取消；关闭保存使用后台不可变快照，
   保存前检查磁盘内容，检测外部变更时保留原文件和未保存缓冲区。v0.10.0 已发布，
@@ -114,4 +115,4 @@ CI 覆盖 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd6
 
 MIT License。VS Code 界面/API 作为参考，项目与 Microsoft 无隶属关系。官方 Copilot 运行时按其上游许可通过 npm 单独安装。
 
-工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到最新 main `ff275a2`；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，来源和 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。
+工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到 2026-10-07 main `4861e8b`（stable 1.140.0）；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，资源固定版本与 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。

@@ -100,6 +100,7 @@ jobs:
             .cache/filewatch-native/*.png
             .cache/filewatch-native-lsp/*.png
             .cache/open-native/*.png
+            .cache/workbench-ui/*.png
             .cache/copilot-health.json
             dist/*.zip
             dist/*.msi
@@ -133,6 +134,9 @@ jobs:
           mkdir -p bin
           go build -trimpath -ldflags="-s -w" -o bin/gocode .
           ./bin/gocode -workspace . -extensions-dir .cache/extensions -smoke
+          ./bin/gocode -ui-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_UI_SCREENSHOTS=.cache/workbench-ui-150 ./bin/gocode -ui-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_UI_SCREENSHOTS=.cache/workbench-ui-200 ./bin/gocode -ui-smoke
           ./bin/gocode -extensions-dir .cache/extensions -open-smoke
           ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
           for mode in save discard cancel external; do
@@ -159,6 +163,9 @@ jobs:
             bin/gocode
             coverage.out
             .cache/copilot-health.json
+            .cache/workbench-ui/*.png
+            .cache/workbench-ui-150/*.png
+            .cache/workbench-ui-200/*.png
             dist/*.zip
             dist/*.tar.gz
           include-hidden-files: true

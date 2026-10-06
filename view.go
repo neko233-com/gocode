@@ -64,7 +64,8 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		if d.dirty() {
 			symbol = "●"
 		}
-		tab := ui.Column(ui.Column().Height(1).Background(top), ui.Row(label("{} ").Foreground(ui.RGB(0x519aba)).Width(28), label(name).Flex(1), button(symbol, fmt.Sprintf("close-%d", i), func(*ui.Context) { m.closeTab(i) }).Width(26)).Padding(5).Height(34)).Width(float32(70 + len([]rune(name))*7)).Background(ui.RGB(bg)).Key(fmt.Sprintf("tab-%d", i)).OnClick(func(*ui.Context) { m.active = i; m.documentEvent("focus", d, textbuffer.ChangeEvent{}) })
+		nameWidth, _ := ui.MeasureText(name, 13, "")
+		tab := ui.Column(ui.Column().Height(1).Background(top), ui.Row(label("{} ").Foreground(ui.RGB(0x519aba)).Width(28), label(name).Flex(1), button(symbol, fmt.Sprintf("close-%d", i), func(*ui.Context) { m.closeTab(i) }).Width(26)).Padding(5).Height(34)).Width(max(120, nameWidth+64)).Background(ui.RGB(bg)).Key(fmt.Sprintf("tab-%d", i)).OnClick(func(*ui.Context) { m.active = i; m.documentEvent("focus", d, textbuffer.ChangeEvent{}) })
 		tabs = append(tabs, tab, ui.Column().Width(1).Background(ui.RGB(border)))
 	}
 	tabs = append(tabs, spacer(), icon("split", "split", func(*ui.Context) { m.message = "Split editors are not implemented in this preview" }))
@@ -185,7 +186,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 }
 
 func (m *model) titlebar(cx *ui.Context) *ui.Element {
-	left := []*ui.Element{ui.Icon("debug").Width(36).Foreground(ui.RGB(0x23a9f2))}
+	left := []*ui.Element{ui.Image(m.logo).Width(35).Height(35).Padding(9.5)}
 	if runtime.GOOS == "darwin" {
 		left = []*ui.Element{ui.Column().Width(80)}
 	}

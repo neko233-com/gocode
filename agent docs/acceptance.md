@@ -31,6 +31,9 @@
 - Visual: pin VS Code source, snapshot font/theme/viewport/DPI, inspect meaningful
   editor/large-file/diagnostics/chat/settings/update states. Assertions alone do
   not replace visual review.
+  -ui-smoke checks actual completed caption/selection pixels and native tab actions
+  in disposable real files. Windows also checks the titlebar PNG; Mac captures its
+  own Metal drawable at normal/1.5/2 density. See ui.md for scope and source pins.
 - Distribution: real MSI install/uninstall/upgrade in an owned root, portable and
   CLI install, icons/shortcuts/PATH, update probe/hash/metadata/rollback tests,
   published asset checks, then the explicitly requested local install.
