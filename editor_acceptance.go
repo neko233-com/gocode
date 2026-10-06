@@ -23,6 +23,17 @@ func verifyNativeEditor(ctx context.Context, cx *ui.Context, m *model, host *ext
 	if !edit.Applied || edit.Version != 2 || !strings.HasPrefix(edit.Text, "// VSIX 编辑 😀\r\n") {
 		return errors.New("VSIX did not edit the actual native buffer")
 	}
+	var saved struct {
+		Saved, Dirty   bool
+		Version, Saves int
+		Text           string
+	}
+	if err := host.Call(ctx, "execute", map[string]string{"command": "gocode.save"}, &saved); err != nil {
+		return err
+	}
+	if !saved.Saved || saved.Dirty || saved.Version != 2 || saved.Saves != 1 || saved.Text != edit.Text {
+		return errors.New("VSIX Document.save did not acknowledge the disk revision exactly once")
+	}
 	type result struct {
 		state *documentState
 		err   error
@@ -32,10 +43,6 @@ func verifyNativeEditor(ctx context.Context, cx *ui.Context, m *model, host *ext
 		d := m.current()
 		if d == nil {
 			done <- result{err: errors.New("no native active document")}
-			return
-		}
-		if err := m.save(); err != nil {
-			done <- result{err: err}
 			return
 		}
 		m.editing = true

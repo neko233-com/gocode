@@ -23,6 +23,7 @@ type documentState struct {
 	LanguageID string               `json:"languageId"`
 	Version    int                  `json:"version"`
 	Dirty      bool                 `json:"dirty"`
+	SaveID     uint64               `json:"saveId,omitempty"`
 	Selection  textbuffer.Selection `json:"selection"`
 	Changes    []textbuffer.Change  `json:"changes,omitempty"`
 }
@@ -34,7 +35,7 @@ func documentStateOf(d *document, full bool) *documentState {
 	if !d.serviceEligible() {
 		return nil
 	}
-	state := &documentState{Path: d.path, LanguageID: copilotservice.LanguageID(d.path), Version: d.buffer.Version(), Dirty: d.buffer.Dirty(), Selection: d.buffer.Selection()}
+	state := &documentState{Path: d.path, LanguageID: copilotservice.LanguageID(d.path), Version: d.buffer.Version(), Dirty: d.buffer.Dirty(), Selection: d.buffer.Selection(), SaveID: d.saveID}
 	if full {
 		text := d.buffer.Text()
 		state.Text = &text
@@ -127,7 +128,7 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		}
 		return map[string]any{"applied": true, "documents": states}, nil
 	}))
-	host.Register("workspace/saveDocument", onUI(cx, func(_ context.Context, raw json.RawMessage) (any, error) {
+	host.Register("workspace/saveDocument", func(ctx context.Context, raw json.RawMessage) (any, error) {
 		var request struct {
 			Path    string `json:"path"`
 			Version int    `json:"version"`
@@ -135,15 +136,46 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		if err := json.Unmarshal(raw, &request); err != nil {
 			return nil, err
 		}
-		d := m.findDocument(request.Path)
-		if d == nil || d.buffer == nil || d.buffer.Version() != request.Version {
-			return map[string]bool{"saved": false}, nil
+		type answer struct {
+			value any
+			err   error
 		}
-		if err := m.saveDocument(d); err != nil {
-			return nil, err
+		result := make(chan answer, 1)
+		if !cx.Dispatch(func() {
+			if err := ctx.Err(); err != nil {
+				result <- answer{err: err}
+				return
+			}
+			if m.closeBusy {
+				result <- answer{err: errors.New("workbench is closing; save was not queued")}
+				return
+			}
+			d := m.findDocument(request.Path)
+			if d == nil || d.buffer == nil || d.buffer.Version() != request.Version {
+				result <- answer{value: map[string]bool{"saved": false}}
+				return
+			}
+			m.requestSave(ctx, []*document{d}, func(err error) {
+				if errors.Is(err, errSaveChanged) {
+					result <- answer{value: map[string]any{"saved": false, "document": stateOf(d)}}
+					return
+				}
+				if err != nil {
+					result <- answer{err: err}
+					return
+				}
+				result <- answer{value: map[string]any{"saved": true, "document": stateOf(d)}}
+			})
+		}) {
+			return nil, errors.New("native workbench closed")
 		}
-		return map[string]any{"saved": true, "document": stateOf(d)}, nil
-	}))
+		select {
+		case r := <-result:
+			return r.value, r.err
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	})
 	host.Register("window/showTextDocument", onUI(cx, func(_ context.Context, raw json.RawMessage) (any, error) {
 		var request struct {
 			Path string `json:"path"`

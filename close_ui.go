@@ -1,11 +1,7 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"path/filepath"
-	"sync"
-	"time"
 
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
@@ -16,10 +12,6 @@ type closeSave struct {
 	snapshot textbuffer.Snapshot
 	expected *[32]byte
 }
-type closeSaved struct {
-	plan closeSave
-	hash [32]byte
-}
 
 func (m *model) requestWindowClose(*ui.Context) bool {
 	for _, d := range m.docs {
@@ -28,7 +20,12 @@ func (m *model) requestWindowClose(*ui.Context) bool {
 			return false
 		}
 	}
-	return !m.closeBusy
+	if m.closeBusy || m.saveBusy || len(m.saveJobs) != 0 {
+		m.beginClose(nil)
+		m.closeError = "A save is still in progress"
+		return false
+	}
+	return true
 }
 func (m *model) beginClose(target *document) {
 	if m.closeBusy {
@@ -83,56 +80,6 @@ func (m *model) finishClose(cx *ui.Context) {
 		}
 	}
 }
-func (m *model) startCloseSaves(parent context.Context, cx *ui.Context) func() {
-	ctx, cancel := context.WithCancel(parent)
-	var workers sync.WaitGroup
-	m.saveForClose = func() {
-		if m.closeBusy {
-			return
-		}
-		plans := m.closePlans()
-		m.closeBusy = true
-		m.closeError = "Saving…"
-		workers.Go(func() {
-			c, stop := context.WithTimeout(ctx, 30*time.Second)
-			defer stop()
-			saved := []closeSaved{}
-			var failure error
-			for _, plan := range plans {
-				hash, err := writeDocumentSnapshot(c, plan.document.path, plan.snapshot, plan.expected)
-				if err != nil {
-					failure = err
-					break
-				}
-				saved = append(saved, closeSaved{plan, hash})
-			}
-			cx.Dispatch(func() {
-				m.closeBusy = false
-				for _, result := range saved {
-					d := result.plan.document
-					d.diskHash = result.hash
-					d.diskKnown = true
-					if d.buffer.Version() == result.plan.snapshot.Version {
-						d.buffer.MarkSaved()
-						m.documentEvent("save", d, textbuffer.ChangeEvent{})
-					} else {
-						failure = errors.New("document changed while saving; review the newer unsaved changes and retry")
-					}
-				}
-				if failure != nil {
-					m.closeError = failure.Error()
-					return
-				}
-				if len(m.closePlans()) != 0 {
-					m.closeError = "New unsaved changes arrived; review and retry"
-					return
-				}
-				m.finishClose(cx)
-			})
-		})
-	}
-	return func() { cancel(); workers.Wait() }
-}
 func (m *model) closeOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 	plans := m.closePlans()
 	items := []*ui.Element{label("Do you want to save your changes?").FontSize(17).Height(30)}
@@ -152,7 +99,11 @@ func (m *model) closeOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 				m.saveForClose()
 			}
 		}
-		discard = func(*ui.Context) { m.finishClose(cx) }
+		discard = func(*ui.Context) {
+			if m.discardForClose != nil {
+				m.discardForClose()
+			}
+		}
 		cancel = func(*ui.Context) { m.cancelClose() }
 	}
 	items = append(items, ui.Row(button("Save", "close-save", save).Width(100).Height(30).Background(ui.RGB(accent)), spacer(), button("Don't Save", "close-discard", discard).Width(120).Height(30), button("Cancel", "close-cancel", cancel).Width(90).Height(30)).Gap(8).Height(40))

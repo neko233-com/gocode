@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -26,6 +25,7 @@ type document struct {
 	line, column, scroll         int
 	diskHash                     [32]byte
 	diskKnown                    bool
+	saveID                       uint64
 }
 type model struct {
 	workspace                                          string
@@ -79,6 +79,10 @@ type model struct {
 	closeTarget                                        *document
 	closeError                                         string
 	saveForClose                                       func()
+	discardForClose                                    func()
+	requestSave                                        func(context.Context, []*document, func(error))
+	saveJobs                                           []saveJob
+	saveBusy                                           bool
 }
 
 type diagnostic struct {
@@ -240,33 +244,6 @@ func (m *model) removeTab(index int) {
 	}
 	m.active = min(m.active, len(m.docs)-1)
 	m.documentEvent("focus", m.current(), textbuffer.ChangeEvent{})
-}
-func (m *model) save() error {
-	d := m.current()
-	if d == nil {
-		return errors.New("no active document")
-	}
-	return m.saveDocument(d)
-}
-func (m *model) saveDocument(d *document) error {
-	if d.buffer == nil {
-		return errors.New("large-file browsing is read-only; the file on disk has not been changed")
-	}
-	var expected *[32]byte
-	if d.diskKnown {
-		value := d.diskHash
-		expected = &value
-	}
-	hash, err := writeDocumentSnapshot(context.Background(), d.path, d.buffer.Snapshot(), expected)
-	if err != nil {
-		return err
-	}
-	d.diskHash = hash
-	d.diskKnown = true
-	d.buffer.MarkSaved()
-	m.documentEvent("save", d, textbuffer.ChangeEvent{})
-	m.message = "Saved " + filepath.Base(d.path)
-	return nil
 }
 
 // Existing files use one physical identity. On Windows EvalSymlinks also

@@ -134,3 +134,44 @@ Full new-source CI, cross-platform workbench close smoke, publication/update and
 local deployment of this next editor revision remain pending. The installed app
 is still the verified v0.5.1 release. Existing normal Ctrl+S/VSIX saves still use
 the synchronous save adapter; move that adapter to acknowledged worker I/O next.
+
+The first new-source CI `37468303977` at `43847119c35831ccea67a9ee8848d56473926078`
+passed Mac Intel/ARM and Ubuntu but failed both Windows discard/conflict clicks.
+Downloaded owned-window GPU evidence showed a smaller runner viewport. Local
+150% DPI additionally exposed physical-client pixels being passed to a DIP pointer
+helper. The corrected test converts both actual size and DPI before clicking.
+Never promote this failed source or treat a local-only pass as all-platform proof.
+
+Next working revision routes ordinary Ctrl/Cmd+S, palette, VSIX and close saves
+through the same bounded actor; production has no synchronous UI disk-save path.
+Frozen-path/snapshot writes, serial disk-hash rebase, exact-version acknowledgement,
+cancelled/closed requests, 32-job overflow and a discard barrier have real-disk race
+tests. Save size is checked before joining the snapshot text. A matching native
+saveId coordinates with the framework's next bridge revision; actual VSIX save
+smoke verifies saved text/dirty state and one success event. The pure model test
+adapter is test-only. Cross-platform native -close-smoke covers four disposable
+workspace modes. Public dependency promotion, new exact-source CI, release and
+installed update are still pending; installed v0.5.1 is preserved.
+
+Public godesktop v0.5.1 is now pinned (no replace/workspace override), source
+`fd5ee95f0fd5df73e8076971abb282d616bd7725`, all five jobs green in framework
+CI `37471310727`. Local GOWORK=off child race tests passed with all packages and
+three randomized repetitions, including actual OS-close/mouse cases. Native
+four-mode workbench close acceptance passed; final exact-dependency VSIX smoke,
+conflict screenshot, new child CI and installation promotion follow next.
+
+Exact public v0.5.1 dependency local Windows validation now passed: strict-cgo
+amd64 race/vet, console+GUI native smoke, real installed VSIX Document.save with
+one event, CRLF disk bytes, native undo/redo/completion, all four native close
+modes and large-file browsing. Actual OS-close save/discard/cancel/conflict tests
+also passed three repeated randomized package runs. Owned GPU capture
+`.cache/close-native/smoke-external-conflict.png` was visually inspected: readable
+wrapped conflict reason, unchanged dirty tab and working Save/Don't Save/Cancel.
+Actionlint/ShellCheck and diff checks passed. New exact-source CI/promotion is next.
+
+Limits: close confirmation currently disables decisions while its save/barrier is
+active; request cancellation is supported at the save API but an interactive
+cancel-in-progress control is still needed. A kernel-blocked write/fsync can outlive
+the worker context; explicit forced shutdown has a bounded three-second wait.
+Regular open/tree I/O, filesystem watchers/transactional conflicts and the broader
+editor/services/function coverage ledger remain unfinished.

@@ -1,6 +1,12 @@
-v0.5.1 corrects Windows PowerShell 5 ZIP paths and validates every actual generated
-updater archive through production extraction and native executable health checks.
-v0.5.0's Windows updater archive was rejected safely; its immutable assets remain.
+v0.6.0 protects unsaved native windows and tabs with Save, Don't Save and Cancel.
+Cancel restores editing focus; failed saves keep the window and unsaved buffer.
+Native Windows/macOS close requests follow the framework's guarded close path.
+
+Ctrl/Cmd+S, command palette, VSIX Document.save and close saves now share a bounded
+background snapshot writer. New edits during a save remain dirty. Content changes
+from another program reject the write instead of overwriting that program's file.
+VSIX acknowledgement and notifications emit one success event per saved revision.
+File-watch/conflict resolution and filesystem coordination are future work.
 
 gocode adds free Windows x64 MSI/portable packages and macOS Intel/Apple Silicon
 bundles, pinned command installation scripts and maintained winget/Scoop/Homebrew

@@ -89,9 +89,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	if m.palette {
 		items := []*ui.Element{label("> " + m.query + "▏").Height(32).Padding(8).Background(ui.RGB(0x313131))}
 		items = append(items, button("File: Save active document", "palette-save", func(*ui.Context) {
-			if err := m.save(); err != nil {
-				m.message = err.Error()
-			}
+			m.saveActive()
 			m.palette = false
 		}).Height(28), button("View: Toggle panel", "palette-panel", func(*ui.Context) { m.showPanel = !m.showPanel; m.palette = false }).Height(28))
 		items = append(items, button("Copilot: Open Chat (Ctrl/Cmd+I)", "palette-copilot-chat", func(*ui.Context) {

@@ -35,6 +35,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'GUI workbench smoke failed.' }
     & ./bin/gocode.exe -extensions-dir .cache/extensions -editor-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Versioned native editor acceptance failed.' }
+    foreach ($taskCloseMode in @('save','discard','cancel','external')) {
+        & ./bin/gocode.exe -extensions-dir .cache/extensions -close-smoke $taskCloseMode
+        if ($LASTEXITCODE -ne 0) { throw "Native close acceptance failed: $taskCloseMode" }
+    }
     & ./bin/gocode.exe -extensions-dir .cache/extensions -largefile-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native large-file browsing acceptance failed.' }
 } finally {

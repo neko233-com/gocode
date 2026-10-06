@@ -127,6 +127,9 @@ jobs:
           go build -trimpath -ldflags="-s -w" -o bin/gocode .
           ./bin/gocode -workspace . -extensions-dir .cache/extensions -smoke
           ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
+          for mode in save discard cancel external; do
+            ./bin/gocode -extensions-dir .cache/extensions -close-smoke "$mode"
+          done
           ./bin/gocode -extensions-dir .cache/extensions -largefile-smoke
       - name: Install pinned official Copilot sidecars
         run: ./bin/gocode -install-copilot

@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/github/copilot-sdk/go v1.0.16
-	github.com/neko233-com/godesktop v0.5.0
+	github.com/neko233-com/godesktop v0.5.1
 )
 
 require (

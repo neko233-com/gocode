@@ -35,7 +35,7 @@ func installBundled(root string) error {
 		return err
 	}
 	for _, e := range installed {
-		if e.ID() == "gocode.hello-native" && e.Manifest.Version == "0.3.0" {
+		if e.ID() == "gocode.hello-native" && e.Manifest.Version == "0.4.0" {
 			return nil
 		}
 	}
@@ -84,6 +84,7 @@ func run() error {
 	install := flag.String("install-extension", "", "Install a trusted local VSIX and exit")
 	smoke := flag.Bool("smoke", false, "Verify a native frame and a real extension command, then exit")
 	editorSmoke := flag.Bool("editor-smoke", false, "Verify native versioned VSIX edits, save, undo/redo and completion in a disposable workspace")
+	closeSmoke := flag.String("close-smoke", "", "Verify native save/discard/cancel/external close protection in a disposable workspace")
 	largeSmoke := flag.Bool("largefile-smoke", false, "Verify file-backed browsing and direct long-line byte navigation in a native window")
 	largeSmokeMiB := flag.Int("largefile-smoke-mib", 16, "Size of the native large-file acceptance fixture (16 to 10240 MiB)")
 	goLine := flag.Int64("goto-line", 0, "Open at a 1-based line number")
@@ -255,6 +256,21 @@ func run() error {
 		*workspace = fixture
 		*smoke = true
 	}
+	if *closeSmoke != "" {
+		if *closeSmoke != "save" && *closeSmoke != "discard" && *closeSmoke != "cancel" && *closeSmoke != "external" {
+			return errors.New("close-smoke must be save, discard, cancel or external")
+		}
+		fixture, err := os.MkdirTemp("", "gocode-close-acceptance-")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(fixture)
+		if err = os.WriteFile(filepath.Join(fixture, "main.go"), []byte(closeFixture), 0600); err != nil {
+			return err
+		}
+		*workspace, paths = fixture, nil
+		*copilotEnabled, *lspEnabled = false, false
+	}
 	if *extensionDir == "" {
 		config, err := os.UserConfigDir()
 		if err != nil {
@@ -387,6 +403,7 @@ func run() error {
 	var aiAcceptance copilotAcceptance
 	var largeAcceptance largefileAcceptance
 	var languageAcceptance lspAcceptance
+	closingAcceptance := closeAcceptance{mode: *closeSmoke}
 	deadline := 25 * time.Second
 	if *copilotUISmoke {
 		deadline = 90 * time.Second
@@ -398,7 +415,7 @@ func run() error {
 		deadline = 2 * time.Minute
 	}
 	watchdog := time.AfterFunc(deadline, func() {
-		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke {
+		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" {
 			fmt.Fprintln(os.Stderr, "gocode smoke timed out")
 			os.Exit(2)
 		}
@@ -408,9 +425,9 @@ func run() error {
 		if !started {
 			cx = viewContext
 			m.native = viewContext
-			closeSaves = m.startCloseSaves(hostCtx, viewContext)
+			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
 			closeIcon = applyAppIcon("gocode — " + filepath.Base(m.workspace))
-			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke {
+			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke && *closeSmoke == "" {
 				closeUpdates = m.startUpdates(hostCtx, viewContext, updateRoot, updateConfigPath, updateConfig)
 			}
 			started = true
@@ -500,11 +517,20 @@ func run() error {
 		if *lspSmoke {
 			languageAcceptance.step(viewContext, m)
 		}
+		if *closeSmoke != "" {
+			closingAcceptance.step(viewContext, m)
+		}
 
 		return m.view(viewContext)
 	})
 	if err != nil {
 		return err
+	}
+	if *closeSmoke != "" {
+		if err := closingAcceptance.verify(m); err != nil {
+			return err
+		}
+		fmt.Println("gocode native close acceptance passed:", *closeSmoke)
 	}
 	if *largeSmoke {
 		if !largeAcceptance.verified {

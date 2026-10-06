@@ -167,9 +167,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 	if e.Kind == ui.KeyPressed && command {
 		switch e.Key {
 		case 'S':
-			if err := m.save(); err != nil {
-				m.message = err.Error()
-			}
+			m.saveActive()
 			return true
 		case 'P':
 			m.navigation = false

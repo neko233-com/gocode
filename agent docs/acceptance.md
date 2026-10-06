@@ -18,3 +18,14 @@
 
 Normal CI never needs a paid Copilot prompt, certificate or notarization service.
 Real-account AI acceptance is an additional synthetic-workspace check.
+
+Close/save acceptance uses real immutable-snapshot disk writes and a deterministic
+UI acknowledgement mailbox to reproduce newer edits, serial saves, cancellation,
+queue bounds, external changes and closed documents. Native Windows tests send
+actual OS WM_CLOSE and mouse/keyboard confirmation; derive client DIP from physical
+size/DPI rather than assuming one viewport. The cross-platform -close-smoke modes
+save/discard/cancel/external invoke native RequestClose in disposable workspaces,
+render the modal, exercise acknowledgement and verify disk outside UI callbacks.
+Mac Intel/ARM execute these workbench modes in CI; no Mac screenshot claim follows
+from a successful smoke alone. -editor-smoke calls an actual VSIX Document.save,
+verifies one save event, then native undo/redo and completion versions.

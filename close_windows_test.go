@@ -49,6 +49,14 @@ func TestNativeUnsavedClose(t *testing.T) {
 			window.Raise()
 			unpin := window.Pin()
 			defer unpin()
+			width, height, err := window.ClientSize()
+			if err != nil {
+				t.Fatal(err)
+			}
+			// ClientSize returns physical pixels; Pointer accepts DIP and applies
+			// DPI itself. Keep the modal position in logical coordinates.
+			width, height = width*96/int(window.DPI()), height*96/int(window.DPI())
+			discardX, discardY := width/2+50, height/2+31
 			until(t, func() bool { color, err := window.Pixel(500, 400); return err == nil && color == editor })
 			click := func(x, y int) {
 				t.Helper()
@@ -112,7 +120,7 @@ func TestNativeUnsavedClose(t *testing.T) {
 				until(t, func() bool { color, err := window.Pixel(418, 350); return err == nil && color == 0x252526 })
 			}
 			if mode == "discard" {
-				click(690, 431)
+				click(discardX, discardY)
 			} else {
 				if err := window.Send(0x100, 13, 0); err != nil {
 					t.Fatal(err)
@@ -135,7 +143,7 @@ func TestNativeUnsavedClose(t *testing.T) {
 					t.Fatal(err)
 				}
 				until(t, func() bool { color, err := window.Pixel(418, 350); return err == nil && color == 0x252526 })
-				click(690, 431)
+				click(discardX, discardY)
 			}
 			done := make(chan error, 1)
 			go func() { done <- cmd.Wait() }()

@@ -1,5 +1,12 @@
 const vscode = require('vscode');
 exports.activate = context => {
+  let saves=0;
+  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(()=>saves++));
+  context.subscriptions.push(vscode.commands.registerCommand('gocode.save',async()=>{
+    const document=vscode.window.activeTextEditor.document;
+    const saved=await document.save();
+    return {saved,dirty:document.isDirty,version:document.version,text:document.getText(),saves};
+  }));
   const output = vscode.window.createOutputChannel('Hello Native');
   context.subscriptions.push(output);
   const diagnostics=vscode.languages.createDiagnosticCollection('Hello Native');

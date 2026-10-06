@@ -73,10 +73,20 @@ func writeDocumentSnapshot(ctx context.Context, path string, snapshot textbuffer
 	if err != nil {
 		return hash, err
 	}
-	text := snapshot.Text()
-	if len(text) > editableFileLimit {
-		return hash, errors.New("editable snapshot exceeds the bounded save policy")
+	bytes := 0
+	for line := range snapshot.LineCount() {
+		if err := ctx.Err(); err != nil {
+			return hash, err
+		}
+		bytes += len(snapshot.Line(line))
+		if line > 0 {
+			bytes += len(snapshot.EOL)
+		}
+		if bytes > editableFileLimit {
+			return hash, errors.New("editable snapshot exceeds the bounded save policy")
+		}
 	}
+	text := snapshot.Text()
 	hash = sha256.Sum256([]byte(text))
 	f, err := os.CreateTemp(filepath.Dir(path), ".gocode-save-")
 	if err != nil {

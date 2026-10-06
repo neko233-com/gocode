@@ -20,6 +20,13 @@ func captureLargefileAcceptance(workspace string) error {
 func captureLSPAcceptance(workspace string) error {
 	return captureAcceptance(workspace, os.Getenv("GOCODE_LSP_SCREENSHOT"))
 }
+func captureCloseAcceptance(workspace, mode string) error {
+	directory := os.Getenv("GOCODE_CLOSE_SCREENSHOTS")
+	if directory == "" {
+		return nil
+	}
+	return captureAcceptance(workspace, filepath.Join(directory, "smoke-"+mode+".png"))
+}
 func captureAcceptance(workspace, file string) error {
 	if file == "" {
 		return nil
