@@ -26,6 +26,12 @@
   document identity when a closed path is reopened at the same version.
   The final Windows recovery gate inspects actual completed-token/Problems glyph
   ink in process-owned pixels; a render submission counter alone is insufficient.
+- Search: standard regex/Git oracles, Unicode folding/UTF-16/CRLF, chunk boundaries,
+  bounded long-line/actual GiB memory, immutable editor overlays, cancellation/
+  latest receipt and stale identity/version/focus/byte checks. -search-smoke uses
+  actual owned native query/control/result input and GPU highlighting, disk-stale
+  rejection and long-line byte navigation with unchanged source. Mac normal/1.5/2
+  and Windows console/GUI/actual GiB gates retain evidence; see search.md for scope.
 - Native: Windows amd64 PE/GOAMD64=v1/race/strict-cgo, owned HWND input/GPU pixels,
   drag/resize/restore/DPI; macOS Intel/ARM real AppKit/Metal behavior.
 - Visual: pin VS Code source, snapshot font/theme/viewport/DPI, inspect meaningful

@@ -56,6 +56,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'GiB file acceptance failed.' }
           & ./bin/gocode.exe -largefile-smoke -largefile-smoke-mib 1024 -extensions-dir .cache/extensions
           if ($LASTEXITCODE -ne 0) { throw 'GiB native browsing failed.' }
+      - name: Verify actual GiB single-line search and native result navigation
+        if: matrix.os == 'windows-2025'
+        shell: powershell
+        env:
+          GOCODE_SEARCH_GIB: '1'
+          GOCODE_SEARCH_SCREENSHOTS: .cache/search-gib-native
+        run: |
+          go test -race -run '^TestStreamingLimitCancellationAndGiB$' -v -timeout 3m ./internal/search
+          if ($LASTEXITCODE -ne 0) { throw 'Actual GiB search failed.' }
+          & ./bin/gocode.exe -search-smoke -search-smoke-mib 1024
+          if ($LASTEXITCODE -ne 0) { throw 'Native GiB search/navigation failed.' }
       - name: Install pinned official Copilot sidecars
         shell: powershell
         run: |
@@ -103,6 +114,10 @@ jobs:
             .cache/workbench-ui/*.png
             .cache/editor-tabs/*.png
             .cache/editor-tabs/*.json
+            .cache/search-native/*.png
+            .cache/search-native/*.json
+            .cache/search-gib-native/*.png
+            .cache/search-gib-native/*.json
             .cache/copilot-health.json
             dist/*.zip
             dist/*.msi
@@ -142,6 +157,9 @@ jobs:
           ./bin/gocode -tabs-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_TABS_SCREENSHOTS=.cache/editor-tabs-150 ./bin/gocode -tabs-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_TABS_SCREENSHOTS=.cache/editor-tabs-200 ./bin/gocode -tabs-smoke
+          ./bin/gocode -search-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-150 ./bin/gocode -search-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-200 ./bin/gocode -search-smoke
           ./bin/gocode -extensions-dir .cache/extensions -open-smoke
           ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
           for mode in save discard cancel external; do
@@ -177,6 +195,12 @@ jobs:
             .cache/editor-tabs-150/*.json
             .cache/editor-tabs-200/*.png
             .cache/editor-tabs-200/*.json
+            .cache/search-native/*.png
+            .cache/search-native/*.json
+            .cache/search-native-150/*.png
+            .cache/search-native-150/*.json
+            .cache/search-native-200/*.png
+            .cache/search-native-200/*.json
             dist/*.zip
             dist/*.tar.gz
           include-hidden-files: true

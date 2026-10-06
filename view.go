@@ -46,7 +46,15 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 			color = foreground
 			indicator = ui.RGB(foreground)
 		}
-		activities = append(activities, ui.Row(ui.Column().Width(2).Background(indicator), ui.Icon(name).Width(46).Height(48).Foreground(ui.RGB(color))).Height(48).Key("activity-"+name).OnClick(func(*ui.Context) { m.activity = name; m.palette = false; m.query = "" }))
+		activities = append(activities, ui.Row(ui.Column().Width(2).Background(indicator), ui.Icon(name).Width(46).Height(48).Foreground(ui.RGB(color))).Height(48).Key("activity-"+name).OnClick(func(c *ui.Context) {
+			if name == "search" {
+				m.showSearch(c)
+			} else {
+				m.activity = name
+				m.palette = false
+				m.query = ""
+			}
+		}))
 	}
 	activities = append(activities, spacer(), ui.Icon("account").Height(48).Foreground(ui.RGB(muted)), ui.Icon("settings").Height(48).Foreground(ui.RGB(muted)).Key("settings").OnClick(func(*ui.Context) { m.activity = "settings"; m.palette = false; m.updateFocused = false }))
 	activity := ui.Column(activities...).Width(48).Background(ui.RGB(outer))
@@ -155,7 +163,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		parts = append(parts, m.panelView(max(120, width-290)))
 	}
 	center := ui.Column(parts...).Flex(1).Background(ui.RGB(editor))
-	body := ui.Row(activity, ui.Column().Width(1).Background(ui.RGB(border)), m.sidebar().Width(240), ui.Column().Width(1).Background(ui.RGB(border)), center).Flex(1)
+	body := ui.Row(activity, ui.Column().Width(1).Background(ui.RGB(border)), m.sidebar(cx).Width(240), ui.Column().Width(1).Background(ui.RGB(border)), center).Flex(1)
 	base := ui.Column(bar, body, m.statusbar()).Background(ui.RGB(outer))
 	if m.closePrompt {
 		return m.closeOverlay(cx, base)
@@ -181,7 +189,7 @@ func (m *model) titlebar(cx *ui.Context) *ui.Element {
 	}
 	return ui.Column(ui.Row(ui.Row(left...), spacer().Draggable(), search, spacer().Draggable(), controls).Height(35), rule()).Height(36).Background(ui.RGB(outer))
 }
-func (m *model) sidebar() *ui.Element {
+func (m *model) sidebar(cx *ui.Context) *ui.Element {
 	title := map[string]string{"files": "EXPLORER", "search": "SEARCH", "source-control": "SOURCE CONTROL", "debug": "RUN AND DEBUG", "extensions": "EXTENSIONS", "settings": "SETTINGS"}[m.activity]
 	children := []*ui.Element{ui.Row(label(title).FontSize(11).PaddingXY(18, 0).Flex(1), label("…").Width(28)).Height(35)}
 	switch m.activity {
@@ -229,18 +237,7 @@ func (m *model) sidebar() *ui.Element {
 			children = append(children, ui.Row(ui.Column().Width(indent), label(fileIcon).Width(24).Foreground(ui.RGB(color)), label(filepath.Base(path)).Flex(1)).Height(22).Background(bg).Key("file-"+path).OnClick(func(*ui.Context) { m.open(filepath.Join(m.workspace, filepath.FromSlash(path))) }))
 		}
 	case "search":
-		children = append(children, label("Search files by name").PaddingXY(12, 0).Height(30), label(m.query+"▏").PaddingXY(12, 0).Height(30).Background(ui.RGB(0x313131)))
-		if m.query != "" {
-			for _, path := range m.files {
-				if strings.Contains(strings.ToLower(path), strings.ToLower(m.query)) {
-					children = append(children, button(path, "search-"+path, func(*ui.Context) {
-						m.open(filepath.Join(m.workspace, filepath.FromSlash(path)))
-						m.activity = "files"
-						m.query = ""
-					}).Height(26))
-				}
-			}
-		}
+		children = append(children, m.searchSidebar(cx))
 	case "extensions":
 		children = append(children, label("INSTALLED").PaddingXY(12, 0).Height(28))
 		for _, e := range m.installed {
@@ -255,7 +252,9 @@ func (m *model) sidebar() *ui.Element {
 	case "debug":
 		children = append(children, label("No debug adapter configured.").PaddingXY(12, 0).Height(32), button("Open command palette", "debug-palette", func(*ui.Context) { m.palette = true }).Height(32))
 	}
-	children = append(children, spacer())
+	if m.activity != "search" {
+		children = append(children, spacer())
+	}
 	if m.activity == "files" {
 		children = append(children, rule(), label("›  OUTLINE").PaddingXY(8, 0).Height(24), rule(), label("›  TIMELINE").PaddingXY(8, 0).Height(24))
 	}

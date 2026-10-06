@@ -48,6 +48,12 @@ watching, diff/merge and stronger coordination remain required for full parity.
 
 ## UI
 
+Workspace search owns one cancellable worker and one latest queued immutable
+request. It streams literals/Go regex across unlimited line lengths and returns
+bounded previews/byte/UTF-16 ranges. Version/instance/focus/generation and worker
+digest/coordinate verification precede navigation. See search.md for execution,
+traversal/ignore/regex limits, actual GiB evidence and remaining replace/API scope.
+
 Real terminal processes and VT parsing are worker-owned. Immutable cell snapshots
 reach native views through coalesced dispatches; shell input does not pass through
 document editing. See terminal.md for PTY/ConPTY, bounded queues/history, isolated

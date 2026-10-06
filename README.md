@@ -56,6 +56,7 @@ go.mod 固定依赖已发布的 godesktop v0.7.0，没有本地 replace，可以
   当前发行版的版本／真实安装验收状态见 agent docs/status.md。
 - Ctrl/Cmd+S 保存；Ctrl/Cmd+Z 撤销；Ctrl/Cmd+Shift+Z 或 Ctrl+Y 重做；Ctrl/Cmd+A/C/X/V；保存保留 LF/CRLF。
 - Ctrl/Cmd+P 命令列表；Ctrl/Cmd+J 面板；Ctrl+Space 请求 VSIX 补全和 Copilot；Enter 选择补全，Tab 接受 Copilot 建议。
+- Ctrl/Cmd+Shift+F 打开原生全文搜索；支持大小写、Unicode 整词、Go 正则、包含／排除 glob、Git 忽略规则和未保存文档。搜索在单一可取消后台工作器中流式执行，结果点击后核对版本、内容哈希和 UTF-16 位置；超大文件跳到真实字节视图。Enter 搜索，方向键／Enter 或 F4 导航。PCRE2 扩展语法和工作区替换仍需实现，具体边界见 [搜索工程记录](agent%20docs/search.md)。
 - 已安装 VSIX 可以读取未保存的活动文档、执行原生编辑/保存、接收文档事件、注册补全/悬停/定义、发布 Problems 诊断、持久保存 workspaceState/globalState。
 
 `go run . -install-extension ./extension.vsix` 安装可信本地 VSIX。内置 Hello Native 经标准 VSIX 安装，验证命令、版本化编辑、补全、诊断、输出和消息。未知 VS Code API 明确报错；[框架 API 范围](https://github.com/neko233-com/godesktop/blob/main/docs/extensions.md) 列出已实现的子集。
@@ -104,6 +105,7 @@ Ctrl/Cmd+I 打开原生聊天面板，Enter 发送，Cancel/Esc 取消。语言�
 powershell -ExecutionPolicy Bypass -File scripts/test-windows-amd64.ps1
 go run . -editor-smoke -extensions-dir .cache/acceptance-extensions
 go run . -tabs-smoke
+go run . -search-smoke -search-smoke-mib 1024
 go run . -largefile-smoke -largefile-smoke-mib 1024
 go run . -lsp-smoke
 go run . -copilot-check
@@ -117,4 +119,4 @@ CI 覆盖 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd6
 
 MIT License。VS Code 界面/API 作为参考，项目与 Microsoft 无隶属关系。官方 Copilot 运行时按其上游许可通过 npm 单独安装。
 
-工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到 2026-10-07 main `1d25d5d`（stable 1.140.0）；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，资源固定版本与 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。
+工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到 2026-10-07 main `8ce9c47`（stable 1.140.0）；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，资源固定版本与 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。

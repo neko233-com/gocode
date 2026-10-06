@@ -113,9 +113,9 @@ func TestCommandsAndSearchInput(t *testing.T) {
 	if m.palette || m.query != "" {
 		t.Fatal("palette escape")
 	}
-	m.activity = "search"
+	m.showSearch(nil)
 	text(m, "main")
-	if m.query != "main" {
+	if m.search.query.Text != "main" {
 		t.Fatal("search input")
 	}
 	m.activity = "files"

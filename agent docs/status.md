@@ -1,5 +1,25 @@
 # Milestone ledger
 
+## Native workspace search candidate (2026-10-07)
+
+The filename-only activity is replaced with native content search, unsaved
+snapshots, Unicode folding, case/word/Go-regex, ignore/include/exclude, grouped
+virtual rows and verified UTF-16/large-file navigation. One worker/latest request,
+debounce/cancellation and identity/version/focus/generation checks protect input.
+Standard regex and Git oracles, two fuzz passes and targeted three-repeat race
+checks pass. Native 16 MiB and actual GiB HWND gates pass real inputs/pixels,
+stale-disk rejection and unchanged source. Plain reader regex initially timed
+out on the actual GiB line; chunked literal-prefix candidates with anchored
+verification pass the same scenario. Local literal GiB run: 1.53 s / 360,624 new
+Go bytes. Native selected-Unicode/large-navigation captures were visually reviewed.
+Full local three-repeat strict-cgo/race/vet and console/GUI regressions pass,
+including existing tabs/editor/VSIX/opener/close/file-watch/terminal gates. Search
+package coverage is 81.8%; final F4 first/reverse navigation has targeted race
+coverage. Workflow lint/diff checks pass. Mac/new release/installation promotion
+remains pending.
+Published/installed app remains v0.12.0; independent core remains public v0.7.0.
+See search.md for precise limits, references and remaining search/replace gaps.
+
 ## Native overflow v0.12.0 promotion (2026-10-07)
 
 Immutable application/package source `def207c289953b51fe87ab33d28a69e1b7dab3ab`

@@ -11,6 +11,9 @@ import (
 
 func (m *model) documentEvent(kind string, d *document, change textbuffer.ChangeEvent) {
 	m.recordTabEvent(kind, d)
+	if kind == "change" && m.search.query.Text != "" {
+		m.searchChanged(m.native)
+	}
 	if kind == "focus" {
 		m.openSequence++
 	}
@@ -122,6 +125,9 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
 	}
 	if m.tabInput(cx, e) {
+		return true
+	}
+	if m.searchInput(cx, e) {
 		return true
 	}
 	if m.terminalPointer(cx, e) {
@@ -319,7 +325,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		}
 		return false
 	}
-	if m.navigation || m.palette || m.activity == "search" {
+	if m.navigation || m.palette {
 		if e.Kind == ui.Character && e.Key >= 32 {
 			m.query += string(rune(e.Key))
 			return true

@@ -37,6 +37,7 @@ func (m *model) focusTab(d *document) {
 		if candidate == d {
 			m.active = i
 			m.editing = true
+			m.search.focus = -2
 			m.terminalFocused, m.chatFocused, m.updateFocused = false, false, false
 			m.pointerSelecting = false
 			m.tabs.dragging = false

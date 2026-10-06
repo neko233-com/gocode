@@ -129,6 +129,8 @@ func run() error {
 	openSmoke := flag.Bool("open-smoke", false, "Verify native typing/resize/cancel and awaited VSIX opens during delayed disk workers")
 	uiSmoke := flag.Bool("ui-smoke", false, "Verify owned native workbench logo, complete tab captions and tab controls")
 	tabsSmoke := flag.Bool("tabs-smoke", false, "Verify native tab overflow, wheel/drag routing, identity and held-Control navigation")
+	searchSmoke := flag.Bool("search-smoke", false, "Verify native workspace search, unsaved/regex/ignore results, stale selection and large-file navigation")
+	searchSmokeMiB := flag.Int("search-smoke-mib", 16, "Native search fixture size in MiB (16–10240)")
 	installGopls := flag.Bool("install-gopls", false, "Install the pinned official gopls in gocode's per-user tools directory and exit")
 	installCopilot := flag.Bool("install-copilot", false, "Install pinned official Copilot sidecars in gocode's per-user tools directory (requires Node.js/npm)")
 	copilotRoot := flag.String("copilot-runtime", "", "Directory containing the pinned Copilot node_modules")
@@ -137,6 +139,9 @@ func run() error {
 	copilotUISmoke := flag.Bool("copilot-ui-smoke", false, "Verify rendered Copilot suggestion, native Tab acceptance and chat in a disposable workspace")
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
+	if *searchSmoke {
+		return runSearchAcceptance(*searchSmokeMiB)
+	}
 	if *tabsSmoke {
 		return runEditorTabsAcceptance()
 	}
@@ -491,7 +496,11 @@ func run() error {
 	var closeWatches func()
 	var closeOpens func()
 	var closeWorkspace func()
+	var closeSearch func()
 	defer func() {
+		if closeSearch != nil {
+			closeSearch()
+		}
 		if closeWorkspace != nil {
 			closeWorkspace()
 		}
@@ -572,6 +581,7 @@ func run() error {
 				read = openingAcceptance.read
 			}
 			closeOpens = m.startFileOpens(hostCtx, viewContext.Dispatch, read)
+			closeSearch = m.startSearch(hostCtx, viewContext.Dispatch, nil)
 			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
 			closeWatches = m.startDocumentWatch(hostCtx, viewContext.Dispatch)
 			closeTerminals = m.startTerminals(hostCtx, viewContext)

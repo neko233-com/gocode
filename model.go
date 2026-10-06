@@ -35,6 +35,7 @@ type model struct {
 	docs                                               []*document
 	active                                             int
 	tabs                                               editorTabState
+	search                                             searchState
 	activity, panel                                    string
 	showPanel, palette, editing                        bool
 	query, message, status                             string
