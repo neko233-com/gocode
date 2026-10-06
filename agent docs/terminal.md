@@ -12,6 +12,27 @@ No Electron, xterm.js or browser surface is involved.
 
 ## Processes and shells
 
+Windows uses official Microsoft.Windows.Console.ConPTY 1.25.260930003 from
+Windows Terminal v1.25.2733.0. The system Windows 2022 conhost strips DEC 1049
+switches (microsoft/terminal issue 381); bounded owned-fixture IO proved no
+alternate-screen notification reached the parser. It was not an input stall.
+The modern redistributable gives both Windows runners the same supported VT
+behavior. NUPKG SHA256 is 6d6f8b008c655d814c498d8205d4012dcd4d0b6dfc1096461d0a185d1e3caf03.
+Individual amd64 DLL/helper sizes and SHA256 are pinned in runtime.go; NuGet
+repository re-signing never bypasses these exact native-byte checks. MIT license
+is retained in the managed cache. No OS console/DLL or registry is replaced.
+
+Windows resource builds embed those verified binaries as PE RCDATA 7701/7702;
+only generated ignored syso/cache files hold binaries. Source Git contains no
+native runtime payload. New executables extract to an owned versioned cache,
+check hashes, then load the absolute DLL with restricted dependency search.
+Offline MSI/portable/update execution needs no download. The signed updater ZIP
+retains the old flat executable layout, so prior released updaters can consume
+it. Package checks invoke -terminal-runtime-check on the actual staged executable.
+Development/test builds without resources use the same pinned HTTPS/cache
+installer; -install-terminal-tools prepares it explicitly. Session close still
+drains output and owns job cleanup. Loader holds one DLL for process lifetime.
+
 - Windows: CreatePseudoConsole, STARTUPINFOEX, suspended startup and a job with
   KILL_ON_JOB_CLOSE before resume. Independent output/reply/input readers prevent
   full-duplex pipe deadlocks. Original process/thread/attribute handles close.

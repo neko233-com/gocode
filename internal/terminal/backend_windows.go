@@ -3,6 +3,7 @@
 package terminal
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -24,10 +25,15 @@ type processTerminal struct {
 	endOnce       sync.Once
 	consoleMu     sync.Mutex
 	closeErr      error
+	driver        *conPTYDriver
 }
 
-func startBackend(config Config, size Size) (_ *processTerminal, failure error) {
-	t := &processTerminal{}
+func startBackend(ctx context.Context, config Config, size Size) (_ *processTerminal, failure error) {
+	driver, err := loadConPTY(ctx)
+	if err != nil {
+		return nil, err
+	}
+	t := &processTerminal{driver: driver}
 	inputRead, inputWrite, err := os.Pipe()
 	if err != nil {
 		return nil, err
@@ -46,7 +52,7 @@ func startBackend(config Config, size Size) (_ *processTerminal, failure error) 
 			t.Close()
 		}
 	}()
-	if err := windows.CreatePseudoConsole(windows.Coord{X: int16(size.Columns), Y: int16(size.Rows)}, windows.Handle(inputRead.Fd()), windows.Handle(outputWrite.Fd()), 0, &t.console); err != nil {
+	if err := driver.Create(size, windows.Handle(inputRead.Fd()), windows.Handle(outputWrite.Fd()), &t.console); err != nil {
 		return nil, fmt.Errorf("ConPTY: %w", err)
 	}
 	t.job, err = windows.CreateJobObject(nil, nil)
@@ -168,7 +174,7 @@ func (t *processTerminal) Resize(size Size) error {
 	if t.console == 0 {
 		return os.ErrClosed
 	}
-	return windows.ResizePseudoConsole(t.console, windows.Coord{X: int16(size.Columns), Y: int16(size.Rows)})
+	return t.driver.Resize(t.console, size)
 }
 func (t *processTerminal) Wait() (int, error) {
 	state, err := t.process.Wait()
@@ -189,7 +195,7 @@ func (t *processTerminal) End() {
 		// The output reader remains alive during ClosePseudoConsole's final frame.
 		t.consoleMu.Lock()
 		if t.console != 0 {
-			windows.ClosePseudoConsole(t.console)
+			t.driver.Close(t.console)
 			t.console = 0
 		}
 		t.consoleMu.Unlock()

@@ -28,7 +28,7 @@ function Invoke-CheckedGUI {
     } finally { $taskGUI.Dispose() }
 }
 $taskRoot = Split-Path -Parent $PSScriptRoot
-$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GODESKTOP_READBACK')
+$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GOCODE_CONPTY_DIR','GODESKTOP_READBACK')
 $taskSaved = @{}
 foreach ($taskName in $taskNames) { $taskSaved[$taskName] = [Environment]::GetEnvironmentVariable($taskName, 'Process') }
 Push-Location -LiteralPath $taskRoot
@@ -44,6 +44,8 @@ try {
     $env:GOCODE_SCREENSHOT=Join-Path $taskRoot '.cache/workbench-windows.png'
     $env:GOCODE_LARGEFILE_SCREENSHOT=Join-Path $taskRoot '.cache/largefile-native-acceptance.png'
     $env:GOCODE_TERMINAL_SCREENSHOTS=Join-Path $taskRoot '.cache/terminal-native'
+    Invoke-CheckedGo run ./cmd/gocode-terminaltools -output (Join-Path $taskRoot '.cache/conpty-runtime')
+    $env:GOCODE_CONPTY_DIR=Join-Path $taskRoot '.cache/conpty-runtime'
     & (Join-Path $PSScriptRoot 'build-windows-resources.ps1')
     Invoke-CheckedGo test -race -shuffle=on "-count=$Repeat" -timeout=5m '-coverprofile=coverage.out' ./...
     Invoke-CheckedGo vet ./...

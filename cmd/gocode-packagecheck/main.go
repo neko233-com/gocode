@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -76,6 +77,12 @@ func run() error {
 		return err
 	}
 	if *probe {
+		if *platform == "windows/amd64" {
+			app := filepath.Join(root, "versions", staged.Version, "gocode-app.exe")
+			if data, err := exec.CommandContext(ctx, app, "-terminal-runtime-check").CombinedOutput(); err != nil {
+				return fmt.Errorf("packaged embedded ConPTY: %w %s", err, data)
+			}
+		}
 		if err := update.Probe(ctx, root, staged); err != nil {
 			return err
 		}

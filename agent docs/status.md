@@ -20,6 +20,19 @@ snapshot predicate. The gate now waits for actual colored ink in the process-own
 terminal grid and accounts for foreground/background glyph coverage. It retains
 both real VT-color and native pixel checks. Next exact-source CI is required.
 
+Bounded IO from source 6f9d398 / CI 37495036441 confirmed Windows 2022 did not
+forward either DEC 1049 switch. No primary command was sent because the initial
+alternate-state condition never became true. Earlier interpretation as an input
+stall/raw-mode problem was incomplete. The same source's Mac ARM/Intel, Ubuntu
+and Windows 2025 terminal checks passed. Do not publish it as cross-platform proof.
+
+Next source uses Microsoft's free pinned ConPTY 1.25.260930003, verified native
+DLL/helper hashes and embedded executable resources, with no system replacement.
+Local full Windows race/strict-cgo/native console+GUI/editor/save/close/large-file
+and terminal checks pass. Fresh owned cache extraction and native terminal passed
+with an unreachable HTTPS proxy, proving offline resources work. New exact-source
+Windows 2022/2025, Mac Intel/ARM, Ubuntu and package CI is still required.
+
 ## Verified foundation
 
 - Public independent gocode submodule; godesktop dependency now v0.4.0.

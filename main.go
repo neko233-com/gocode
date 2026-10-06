@@ -20,6 +20,7 @@ import (
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
 	"github.com/neko233-com/gocode/internal/languageserver"
+	"github.com/neko233-com/gocode/internal/terminal"
 	"github.com/neko233-com/gocode/internal/update"
 	ui "github.com/neko233-com/godesktop"
 	"github.com/neko233-com/godesktop/extensions"
@@ -101,6 +102,8 @@ func main() {
 }
 func run() error {
 	showVersion := flag.Bool("version", false, "Print application version, platform and source commit")
+	terminalRuntimeCheck := flag.Bool("terminal-runtime-check", false, "Verify the exact official ConPTY binaries embedded in this Windows executable")
+	installTerminalTools := flag.Bool("install-terminal-tools", false, "Extract/install the pinned free official ConPTY runtime in gocode's owned Windows cache")
 	updateCheck := flag.Bool("update-check", false, "Verify publisher release metadata and print the latest version")
 	applyUpdate := flag.Bool("update", false, "Verify, stage, health-check and select an update for the next launch")
 	rollbackUpdate := flag.Bool("update-rollback", false, "Restore the previous verified installed version")
@@ -130,6 +133,22 @@ func run() error {
 	copilotUISmoke := flag.Bool("copilot-ui-smoke", false, "Verify rendered Copilot suggestion, native Tab acceptance and chat in a disposable workspace")
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
+	if *terminalRuntimeCheck {
+		if err := terminal.VerifyEmbeddedConPTY(); err != nil {
+			return err
+		}
+		fmt.Println("Verified official ConPTY", terminal.ConPTYVersion)
+		return nil
+	}
+	if *installTerminalTools {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		path, err := terminal.EnsureConPTY(ctx, "")
+		if err == nil {
+			fmt.Println("Installed official ConPTY", terminal.ConPTYVersion, path)
+		}
+		return err
+	}
 	if *showVersion {
 		fmt.Printf("gocode %s %s/%s %s\n", appVersion(), runtime.GOOS, runtime.GOARCH, buildCommit())
 		return nil

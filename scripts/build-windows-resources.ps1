@@ -4,6 +4,14 @@ $taskRoot=Split-Path -Parent $PSScriptRoot
 if(-not $Version){$Version=(Get-Content -LiteralPath (Join-Path $taskRoot 'VERSION') -Raw).Trim()}
 $taskCache=Join-Path $taskRoot '.cache/resources'
 New-Item -ItemType Directory -Path $taskCache -Force | Out-Null
+$taskConPTY=Join-Path $taskRoot '.cache/conpty-runtime'
+Push-Location -LiteralPath $taskRoot
+try {
+    & go run ./cmd/gocode-terminaltools -output $taskConPTY
+    if ($LASTEXITCODE -ne 0) { throw 'Official ConPTY resource preparation failed.' }
+} finally { Pop-Location }
+$taskConPTYDLL=(Join-Path $taskConPTY 'conpty.dll').Replace('\','\\')
+$taskOpenConsole=(Join-Path $taskConPTY 'OpenConsole.exe').Replace('\','\\')
 $taskIcon=(Join-Path $taskRoot 'assets/code-oss/code.ico').Replace('\','\\')
 $taskManifestFile=Join-Path $taskCache 'gocode.manifest'
 $taskManifestText=(Get-Content -LiteralPath (Join-Path $taskRoot 'assets/gocode.manifest') -Raw).Replace('version="0.4.0.0"',('version="'+$Version+'.0"'))
@@ -15,6 +23,8 @@ $taskResource=@"
 #include <windows.h>
 1 ICON "$taskIcon"
 1 RT_MANIFEST "$taskManifest"
+7701 RCDATA "$taskConPTYDLL"
+7702 RCDATA "$taskOpenConsole"
 1 VERSIONINFO
 FILEVERSION $taskTuple
 PRODUCTVERSION $taskTuple

@@ -3,6 +3,11 @@ with zsh/custom shell. PowerShell 7/5.1 PSReadLine and embedded BSD-licensed
 zsh-syntax-highlighting color the command line before Enter. Existing user
 profiles stay intact; acceptance uses isolated owned profiles/history.
 
+Windows embeds the pinned official MIT-licensed ConPTY redistributable as
+verified executable resources. This corrects the old Windows 2022 system host's
+missing alternate-screen notifications, works offline after owned extraction,
+and preserves the flat update archive accepted by previous gocode releases.
+
 Native terminal tabs render ANSI/truecolor, Unicode, alternate screens, cursor
 and selection. Window/panel resizing updates the actual shell grid. Keyboard,
 paste/copy, bounded scrollback, Ctrl+C, final output/exit and owned descendant

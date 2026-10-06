@@ -156,7 +156,7 @@ func Start(parent context.Context, config Config, size Size) (_ *Session, failur
 		config.History = MaxHistory
 	}
 	config.History = min(config.History, MaxHistory)
-	backend, err := startBackend(config, size)
+	backend, err := startBackend(parent, config, size)
 	if err != nil {
 		return nil, err
 	}

@@ -64,6 +64,9 @@ go.mod 固定依赖已发布的 godesktop v0.5.2，没有本地 replace，可以
 ## 原生终端
 
 Windows 使用真实 ConPTY/PowerShell；macOS 使用 PTY 和用户 shell，默认 zsh。
+Windows 发行版内嵌固定版本的微软 MIT 授权 ConPTY，避开旧系统吞掉备用屏
+通知的问题。校验后解包到 gocode 自己的缓存；离线可用，不替换系统组件。
+源码开发可运行 `go run ./cmd/gocode-terminaltools` 或 `gocode -install-terminal-tools`。
 Ctrl/Cmd+` 聚焦或新建终端，+ 新建标签，× 回收进程；拖动面板上边缘改变高度，
 窗口缩放会更新真实终端网格。支持 ANSI/真彩色、Unicode、备用屏、历史滚动、
 鼠标选区、Ctrl+Shift+C（Mac Cmd+C）复制、Ctrl+V/Cmd+V 粘贴和 Ctrl+C 中断。

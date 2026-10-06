@@ -3,6 +3,7 @@
 package terminal
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -22,7 +23,7 @@ type processTerminal struct {
 	exited   atomic.Bool
 }
 
-func startBackend(config Config, size Size) (*processTerminal, error) {
+func startBackend(_ context.Context, config Config, size Size) (*processTerminal, error) {
 	master, slave, err := pty.Open()
 	if err != nil {
 		return nil, err
