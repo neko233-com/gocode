@@ -365,7 +365,11 @@ func run() error {
 	var closeLanguages func()
 	var closeUpdates func()
 	var closeIcon func()
+	var closeSaves func()
 	defer func() {
+		if closeSaves != nil {
+			closeSaves()
+		}
 		if closeUpdates != nil {
 			closeUpdates()
 		}
@@ -400,10 +404,11 @@ func run() error {
 		}
 	})
 	defer watchdog.Stop()
-	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(m.workspace), Width: 1280, Height: 820, Background: ui.RGB(editor), CustomTitlebar: true, Input: m.input}, func(viewContext *ui.Context) *ui.Element {
+	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(m.workspace), Width: 1280, Height: 820, Background: ui.RGB(editor), CustomTitlebar: true, Input: m.input, CloseRequested: m.requestWindowClose}, func(viewContext *ui.Context) *ui.Element {
 		if !started {
 			cx = viewContext
 			m.native = viewContext
+			closeSaves = m.startCloseSaves(hostCtx, viewContext)
 			closeIcon = applyAppIcon("gocode — " + filepath.Base(m.workspace))
 			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke {
 				closeUpdates = m.startUpdates(hostCtx, viewContext, updateRoot, updateConfigPath, updateConfig)

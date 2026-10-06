@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -22,54 +24,61 @@ type document struct {
 	large                        *largeDocument
 	serviceBytes, serviceVersion int
 	line, column, scroll         int
+	diskHash                     [32]byte
+	diskKnown                    bool
 }
 type model struct {
-	workspace                                    string
-	files                                        []string
-	docs                                         []*document
-	active                                       int
-	activity, panel                              string
-	showPanel, palette, editing                  bool
-	query, message, status                       string
-	output                                       []string
-	commands                                     []extensionCommand
-	installed                                    []extensionInfo
-	execute                                      func(string)
-	pointerX                                     float32
-	smoke                                        bool
-	pointerShift                                 bool
-	readClipboard                                func() (string, error)
-	writeClipboard                               func(string) error
-	onDocument                                   func(string, *document, textbuffer.ChangeEvent)
-	requestInline                                func(*document)
-	cancelInline                                 func()
-	acceptInline                                 func(copilotservice.InlineItem)
-	acceptedInline                               uint64
-	suggestion                                   *inlineSuggestion
-	askChat                                      func(string)
-	cancelChat                                   func()
-	signInCopilot                                func()
-	signInChat                                   func()
-	chatLoginBusy                                bool
-	chatPrompt, chatAnswer, copilotStatus        string
-	chatContext, chatContextLabel                string
-	chatFocused, chatBusy                        bool
-	chatGeneration                               uint64
-	inlineGeneration                             uint64
-	requestCompletions                           func(*document)
-	completions                                  []completionSuggestion
-	pointerSelecting                             bool
-	diagnostics                                  map[string][]diagnostic
-	native                                       *ui.Context
-	navigation, largeScrollbar                   bool
-	requestLSP                                   func(*document, string)
-	lspStatus                                    string
-	completionSources                            map[string][]completionSuggestion
-	updatesConfig                                update.Config
-	configureUpdates                             func(update.Config)
-	requestUpdate                                func()
-	updateStatus, updateRoute, updateMirrorDraft string
-	updateBusy, updateFocused                    bool
+	workspace                                          string
+	files                                              []string
+	docs                                               []*document
+	active                                             int
+	activity, panel                                    string
+	showPanel, palette, editing                        bool
+	query, message, status                             string
+	output                                             []string
+	commands                                           []extensionCommand
+	installed                                          []extensionInfo
+	execute                                            func(string)
+	pointerX                                           float32
+	smoke                                              bool
+	pointerShift                                       bool
+	readClipboard                                      func() (string, error)
+	writeClipboard                                     func(string) error
+	onDocument                                         func(string, *document, textbuffer.ChangeEvent)
+	requestInline                                      func(*document)
+	cancelInline                                       func()
+	acceptInline                                       func(copilotservice.InlineItem)
+	acceptedInline                                     uint64
+	suggestion                                         *inlineSuggestion
+	askChat                                            func(string)
+	cancelChat                                         func()
+	signInCopilot                                      func()
+	signInChat                                         func()
+	chatLoginBusy                                      bool
+	chatPrompt, chatAnswer, copilotStatus              string
+	chatContext, chatContextLabel                      string
+	chatFocused, chatBusy                              bool
+	chatGeneration                                     uint64
+	inlineGeneration                                   uint64
+	requestCompletions                                 func(*document)
+	completions                                        []completionSuggestion
+	pointerSelecting                                   bool
+	diagnostics                                        map[string][]diagnostic
+	native                                             *ui.Context
+	navigation, largeScrollbar                         bool
+	requestLSP                                         func(*document, string)
+	lspStatus                                          string
+	completionSources                                  map[string][]completionSuggestion
+	updatesConfig                                      update.Config
+	configureUpdates                                   func(update.Config)
+	requestUpdate                                      func()
+	updateStatus, updateRoute, updateMirrorDraft       string
+	updateBusy, updateFocused                          bool
+	closePrompt, closeBusy                             bool
+	closeEditing, closeChatFocused, closeUpdateFocused bool
+	closeTarget                                        *document
+	closeError                                         string
+	saveForClose                                       func()
 }
 
 type diagnostic struct {
@@ -200,7 +209,7 @@ func (m *model) open(path string) {
 		m.message = err.Error()
 		return
 	}
-	m.docs = append(m.docs, &document{path: path, buffer: buffer})
+	m.docs = append(m.docs, &document{path: path, buffer: buffer, diskHash: sha256.Sum256(data), diskKnown: true})
 	m.active = len(m.docs) - 1
 	m.editing = true
 	m.documentEvent("open", m.current(), textbuffer.ChangeEvent{})
@@ -211,7 +220,13 @@ func (m *model) closeTab(index int) {
 		return
 	}
 	if m.docs[index].dirty() {
-		m.message = "Save this file before closing its tab (Ctrl/Cmd+S)"
+		m.beginClose(m.docs[index])
+		return
+	}
+	m.removeTab(index)
+}
+func (m *model) removeTab(index int) {
+	if index < 0 || index >= len(m.docs) {
 		return
 	}
 	m.documentEvent("close", m.docs[index], textbuffer.ChangeEvent{})
@@ -237,28 +252,17 @@ func (m *model) saveDocument(d *document) error {
 	if d.buffer == nil {
 		return errors.New("large-file browsing is read-only; the file on disk has not been changed")
 	}
-	info, err := os.Stat(d.path)
+	var expected *[32]byte
+	if d.diskKnown {
+		value := d.diskHash
+		expected = &value
+	}
+	hash, err := writeDocumentSnapshot(context.Background(), d.path, d.buffer.Snapshot(), expected)
 	if err != nil {
 		return err
 	}
-	f, err := os.CreateTemp(filepath.Dir(d.path), ".gocode-save-")
-	if err != nil {
-		return err
-	}
-	name := f.Name()
-	defer os.Remove(name)
-	_, writeErr := f.WriteString(d.buffer.Text())
-	syncErr := f.Sync()
-	closeErr := f.Close()
-	if err = errors.Join(writeErr, syncErr, closeErr); err != nil {
-		return err
-	}
-	if err = os.Chmod(name, info.Mode().Perm()); err != nil {
-		return err
-	}
-	if err = os.Rename(name, d.path); err != nil {
-		return err
-	}
+	d.diskHash = hash
+	d.diskKnown = true
 	d.buffer.MarkSaved()
 	m.documentEvent("save", d, textbuffer.ChangeEvent{})
 	m.message = "Saved " + filepath.Base(d.path)

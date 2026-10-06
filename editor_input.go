@@ -89,6 +89,17 @@ func (m *model) applyDocumentEdits(path string, version int, edits []textbuffer.
 }
 
 func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
+	if m.closePrompt {
+		if e.Kind == ui.KeyPressed && !m.closeBusy {
+			if e.Key == 27 {
+				m.cancelClose()
+			}
+			if e.Key == 13 && m.saveForClose != nil {
+				m.saveForClose()
+			}
+		}
+		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
+	}
 	if d := m.current(); d != nil && d.large != nil && (e.Kind == ui.PointerPressed || e.Kind == ui.PointerMoved || e.Kind == ui.PointerReleased || e.Kind == ui.InputCancelled || e.Kind == ui.Scroll) {
 		return m.largeInput(cx, d, e)
 	}

@@ -153,7 +153,11 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	}
 	center := ui.Column(parts...).Flex(1).Background(ui.RGB(editor))
 	body := ui.Row(activity, ui.Column().Width(1).Background(ui.RGB(border)), m.sidebar().Width(240), ui.Column().Width(1).Background(ui.RGB(border)), center).Flex(1)
-	return ui.Column(bar, body, m.statusbar()).Background(ui.RGB(outer))
+	base := ui.Column(bar, body, m.statusbar()).Background(ui.RGB(outer))
+	if m.closePrompt {
+		return m.closeOverlay(cx, base)
+	}
+	return base
 }
 
 func (m *model) titlebar(cx *ui.Context) *ui.Element {
@@ -165,7 +169,7 @@ func (m *model) titlebar(cx *ui.Context) *ui.Element {
 		left = append(left, button(menu, "menu-"+menu, func(*ui.Context) { m.palette = true; m.query = "" }).Padding(6))
 	}
 	search := ui.Row(ui.Icon("search").Width(24).Height(24).Foreground(ui.RGB(muted)), label(filepath.Base(m.workspace)).Flex(1)).Padding(4).Width(400).Height(28).Background(ui.RGB(0x242424)).Radius(5).Key("command-center").OnClick(func(*ui.Context) { m.palette = !m.palette; m.query = "" })
-	controls := ui.Row(icon("minus", "window-minimize", func(*ui.Context) { cx.Minimize() }).Width(46), icon("maximize", "window-maximize", func(*ui.Context) { cx.ToggleMaximize() }).Width(46), icon("close", "window-close", func(*ui.Context) { cx.Quit() }).Width(46))
+	controls := ui.Row(icon("minus", "window-minimize", func(*ui.Context) { cx.Minimize() }).Width(46), icon("maximize", "window-maximize", func(*ui.Context) { cx.ToggleMaximize() }).Width(46), icon("close", "window-close", func(*ui.Context) { cx.RequestClose() }).Width(46))
 	if runtime.GOOS == "darwin" {
 		controls = ui.Row().Width(30)
 	}

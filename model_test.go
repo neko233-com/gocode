@@ -75,9 +75,10 @@ func TestTabsAndFileValidation(t *testing.T) {
 	}
 	text(m, "changed")
 	m.closeTab(0)
-	if len(m.docs) != 2 || m.message == "" {
+	if len(m.docs) != 2 || !m.closePrompt || m.closeTarget != first {
 		t.Fatal("unsaved tab closed")
 	}
+	m.cancelClose()
 	first.buffer.MarkSaved()
 	m.closeTab(0)
 	if len(m.docs) != 1 || m.current() == nil {

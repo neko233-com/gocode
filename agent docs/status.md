@@ -115,3 +115,22 @@ v0.4.0 source again. These are owned acceptance roots, separate from the final
 MSI install. Installed -update-check and -update verify current GitHub metadata
 and report up-to-date. No all-feature or full production parity claim.
 Unsaved-window close protection is next framework work.
+
+Next editor source (v0.6.0 in development) now depends on public godesktop v0.5.0,
+immutable framework source `eff4097c302ed52db98b144352b183ce058120ac`, with all
+five jobs green in framework CI `37464670639`. Native OS/custom titlebar closes
+defer through its CloseRequested guard. Dirty window/tab confirmation offers Save,
+Don't Save and Cancel; Cancel preserves both buffer/version and editing focus.
+Close saves use immutable snapshots in a worker and acknowledge only the matching
+document version. External disk changes cause save rejection, preserving the
+unsaved buffer and other program's source. Disk hash reads/writes are capped at the
+8 MiB editable policy with fixed 128 KiB blocks and cancellation checks.
+
+GOWORK=off local race runs passed close/cancel/immutable snapshot/external-change
+tests. Real Windows native save, discard, cancel/focus restoration and rejected
+external-change close all passed. `.cache/close-native/save.png` was inspected:
+centered native confirmation, dimmed workbench, readable buttons and dirty tab.
+Full new-source CI, cross-platform workbench close smoke, publication/update and
+local deployment of this next editor revision remain pending. The installed app
+is still the verified v0.5.1 release. Existing normal Ctrl+S/VSIX saves still use
+the synchronous save adapter; move that adapter to acknowledged worker I/O next.

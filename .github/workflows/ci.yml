@@ -30,6 +30,7 @@ jobs:
       GOCODE_SCREENSHOT: .cache/workbench-windows.png
       GOCODE_LSP_SCREENSHOT: .cache/gopls-native-acceptance.png
       GOCODE_UPDATES_SCREENSHOT: .cache/updates-native-settings.png
+      GOCODE_CLOSE_SCREENSHOTS: .cache/close-native
       GODESKTOP_READBACK: '1'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -91,6 +92,7 @@ jobs:
             .cache/largefile-gib-native.png
             .cache/gopls-native-acceptance.png
             .cache/updates-native-settings.png
+            .cache/close-native/*.png
             .cache/copilot-health.json
             dist/*.zip
             dist/*.msi
