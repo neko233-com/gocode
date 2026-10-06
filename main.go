@@ -12,16 +12,22 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync/atomic"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/copilotservice"
 	"github.com/neko233-com/gocode/internal/languageserver"
+	"github.com/neko233-com/gocode/internal/update"
 	ui "github.com/neko233-com/godesktop"
 	"github.com/neko233-com/godesktop/extensions"
 )
 
 //go:embed bundled/*
 var bundled embed.FS
+
+//go:embed tools/copilot-runtime/package.json tools/copilot-runtime/package-lock.json
+var copilotPackage embed.FS
 
 func installBundled(root string) error {
 	installed, err := extensions.List(root)
@@ -66,6 +72,13 @@ func main() {
 }
 func run() error {
 	showVersion := flag.Bool("version", false, "Print application version, platform and source commit")
+	updateCheck := flag.Bool("update-check", false, "Verify publisher release metadata and print the latest version")
+	applyUpdate := flag.Bool("update", false, "Verify, stage, health-check and select an update for the next launch")
+	rollbackUpdate := flag.Bool("update-rollback", false, "Restore the previous verified installed version")
+	configureUpdates := flag.Bool("configure-updates", false, "Save update route/automatic settings and exit")
+	updateMode := flag.String("update-mode", "", "Update route: auto, direct, mirror")
+	updateMirror := flag.String("update-mirror", "", "Manual HTTPS prefix for GitHub downloads")
+	updateAuto := flag.String("updates-auto", "", "Enable or disable automatic updates: true/false")
 	workspace := flag.String("workspace", ".", "Workspace directory")
 	extensionDir := flag.String("extensions-dir", "", "Local VSIX installation directory")
 	install := flag.String("install-extension", "", "Install a trusted local VSIX and exit")
@@ -79,6 +92,7 @@ func run() error {
 	lspEnabled := flag.Bool("lsp", true, "Run configured standard language servers")
 	lspSmoke := flag.Bool("lsp-smoke", false, "Verify real LSP formatting/hover/definition/completion/diagnostics in a native disposable workspace")
 	installGopls := flag.Bool("install-gopls", false, "Install the pinned official gopls in gocode's per-user tools directory and exit")
+	installCopilot := flag.Bool("install-copilot", false, "Install pinned official Copilot sidecars in gocode's per-user tools directory (requires Node.js/npm)")
 	copilotRoot := flag.String("copilot-runtime", "", "Directory containing the pinned Copilot node_modules")
 	copilotCheck := flag.Bool("copilot-check", false, "Verify official LSP/SDK initialization and authentication without an AI prompt")
 	copilotSmoke := flag.Bool("copilot-smoke", false, "Verify official Copilot chat with a synthetic prompt (requires Copilot access)")
@@ -86,8 +100,39 @@ func run() error {
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
 	if *showVersion {
-		fmt.Printf("gocode %s %s/%s %s\n", version, runtime.GOOS, runtime.GOARCH, buildCommit())
+		fmt.Printf("gocode %s %s/%s %s\n", appVersion(), runtime.GOOS, runtime.GOARCH, buildCommit())
 		return nil
+	}
+	updateRoot, updateConfigPath, updateRootErr := updatePaths()
+	updateConfig, err := update.LoadConfig(updateConfigPath)
+	if err != nil {
+		return err
+	}
+	if *updateMode != "" {
+		updateConfig.Mode = *updateMode
+	}
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "update-mirror" {
+			updateConfig.Mirror = *updateMirror
+		}
+	})
+	if *updateAuto != "" {
+		value, err := strconv.ParseBool(*updateAuto)
+		if err != nil {
+			return err
+		}
+		updateConfig.Auto = value
+	}
+	if *configureUpdates {
+		return update.WriteConfig(updateConfigPath, updateConfig)
+	}
+	if *applyUpdate || *rollbackUpdate || *updateCheck {
+		if !*updateCheck && updateRootErr != nil {
+			return updateRootErr
+		}
+		ctx, stop := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer stop()
+		return updateCommand(ctx, updateRoot, updateConfig, *applyUpdate, *rollbackUpdate)
 	}
 	if *installGopls {
 		ctx, stop := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -95,6 +140,23 @@ func run() error {
 		path, err := languageserver.InstallGopls(ctx)
 		if err == nil {
 			fmt.Println("Installed gopls", languageserver.GoplsVersion, path)
+		}
+		return err
+	}
+	if *installCopilot {
+		ctx, stop := context.WithTimeout(context.Background(), 10*time.Minute)
+		defer stop()
+		packageJSON, err := copilotPackage.ReadFile("tools/copilot-runtime/package.json")
+		if err != nil {
+			return err
+		}
+		lockJSON, err := copilotPackage.ReadFile("tools/copilot-runtime/package-lock.json")
+		if err != nil {
+			return err
+		}
+		path, err := copilotservice.InstallRuntime(ctx, packageJSON, lockJSON)
+		if err == nil {
+			fmt.Println("Installed pinned official Copilot runtime", path)
 		}
 		return err
 	}
@@ -301,8 +363,12 @@ func run() error {
 	var started bool
 	var closeCopilot func()
 	var closeLanguages func()
+	var closeUpdates func()
 	var closeIcon func()
 	defer func() {
+		if closeUpdates != nil {
+			closeUpdates()
+		}
 		if closeIcon != nil {
 			closeIcon()
 		}
@@ -339,6 +405,9 @@ func run() error {
 			cx = viewContext
 			m.native = viewContext
 			closeIcon = applyAppIcon("gocode — " + filepath.Base(m.workspace))
+			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke {
+				closeUpdates = m.startUpdates(hostCtx, viewContext, updateRoot, updateConfigPath, updateConfig)
+			}
 			started = true
 			if host != nil {
 				initialized = m.startExtensions(hostCtx, viewContext, host, filepath.Join(filepath.Dir(*extensionDir), "state"))

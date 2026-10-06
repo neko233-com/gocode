@@ -29,9 +29,9 @@
 6. Install latest validated gocode on this Windows computer and verify launch,
    command, shortcuts/icons/update settings and installed-app behavior.
 
-No installer/updater/local installation is verified yet. Large-file editing,
-language crash restart and broader parity remain pending. Source/CI integration
-for these milestones is in progress; record the immutable commit/run on promotion.
+Distribution/updates are being validated below. Large-file editing, language
+crash restart and broader parity remain pending. Record immutable commits/runs
+and actual deployment evidence when promoting each milestone.
 Do not claim the active production/full-parity goal is complete.
 
 Public foundation source `633e754c0c6a695d869317785562678d5f14d756`, CI
@@ -41,6 +41,41 @@ An actual Windows 8.3 alias reproduced reopening an unsaved document from disk.
 The regression fails the old code and passes the canonical-path correction in
 three race runs. Public promotion waits for the corrected source's full CI.
 
-Free distribution is now in development: versioned launcher/layout and Windows
-Installer COM + makecab build a real MSI. Prototype payload command/version works;
-install/uninstall/upgrade and updater/local deployment are not yet verified.
+Free distribution uses versioned launcher/layout and Windows Installer COM/makecab.
+
+Corrected source `cfcd3513aedc4ec50ae19625fbd2f04446039abe` passed all five jobs
+in CI `37451395121` and is the immutable v0.4.0 source release. The parent gitlink
+was advanced by godesktop commit `e1af1980d2bcf09391f374500442a66426b2cece`.
+
+Distribution prototype (uncommitted, disposable payloads only) now passed real
+per-user MSI install, stable command/native launch, Start Menu/desktop icon targets,
+custom-root remembered uninstall and PATH removal. A 0.4.0 -> 0.4.1 synthetic MSI
+upgrade retained the root, superseded a stale current.json pointer, launched the
+new native payload and uninstalled its registered files. No final user install
+exists. Initial custom-root uninstall revealed missing root persistence; RegLocator/
+AppSearch with a property restore fixed it. Generated reports/cabinets stay ignored.
+
+The automated disposable MSI acceptance now passes per-user installation, icon/
+shortcut targets, corrupted-cabinet rollback with the old product still registered,
+normal upgrade, downgrade rejection, native launch, owned pointer cleanup, workspace
+preservation and PATH removal. Early removal of the old app revealed a Windows
+LUA rollback registration problem; scheduling InstallExecute before old removal
+fixed it. The failed prototype was recovered using Windows Installer, including
+its advertised registration, files and PATH; no manual registry/delete workaround.
+
+Updater race tests pass real compiled-executable health checks, signed metadata,
+bad-route fallback, SHA256 mismatch, ZIP traversal, cancellation, exclusive process
+locks, next-launch activation and rollback. Fixed 512 MiB archive/expansion bounds.
+An MSI baseline supersedes stale update pointers and remains the rollback target.
+Real Windows mouse/keyboard settings persistence and owned GPU capture passed:
+`.cache/updates-native-settings.png`. Automatic/manual routing and toggle were saved
+without changing the active document. No final installed-app live release update yet.
+
+`gocode -install-copilot` installs the embedded npm lockfile with no lifecycle scripts
+into the per-user versioned tools directory. This machine's managed runtime passed
+real authenticated LSP initialization and SDK connection without an AI prompt.
+
+Remaining promotion gates: new exact-source CI (including macOS packages and MSI),
+published immutable installers/signed manifest/custom channels, real published-byte
+update/rollback and final local installation. Public registry acceptance is separate.
+Never publish dirty/synthetic prototype packages or private signing keys.

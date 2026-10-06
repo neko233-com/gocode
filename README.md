@@ -6,15 +6,38 @@ Go 1.27 的原生编辑器，以 [godesktop](https://github.com/neko233-com/gode
 
 目标是覆盖 VS Code 工作台、编辑器和扩展能力。目前已贯通版本化编辑、VSIX 编辑/语言提供者和官方 Copilot 接入，完整覆盖情况见 [功能矩阵](docs/vscode-parity.md)。Dark Modern 布局是实现参考，尚未通过和 VS Code 的逐像素对照验收。
 
-## 运行
+## 安装与更新
 
-需要 Go 1.27、cgo、Node.js 22+（CI 使用 24）。Windows 使用 x86-64 MinGW-w64 gcc/g++，macOS 使用 Xcode Command Line Tools。
+发布包位于 [Releases](https://github.com/neko233-com/gocode/releases)：Windows x64
+提供免费 MSI 和便携 ZIP；macOS Intel/Apple Silicon 提供 .app 压缩包。发布后
+`distribution/install.ps1`、`distribution/install-macos.sh` 包含该版本的固定 SHA256。
+下载脚本后运行 `powershell -ExecutionPolicy Bypass -File install.ps1` 或
+`sh install-macos.sh`。可用 `-Route mirror -Mirror https://前缀/` 或 macOS 环境变量
+`GOCODE_UPDATE_MODE=mirror GOCODE_UPDATE_MIRROR=https://前缀/` 指定加速。
+
+设置图标打开原生更新页：自动检查、GitHub 直连、自动路由和手动镜像。
+更新验证免费 Ed25519 发布元数据及 SHA256，检查新程序版本/来源后，仅切换下次
+启动的版本；当前编辑窗口继续运行。命令为 `gocode -update-check`、`gocode -update`
+和 `gocode -update-rollback`。`-configure-updates -update-mode auto/direct/mirror
+-update-mirror https://前缀/ -updates-auto true/false` 保存用户设置。
+
+发布流程维护 `distribution/winget/`、`bucket/` 和 `Casks/`，供本地 winget manifest、
+自定义 Scoop bucket 和 Homebrew tap 使用。公共包注册表的收录状态单独记录；
+生成 manifest 不等于已上架。详见 [分发契约](agent%20docs/distribution.md)。
+
+可选扩展/AI 宿主需要 Node.js 24/npm。安装后运行 `gocode -install-copilot` 和
+`gocode -install-gopls`，工具装入用户目录，之后无需源码目录。MSI 提供用户 PATH、
+开始菜单和桌面快捷方式。安装包和更新均不要求付费 OS 签名证书。
+
+## 从源码运行
+
+需要 Go 1.27、cgo、Node.js 24。Windows 使用 x86-64 MinGW-w64 gcc/g++，macOS 使用 Xcode Command Line Tools。
 
 ```powershell
 git clone https://github.com/neko233-com/gocode.git
 cd gocode
 $env:CGO_ENABLED='1'
-npm ci --prefix tools/copilot-runtime --no-audit --no-fund
+go run . -install-copilot
 go run . -workspace .
 ```
 

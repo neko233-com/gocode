@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
+	"github.com/neko233-com/gocode/internal/update"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
@@ -23,47 +24,52 @@ type document struct {
 	line, column, scroll         int
 }
 type model struct {
-	workspace                             string
-	files                                 []string
-	docs                                  []*document
-	active                                int
-	activity, panel                       string
-	showPanel, palette, editing           bool
-	query, message, status                string
-	output                                []string
-	commands                              []extensionCommand
-	installed                             []extensionInfo
-	execute                               func(string)
-	pointerX                              float32
-	smoke                                 bool
-	pointerShift                          bool
-	readClipboard                         func() (string, error)
-	writeClipboard                        func(string) error
-	onDocument                            func(string, *document, textbuffer.ChangeEvent)
-	requestInline                         func(*document)
-	cancelInline                          func()
-	acceptInline                          func(copilotservice.InlineItem)
-	acceptedInline                        uint64
-	suggestion                            *inlineSuggestion
-	askChat                               func(string)
-	cancelChat                            func()
-	signInCopilot                         func()
-	signInChat                            func()
-	chatLoginBusy                         bool
-	chatPrompt, chatAnswer, copilotStatus string
-	chatContext, chatContextLabel         string
-	chatFocused, chatBusy                 bool
-	chatGeneration                        uint64
-	inlineGeneration                      uint64
-	requestCompletions                    func(*document)
-	completions                           []completionSuggestion
-	pointerSelecting                      bool
-	diagnostics                           map[string][]diagnostic
-	native                                *ui.Context
-	navigation, largeScrollbar            bool
-	requestLSP                            func(*document, string)
-	lspStatus                             string
-	completionSources                     map[string][]completionSuggestion
+	workspace                                    string
+	files                                        []string
+	docs                                         []*document
+	active                                       int
+	activity, panel                              string
+	showPanel, palette, editing                  bool
+	query, message, status                       string
+	output                                       []string
+	commands                                     []extensionCommand
+	installed                                    []extensionInfo
+	execute                                      func(string)
+	pointerX                                     float32
+	smoke                                        bool
+	pointerShift                                 bool
+	readClipboard                                func() (string, error)
+	writeClipboard                               func(string) error
+	onDocument                                   func(string, *document, textbuffer.ChangeEvent)
+	requestInline                                func(*document)
+	cancelInline                                 func()
+	acceptInline                                 func(copilotservice.InlineItem)
+	acceptedInline                               uint64
+	suggestion                                   *inlineSuggestion
+	askChat                                      func(string)
+	cancelChat                                   func()
+	signInCopilot                                func()
+	signInChat                                   func()
+	chatLoginBusy                                bool
+	chatPrompt, chatAnswer, copilotStatus        string
+	chatContext, chatContextLabel                string
+	chatFocused, chatBusy                        bool
+	chatGeneration                               uint64
+	inlineGeneration                             uint64
+	requestCompletions                           func(*document)
+	completions                                  []completionSuggestion
+	pointerSelecting                             bool
+	diagnostics                                  map[string][]diagnostic
+	native                                       *ui.Context
+	navigation, largeScrollbar                   bool
+	requestLSP                                   func(*document, string)
+	lspStatus                                    string
+	completionSources                            map[string][]completionSuggestion
+	updatesConfig                                update.Config
+	configureUpdates                             func(update.Config)
+	requestUpdate                                func()
+	updateStatus, updateRoute, updateMirrorDraft string
+	updateBusy, updateFocused                    bool
 }
 
 type diagnostic struct {

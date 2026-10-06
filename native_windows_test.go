@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/update"
 	"github.com/neko233-com/godesktop/testing/winprobe"
 )
 
@@ -59,8 +60,9 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	m := testModel(t)
 	workspace := m.workspace
 	var output safeOutput
-	cmd := exec.Command(exe, "-workspace", workspace, "-extensions-dir", t.TempDir())
-	cmd.Env = append(os.Environ(), "GODESKTOP_READBACK=1")
+	configRoot := t.TempDir()
+	cmd := exec.Command(exe, "-workspace", workspace, "-extensions-dir", t.TempDir(), "-copilot=false", "-lsp=false")
+	cmd.Env = append(os.Environ(), "GODESKTOP_READBACK=1", "APPDATA="+configRoot)
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	if err := cmd.Start(); err != nil {
@@ -179,6 +181,51 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		}
 		if err = f.Close(); err != nil {
 			t.Fatal(err)
+		}
+	}
+	// Real native settings clicks and text events persist only this fixture's
+	// per-user config. They must not change the active editor or contact AI.
+	click(24, viewHeight-46)
+	click(120, 262)
+	for _, r := range "https://ghfast.top/" {
+		if err := w.Send(0x102, uintptr(r), 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := w.Send(0x100, 13, 0); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(configRoot, "gocode", "updates.json")
+	until(t, func() bool {
+		config, err := update.LoadConfig(configPath)
+		return err == nil && config.Mirror == "https://ghfast.top/"
+	})
+	click(120, 210)
+	until(t, func() bool {
+		config, err := update.LoadConfig(configPath)
+		return err == nil && config.Mode == "mirror"
+	})
+	click(120, 126)
+	until(t, func() bool {
+		config, err := update.LoadConfig(configPath)
+		return err == nil && !config.Auto && config.Mode == "mirror"
+	})
+	if name := os.Getenv("GOCODE_UPDATES_SCREENSHOT"); name != "" {
+		pixels, err := w.Capture()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Dir(name), 0755); err != nil {
+			t.Fatal(err)
+		}
+		f, err := os.Create(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = png.Encode(f, pixels)
+		closeErr := f.Close()
+		if err != nil || closeErr != nil {
+			t.Fatalf("settings capture %v %v", err, closeErr)
 		}
 	}
 	click(viewWidth-69, 16)

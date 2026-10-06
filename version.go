@@ -1,9 +1,23 @@
 package main
 
-import "runtime/debug"
+import (
+	_ "embed"
+	"runtime/debug"
+	"strings"
+)
 
-var version = "0.4.0"
+var version = ""
 var sourceCommit = "development"
+
+//go:embed VERSION
+var defaultVersion string
+
+func appVersion() string {
+	if version != "" {
+		return version
+	}
+	return strings.TrimSpace(defaultVersion)
+}
 
 func buildCommit() string {
 	if sourceCommit != "development" {

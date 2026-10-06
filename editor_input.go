@@ -114,6 +114,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		m.pointerX, m.pointerShift = e.X, e.Modifiers&ui.ModifierShift != 0
 		m.editing = false
 		m.chatFocused = false
+		m.updateFocused = false
 		if d := m.current(); d != nil && cx != nil {
 			for i := d.scroll; i < d.buffer.LineCount(); i++ {
 				b, ok := cx.ElementBounds(fmt.Sprintf("code-line-%d", i))
@@ -222,6 +223,43 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 				}
 				m.chatFocused = false
 				return true
+			}
+		}
+		return false
+	}
+	if m.updateFocused && m.activity == "settings" {
+		if e.Kind == ui.Character && e.Key >= 32 && !command && len(m.updateMirrorDraft) < 2048 {
+			m.updateMirrorDraft += string(rune(e.Key))
+			return true
+		}
+		if e.Kind == ui.KeyPressed {
+			switch e.Key {
+			case 8:
+				r := []rune(m.updateMirrorDraft)
+				if len(r) > 0 {
+					m.updateMirrorDraft = string(r[:len(r)-1])
+				}
+				return true
+			case 27:
+				m.updateFocused = false
+				return true
+			case 13:
+				config := m.updatesConfig
+				config.Mirror = m.updateMirrorDraft
+				config.Mode = "mirror"
+				if m.configureUpdates != nil {
+					m.configureUpdates(config)
+				}
+				m.updateFocused = false
+				return true
+			case 'V':
+				if command && m.readClipboard != nil {
+					value, err := m.readClipboard()
+					if err == nil && len(value) <= 2048 {
+						m.updateMirrorDraft = value
+					}
+					return true
+				}
 			}
 		}
 		return false

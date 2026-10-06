@@ -6,3 +6,7 @@ go.work
 go.work.sum
 node_modules/
 *.syso
+__pycache__/
+/dist/
+/setup.inf
+/setup.rpt

@@ -88,12 +88,13 @@ func RuntimeRoot(explicit string) (string, error) {
 		return root, nil
 	}
 	exe, _ := os.Executable()
-	for _, root := range []string{filepath.Join(filepath.Dir(exe), "copilot-runtime"), filepath.Join("tools", "copilot-runtime")} {
+	managed, _ := ManagedRuntimeRoot()
+	for _, root := range []string{managed, filepath.Join(filepath.Dir(exe), "copilot-runtime"), filepath.Join("tools", "copilot-runtime")} {
 		if _, err := os.Stat(filepath.Join(root, "node_modules", "@github", "copilot-language-server", "dist", "language-server.js")); err == nil {
 			return filepath.Abs(root)
 		}
 	}
-	return "", errors.New("Copilot runtime missing: run npm ci in tools/copilot-runtime or set -copilot-runtime")
+	return "", errors.New("Copilot runtime missing: run gocode -install-copilot or set -copilot-runtime")
 }
 
 func NewLanguage(ctx context.Context, root, workspace string) (*Language, error) {

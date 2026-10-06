@@ -1,0 +1,85 @@
+name: Publish verified release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable VERSION to publish after CI succeeds
+        required: true
+      ci_run:
+        description: Successful main CI run for this exact source commit
+        required: true
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+env:
+  GOWORK: 'off'
+  GH_TOKEN: ${{ github.token }}
+  RELEASE_VERSION: ${{ inputs.version }}
+  CI_RUN: ${{ inputs.ci_run }}
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Require successful native/package CI at this immutable source
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import os, re, pathlib
+          assert re.fullmatch(r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)', os.environ['RELEASE_VERSION'])
+          assert re.fullmatch(r'\d+', os.environ['CI_RUN'])
+          assert pathlib.Path('VERSION').read_text().strip() == os.environ['RELEASE_VERSION']
+          PY
+          mkdir -p .cache dist
+          gh api "repos/$REPOSITORY/actions/runs/$CI_RUN" > .cache/source-run.json
+          python3 - <<'PY'
+          import json, os
+          run = json.load(open('.cache/source-run.json'))
+          assert run['head_sha'] == os.environ['SOURCE_SHA']
+          assert run['head_repository']['full_name'] == os.environ['REPOSITORY']
+          assert run['head_branch'] == 'main' and run['path'] == '.github/workflows/ci.yml'
+          assert run['event'] in ('push', 'workflow_dispatch')
+          assert run['conclusion'] == 'success' and run['status'] == 'completed'
+          PY
+          if gh release view "v$RELEASE_VERSION" >/dev/null 2>&1; then
+            echo 'Release already exists; published assets are immutable.' >&2
+            exit 1
+          fi
+      - name: Reuse the exact tested Windows and macOS packages
+        run: |
+          gh run download "$CI_RUN" --dir .cache/source-artifacts
+          find .cache/source-artifacts -path '*/dist/*' -type f -exec cp -- {} dist/ \;
+          python3 scripts/generate-distribution.py --version "$RELEASE_VERSION" --source "$GITHUB_SHA" --artifacts dist --output .cache/channels
+      - name: Sign free integrity metadata
+        env:
+          GOCODE_UPDATE_SIGNING_KEY: ${{ secrets.GOCODE_UPDATE_SIGNING_KEY }}
+        run: |
+          go run ./cmd/gocode-manifest -input .cache/channels/manifest-input.json -output .cache/channels/update-manifest.json
+      - name: Publish immutable artifacts
+        run: |
+          cp .cache/channels/update-manifest.json .cache/channels/install.ps1 .cache/channels/install-macos.sh .cache/channels/SHA256SUMS dist/
+          (cd .cache/channels && zip -q -r ../../dist/distribution-channels.zip winget bucket Casks)
+          gh release create "v$RELEASE_VERSION" --target "$GITHUB_SHA" --title "gocode v$RELEASE_VERSION" --notes-file docs/release-notes.md --draft dist/*
+          gh release edit "v$RELEASE_VERSION" --draft=false --latest
+      - name: Maintain the repository's free installation channels and CDN metadata
+        run: |
+          cp .cache/channels/update-manifest.json .cache/channels/install.ps1 .cache/channels/install-macos.sh .cache/channels/SHA256SUMS distribution/
+          cp -R .cache/channels/winget distribution/
+          cp -R .cache/channels/bucket .cache/channels/Casks .
+          git config user.name 'gocode release automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add distribution/update-manifest.json distribution/install.ps1 distribution/install-macos.sh distribution/SHA256SUMS distribution/winget bucket Casks
+          git commit -m "Publish free distribution metadata for v$RELEASE_VERSION"
+          git push origin HEAD:main

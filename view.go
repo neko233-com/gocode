@@ -48,7 +48,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		}
 		activities = append(activities, ui.Row(ui.Column().Width(2).Background(indicator), ui.Icon(name).Width(46).Height(48).Foreground(ui.RGB(color))).Height(48).Key("activity-"+name).OnClick(func(*ui.Context) { m.activity = name; m.palette = false; m.query = "" }))
 	}
-	activities = append(activities, spacer(), ui.Icon("account").Height(48).Foreground(ui.RGB(muted)), ui.Icon("settings").Height(48).Foreground(ui.RGB(muted)).Key("settings").OnClick(func(*ui.Context) { m.palette = true; m.query = "" }))
+	activities = append(activities, spacer(), ui.Icon("account").Height(48).Foreground(ui.RGB(muted)), ui.Icon("settings").Height(48).Foreground(ui.RGB(muted)).Key("settings").OnClick(func(*ui.Context) { m.activity = "settings"; m.palette = false; m.updateFocused = false }))
 	activity := ui.Column(activities...).Width(48).Background(ui.RGB(outer))
 	tabs := []*ui.Element{}
 	for i, d := range m.docs {
@@ -172,9 +172,11 @@ func (m *model) titlebar(cx *ui.Context) *ui.Element {
 	return ui.Column(ui.Row(ui.Row(left...), spacer().Draggable(), search, spacer().Draggable(), controls).Height(35), rule()).Height(36).Background(ui.RGB(outer))
 }
 func (m *model) sidebar() *ui.Element {
-	title := map[string]string{"files": "EXPLORER", "search": "SEARCH", "source-control": "SOURCE CONTROL", "debug": "RUN AND DEBUG", "extensions": "EXTENSIONS"}[m.activity]
+	title := map[string]string{"files": "EXPLORER", "search": "SEARCH", "source-control": "SOURCE CONTROL", "debug": "RUN AND DEBUG", "extensions": "EXTENSIONS", "settings": "SETTINGS"}[m.activity]
 	children := []*ui.Element{ui.Row(label(title).FontSize(11).PaddingXY(18, 0).Flex(1), label("…").Width(28)).Height(35)}
 	switch m.activity {
+	case "settings":
+		children = append(children, m.updatesSidebar().Flex(1))
 	case "files":
 		children = append(children, ui.Row(ui.Icon("chevron-down").Width(22).Height(22), label(strings.ToUpper(filepath.Base(m.workspace))).FontSize(11)).Height(24))
 		lastDirectory := ""

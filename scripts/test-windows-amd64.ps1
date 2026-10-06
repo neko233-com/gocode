@@ -8,11 +8,12 @@ function Invoke-CheckedGo {
     if ($LASTEXITCODE -ne 0) { throw "go $args failed with exit code $LASTEXITCODE" }
 }
 $taskRoot = Split-Path -Parent $PSScriptRoot
-$taskNames = @('CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GODESKTOP_READBACK')
+$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GODESKTOP_READBACK')
 $taskSaved = @{}
 foreach ($taskName in $taskNames) { $taskSaved[$taskName] = [Environment]::GetEnvironmentVariable($taskName, 'Process') }
 Push-Location -LiteralPath $taskRoot
 try {
+    $env:GOWORK='off'
     $env:CGO_ENABLED='1'
     $env:GOARCH='amd64'
     $env:GOAMD64='v1'

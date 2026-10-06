@@ -1,10 +1,14 @@
-param([ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version='0.4.0')
+param([ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version)
 $ErrorActionPreference='Stop'
 $taskRoot=Split-Path -Parent $PSScriptRoot
+if(-not $Version){$Version=(Get-Content -LiteralPath (Join-Path $taskRoot 'VERSION') -Raw).Trim()}
 $taskCache=Join-Path $taskRoot '.cache/resources'
 New-Item -ItemType Directory -Path $taskCache -Force | Out-Null
 $taskIcon=(Join-Path $taskRoot 'assets/code-oss/code.ico').Replace('\','\\')
-$taskManifest=(Join-Path $taskRoot 'assets/gocode.manifest').Replace('\','\\')
+$taskManifestFile=Join-Path $taskCache 'gocode.manifest'
+$taskManifestText=(Get-Content -LiteralPath (Join-Path $taskRoot 'assets/gocode.manifest') -Raw).Replace('version="0.4.0.0"',('version="'+$Version+'.0"'))
+[IO.File]::WriteAllText($taskManifestFile,$taskManifestText,[Text.UTF8Encoding]::new($false))
+$taskManifest=$taskManifestFile.Replace('\','\\')
 $taskTuple=($Version.Replace('.',','))+',0'
 $taskResource=@"
 #pragma code_page(65001)

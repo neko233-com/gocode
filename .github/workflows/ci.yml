@@ -29,6 +29,7 @@ jobs:
       CXX: g++
       GOCODE_SCREENSHOT: .cache/workbench-windows.png
       GOCODE_LSP_SCREENSHOT: .cache/gopls-native-acceptance.png
+      GOCODE_UPDATES_SCREENSHOT: .cache/updates-native-settings.png
       GODESKTOP_READBACK: '1'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -54,7 +55,10 @@ jobs:
           & ./bin/gocode.exe -largefile-smoke -largefile-smoke-mib 1024 -extensions-dir .cache/extensions
           if ($LASTEXITCODE -ne 0) { throw 'GiB native browsing failed.' }
       - name: Install pinned official Copilot sidecars
-        run: npm ci --prefix tools/copilot-runtime --no-audit --no-fund
+        shell: powershell
+        run: |
+          & ./bin/gocode.exe -install-copilot
+          if ($LASTEXITCODE -ne 0) { throw 'Managed Copilot installation failed.' }
       - name: Verify official Copilot protocol without paid requests
         shell: powershell
         run: |
@@ -67,6 +71,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Gopls installation failed.' }
           & ./bin/gocode.exe -lsp-smoke -extensions-dir .cache/extensions
           if ($LASTEXITCODE -ne 0) { throw 'Native LSP acceptance failed.' }
+      - name: Verify free MSI install, upgrade, rollback and uninstall
+        if: matrix.os == 'windows-2025'
+        shell: powershell
+        run: ./scripts/test-msi.ps1
+      - name: Build versioned Windows installer and portable package
+        if: matrix.os == 'windows-2025'
+        shell: powershell
+        run: ./scripts/build-windows-package.ps1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -78,7 +90,11 @@ jobs:
             .cache/largefile-native-acceptance.png
             .cache/largefile-gib-native.png
             .cache/gopls-native-acceptance.png
+            .cache/updates-native-settings.png
             .cache/copilot-health.json
+            dist/*.zip
+            dist/*.msi
+            .cache/msi-validation/**/*.log
           include-hidden-files: true
           if-no-files-found: warn
   macos:
@@ -111,13 +127,15 @@ jobs:
           ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
           ./bin/gocode -extensions-dir .cache/extensions -largefile-smoke
       - name: Install pinned official Copilot sidecars
-        run: npm ci --prefix tools/copilot-runtime --no-audit --no-fund
+        run: ./bin/gocode -install-copilot
       - name: Verify official Copilot protocol without paid requests
         run: ./bin/gocode -workspace . -copilot-check > .cache/copilot-health.json
       - name: Verify pinned official gopls in the native workbench
         run: |
           ./bin/gocode -install-gopls
           ./bin/gocode -lsp-smoke -extensions-dir .cache/extensions
+      - name: Package and verify free macOS bundle and updater archive
+        run: sh scripts/build-macos-package.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: gocode-${{ runner.os }}-${{ runner.arch }}
@@ -125,6 +143,8 @@ jobs:
             bin/gocode
             coverage.out
             .cache/copilot-health.json
+            dist/*.zip
+            dist/*.tar.gz
           include-hidden-files: true
           if-no-files-found: error
   portable:
@@ -154,3 +174,5 @@ jobs:
         env:
           CGO_ENABLED: '0'
         run: go test ./...
+      - name: Verify generated channel hashes and input policy
+        run: python3 -m unittest discover -s scripts -p '*_test.py'
