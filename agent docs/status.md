@@ -10,6 +10,16 @@ keyboard focus leaves the editor unchanged. See terminal.md for bounds/provenanc
 and explicit gaps. Exact-source Windows/Mac Intel/ARM/Ubuntu CI and immutable
 release are pending; installed stable remains verified v0.6.0 until promotion.
 
+Do not promote source 32a4d5a/CI 37490630980 or 3121950/CI 37492140590.
+Windows runners needed a raw/VT-input full-screen fixture and a longer bounded
+flood deadline under race+coverage. The corrected fixture passed the next runner
+tests. Mac real zsh input colors/native resize/Ctrl+C reached exit, but `exit`
+inherited interruption status 130; acceptance now explicitly requests `exit 0`.
+Small runner fonts and asynchronous GPU completion exposed the exact-RGB/early
+snapshot predicate. The gate now waits for actual colored ink in the process-owned
+terminal grid and accounts for foreground/background glyph coverage. It retains
+both real VT-color and native pixel checks. Next exact-source CI is required.
+
 ## Verified foundation
 
 - Public independent gocode submodule; godesktop dependency now v0.4.0.

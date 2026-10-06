@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,7 +23,10 @@ type terminalAcceptance struct {
 	resizeWidth    float32
 	started        time.Time
 	loggedPhase    int
+	lastPixelError string
 }
+
+var errTerminalPixelsPending = errors.New("terminal GPU frame is not ready")
 
 func terminalHasColor(f *terminal.Frame, text string, color uint32) bool {
 	for _, line := range f.Lines {
@@ -70,7 +74,7 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 		if tab != nil && tab.frame != nil {
 			detail = fmt.Sprintf("size=%+v cursor=%d,%d exited=%t\n%s", tab.frame.Size, tab.frame.CursorX, tab.frame.CursorY, tab.frame.Exited, tab.frame.Text())
 		}
-		fail(fmt.Errorf("phase %d timed out: %s", a.phase, detail))
+		fail(fmt.Errorf("phase %d timed out: %s %s", a.phase, detail, a.lastPixelError))
 		return
 	}
 	send := func(command string) {
@@ -85,7 +89,15 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 		if directory == "" {
 			return true
 		}
-		if err := captureTerminalAcceptance(m.workspace, filepath.Join(directory, name+".png")); err != nil {
+		bounds, ok := cx.ElementBounds("terminal-grid")
+		if !ok {
+			return false
+		}
+		if err := captureTerminalAcceptance(m.workspace, filepath.Join(directory, name+".png"), bounds); err != nil {
+			if errors.Is(err, errTerminalPixelsPending) {
+				a.lastPixelError = err.Error()
+				return false
+			}
 			fail(err)
 			return false
 		}
@@ -131,7 +143,7 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 		case 3:
 			if cx.RenderedFrames() > a.frame {
 				if !capture("input-highlight") {
-					return
+					break
 				}
 				m.input(cx, ui.InputEvent{Kind: ui.KeyPressed, Key: 13})
 				a.phase = 4
@@ -180,7 +192,7 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 		case 8:
 			if cx.RenderedFrames() > a.frame {
 				if !capture("output-resized") {
-					return
+					break
 				}
 				command := `echo INTERRUPT_STARTED; sleep 60`
 				if runtime.GOOS == "windows" {
@@ -196,7 +208,7 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 			}
 		case 10:
 			if shellPromptReady(f) {
-				send("exit")
+				send("exit 0")
 				a.phase = 11
 			}
 		case 11:
