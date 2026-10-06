@@ -11,7 +11,7 @@ Real PTY/shell/native lifecycle and syntax-highlighting contracts are in
 The existing docs/vscode-parity.md remains the API/function coverage ledger.
 
 Reference: latest stable VS Code 1.140.0 and current main
-`ff275a2dfa5cebe351c45e6c7c3d18002bcb2162` (2026-10-06). Use source measurements,
+`bf519293a7de013c7e3897185784065b0799c9f2` (2026-10-07). Use source measurements,
 colors/fonts/layout and native screenshots, rather than remembered old UI details.
 
 Production promotion requires real core/editor/process/native/visual/installer

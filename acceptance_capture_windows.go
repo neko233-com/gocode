@@ -42,7 +42,7 @@ func captureTerminalAcceptance(workspace, file string, bounds ui.Bounds) error {
 			r, g, b, _ := pixels.At(x, y).RGBA()
 			value := uint32(r>>8)<<16 | uint32(g>>8)<<8 | uint32(b>>8)
 			for _, fg := range []uint32{0xdcdcaa, 0xce9178, 0xe5c07b} {
-				if matchesTerminalInk(value, 0x1f1f1f, fg) {
+				if matchesTerminalInk(value, 0x181818, fg) {
 					colors[fg]++
 				}
 			}

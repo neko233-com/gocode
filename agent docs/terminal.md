@@ -1,5 +1,11 @@
 # Native terminal contract
 
+Latest reference (2026-10-07): VS Code main bf519293a7de013c7e3897185784065b0799c9f2,
+extensions/theme-defaults/themes/dark_modern.json and terminalColorRegistry.ts.
+Dark Modern terminal foreground is #CCCCCC; unset terminal.background inherits
+panel #181818. Native terminal default/cell backgrounds now follow that panel
+color. Copied application icon provenance retains its earlier immutable source.
+
 Terminal process I/O, VT parsing and shell preparation run in owned workers.
 Only immutable cell snapshots and native view/input state cross the UI thread.
 No Electron, xterm.js or browser surface is involved.

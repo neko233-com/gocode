@@ -331,7 +331,7 @@ func (m *model) panelView(width float32) *ui.Element {
 			_, windowHeight = m.native.WindowSize()
 		}
 		height := m.terminalPanelHeight(windowHeight)
-		return ui.Column(ui.Column().Height(4).Background(ui.RGB(border)).Key("panel-resize").OnClick(func(*ui.Context) {}), ui.Row(header...).Height(34), m.terminalBody(width, height).Flex(1)).Height(height).Background(ui.RGB(editor))
+		return ui.Column(ui.Column().Height(4).Background(ui.RGB(border)).Key("panel-resize").OnClick(func(*ui.Context) {}), ui.Row(header...).Height(34), m.terminalBody(width, height).Flex(1)).Height(height).Background(ui.RGB(outer))
 	}
 	lines := []*ui.Element{}
 	if m.panel == "COPILOT" {

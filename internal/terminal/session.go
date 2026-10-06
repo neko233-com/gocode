@@ -162,7 +162,7 @@ func Start(parent context.Context, config Config, size Size) (_ *Session, failur
 	s := &Session{backend: backend, emulator: vt.NewEmulator(size.Columns, size.Rows), ctx: ctx, cancel: cancel, requests: make(chan request, 64), writes: make(chan []byte, 64), updates: make(chan struct{}, 1), done: make(chan struct{}), outputDone: make(chan struct{}), cursorVisible: true, exitCode: -1}
 	s.emulator.SetScrollbackSize(config.History)
 	s.emulator.SetDefaultForegroundColor(color.RGBA{0xcc, 0xcc, 0xcc, 255})
-	s.emulator.SetDefaultBackgroundColor(color.RGBA{0x1f, 0x1f, 0x1f, 255})
+	s.emulator.SetDefaultBackgroundColor(color.RGBA{0x18, 0x18, 0x18, 255})
 	palette := []uint32{0, 0xcd3131, 0x0dbc79, 0xe5e510, 0x2472c8, 0xbc3fbc, 0x11a8cd, 0xe5e5e5, 0x666666, 0xf14c4c, 0x23d18b, 0xf5f543, 0x3b8eea, 0xd670d6, 0x29b8db, 0xffffff}
 	for index, value := range palette {
 		s.emulator.SetIndexedColor(index, color.RGBA{uint8(value >> 16), uint8(value >> 8), uint8(value), 255})
@@ -446,7 +446,7 @@ func (s *Session) publish() {
 			} else {
 				c = e.CellAt(x, index)
 			}
-			cell := Cell{Text: " ", Width: 1, Foreground: 0xcccccc, Background: 0x1f1f1f}
+			cell := Cell{Text: " ", Width: 1, Foreground: 0xcccccc, Background: 0x181818}
 			if c != nil && !c.IsZero() {
 				cell.Text, cell.Width = c.Content, c.Width
 				cell.Foreground, cell.Background = rgb(c.Style.Fg, cell.Foreground), rgb(c.Style.Bg, cell.Background)
