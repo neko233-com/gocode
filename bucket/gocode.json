@@ -1,12 +1,12 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Native Go desktop editor powered by godesktop",
   "homepage": "https://github.com/neko233-com/gocode",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/neko233-com/gocode/releases/download/v0.6.0/gocode-0.6.0-windows-amd64.zip",
-      "hash": "ab2c63dd949c1904de8aa0ae32a0ceba62938b4f1f4c8a7f8df350c79a7e1399"
+      "url": "https://github.com/neko233-com/gocode/releases/download/v0.7.0/gocode-0.7.0-windows-amd64.zip",
+      "hash": "11bed5aa26e66c76b5fb7eb1db356a15d1f033af2161014c9e27b2dddecc0087"
     }
   },
   "bin": "gocode.exe",
