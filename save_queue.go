@@ -85,6 +85,7 @@ func (m *model) startSaveActor(parent context.Context, dispatch func(func()) boo
 			}
 			d.diskHash = result.hash
 			d.diskKnown = true
+			d.diskConflict = nil
 			if d.buffer.Version() == result.plan.snapshot.Version {
 				d.buffer.MarkSaved()
 				d.saveID++
@@ -98,6 +99,9 @@ func (m *model) startSaveActor(parent context.Context, dispatch func(func()) boo
 			job.done(failure)
 		}
 		next()
+		if m.publishWatches != nil {
+			m.publishWatches()
+		}
 	}
 	next = func() {
 		if m.saveBusy || len(m.saveJobs) == 0 {
@@ -127,6 +131,9 @@ func (m *model) startSaveActor(parent context.Context, dispatch func(func()) boo
 			}
 		}
 		m.saveBusy = true
+		if m.publishWatches != nil {
+			m.publishWatches()
+		}
 		workers.Go(func() {
 			c, stop := context.WithTimeout(ctx, 30*time.Second)
 			defer stop()

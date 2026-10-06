@@ -8,6 +8,7 @@ Read [status](status.md), [architecture](architecture.md), [acceptance](acceptan
 and [distribution](distribution.md). Update their evidence/limitations as work lands.
 Real PTY/shell/native lifecycle and syntax-highlighting contracts are in
 [terminal](terminal.md).
+Open editable-file watching/reload/conflict contracts are in [files](files.md).
 The existing docs/vscode-parity.md remains the API/function coverage ledger.
 
 Reference: latest stable VS Code 1.140.0 and current main

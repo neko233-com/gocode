@@ -1,50 +1,9 @@
-v0.7.0 adds a real native terminal: Windows ConPTY with PowerShell and macOS PTY
-with zsh/custom shell. PowerShell 7/5.1 PSReadLine and embedded BSD-licensed
-zsh-syntax-highlighting color the command line before Enter. Existing user
-profiles stay intact; acceptance uses isolated owned profiles/history.
+gocode v0.9.0 observes external changes to open editable files with native parent-directory watches and bounded reconciliation. Clean files reload automatically. Dirty files retain unsaved edits and show Reload from Disk / Overwrite Disk. Reload requires confirmation and re-reads current disk contents; a newer accepted VSIX edit cancels a pending discard. Overwrite still verifies the observed disk hash before writing and before atomic rename.
 
-Windows embeds the pinned official MIT-licensed ConPTY redistributable as
-verified executable resources. This corrects the old Windows 2022 system host's
-missing alternate-screen notifications, works offline after owned extraction,
-and preserves the flat update archive accepted by previous gocode releases.
+Reload uses public godesktop v0.5.3: document identity and protocol versions remain continuous, LF/CRLF and prior text are undoable, and redo returns to the external saved revision. VSIX receives actual content changes; standard language services receive the new snapshot/version. Real gopls hover verifies the external function after reload and undo/redo.
 
-Native terminal tabs render ANSI/truecolor, Unicode, alternate screens, cursor
-and selection. Window/panel resizing updates the actual shell grid. Keyboard,
-paste/copy, bounded scrollback, Ctrl+C, final output/exit and owned descendant
-cleanup have real process tests. Native smoke verifies shell input/output colors,
-resize and interrupt without editing the open document. The UI remains Go/GPU.
-Full terminal extension API, shell integration, rich glyph styles, IME and
-accessibility are still pending. POSIX detached jobs need further supervision.
+The watcher bounds 128 open editable files, one pending file body/UI acknowledgement, 8 MiB reads and fixed read chunks. Atomic replacement, deletion/recreation, parent recreation, event storms, stale reads, close/reopen, save acknowledgement races and explicit reload versus newer VSIX edits have real filesystem/race regressions. Windows native acceptance operates actual owned mouse controls and checks completed function, banner/modal and Problems GPU pixels; Mac executes the same native UI model actions. No Mac screenshot claim follows from smoke alone.
 
-Unsaved native windows and tabs remain protected with Save, Don't Save and Cancel.
-Cancel restores editing focus; failed saves keep the window and unsaved buffer.
-Native Windows/macOS close requests follow the framework's guarded close path.
+Existing native highlighted ConPTY/PTY terminals, language-server recovery, read-only bounded GiB browsing, free MSI/portable/Mac packages, custom installation channels and signed/hashed automatic/manual-route updates remain available. The UI is Go/platform GPU; Node is an isolated optional extension/AI host. Copilot uses the official SDK/LSP route.
 
-Ctrl/Cmd+S, command palette, VSIX Document.save and close saves now share a bounded
-background snapshot writer. New edits during a save remain dirty. Content changes
-from another program reject the write instead of overwriting that program's file.
-VSIX acknowledgement and notifications emit one success event per saved revision.
-File-watch/conflict resolution and filesystem coordination are future work.
-
-Builtin sample extensions use versioned managed storage, preserving the shared
-user extension directory so a prior application can still start after rollback.
-
-gocode adds free Windows x64 MSI/portable packages and macOS Intel/Apple Silicon
-bundles, pinned command installation scripts and maintained winget/Scoop/Homebrew
-manifests. Public package-registry acceptance is separate from these custom channels.
-
-The native update settings select direct GitHub, automatic reachability/latency
-routing or a manual HTTPS mirror. Updates verify publisher Ed25519 metadata and
-archive SHA256, stage versioned payloads and check the executable's version/source
-before choosing it for the next launch. The current editor stays open. CLI rollback
-restores a verified previous version. User files/settings stay outside the install.
-
-Windows packaging uses built-in Installer COM/makecab with per-user PATH, shortcut
-and Code-OSS icon integration. Acceptance exercises install, damaged-cabinet
-rollback, upgrade, downgrade rejection, real native launch and owned uninstall.
-Copilot sidecars can now be installed from the embedded npm lockfile with
-`gocode -install-copilot`; Node.js 24/npm is required for optional extension/AI hosts.
-
-This is an engineering preview, not full VS Code/GPUI parity. Native bounded GiB
-browsing, standard LSP/gopls and official Copilot SDK/LSP build on v0.4.0. Remaining
-capabilities and validation limits are recorded in agent docs and docs/vscode-parity.md.
+This remains an engineering preview. Recursive workspace watching, VSIX file-watch APIs, large-browser reopen, asynchronous ordinary open/traversal, diff/merge conflicts, the full official Copilot VSIX and full VS Code/GPUI parity are unfinished. Exact source CI, public-byte rollback and installed-app evidence are recorded in agent docs/status.md as they pass; existing release tags/assets are immutable.

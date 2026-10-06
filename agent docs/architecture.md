@@ -35,8 +35,10 @@ cancels and waits at most three seconds for an uninterruptible OS write/fsync.
 
 Disk hashes detect external content changes before writing and before rename.
 They do not provide a filesystem transaction against unrelated programs; the
-last-check/rename interval remains a race. File watchers/conflict resolution UI
-and stronger platform-specific coordination are still required for full parity.
+last-check/rename interval remains a race. Open editable-file parent watches,
+bounded disk reconciliation, clean reloads, dirty conflict confirmation and
+explicit hash-checked overwrite are implemented in files.md. Recursive workspace
+watching, diff/merge and stronger coordination remain required for full parity.
 
 ## UI
 

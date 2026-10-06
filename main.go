@@ -118,6 +118,7 @@ func run() error {
 	editorSmoke := flag.Bool("editor-smoke", false, "Verify native versioned VSIX edits, save, undo/redo and completion in a disposable workspace")
 	closeSmoke := flag.String("close-smoke", "", "Verify native save/discard/cancel/external close protection in a disposable workspace")
 	terminalSmoke := flag.Bool("terminal-smoke", false, "Verify real shell input highlighting, ANSI colors, keyboard, resize, interrupt and exit in a native owned workspace")
+	filewatchSmoke := flag.Bool("filewatch-smoke", false, "Verify real external replacements, dirty conflict, native reload confirmation, VSIX and optional configured LSP in an owned workspace")
 	largeSmoke := flag.Bool("largefile-smoke", false, "Verify file-backed browsing and direct long-line byte navigation in a native window")
 	largeSmokeMiB := flag.Int("largefile-smoke-mib", 16, "Size of the native large-file acceptance fixture (16 to 10240 MiB)")
 	goLine := flag.Int64("goto-line", 0, "Open at a 1-based line number")
@@ -332,6 +333,21 @@ func run() error {
 		*workspace, paths = fixture, nil
 		*copilotEnabled, *lspEnabled = false, false
 	}
+	if *filewatchSmoke {
+		fixture, err := os.MkdirTemp("", "gocode-filewatch-native-")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(fixture)
+		if err := os.WriteFile(filepath.Join(fixture, "main.go"), []byte(watchFixture), 0600); err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(fixture, "go.mod"), []byte("module example.com/gocode-watch\n\ngo 1.27.0\n"), 0600); err != nil {
+			return err
+		}
+		*workspace, paths = fixture, nil
+		*copilotEnabled = false
+	}
 	if *extensionDir == "" {
 		config, err := os.UserConfigDir()
 		if err != nil {
@@ -373,6 +389,9 @@ func run() error {
 	}
 	if *lspSmoke && len(languageConfigs) == 0 {
 		return errors.New("LSP native acceptance requires installed gopls or -lsp-config")
+	}
+	if *filewatchSmoke && *lspEnabled && len(languageConfigs) == 0 {
+		return errors.New("native file watch LSP acceptance requires installed gopls; use -lsp=false for VSIX-only acceptance")
 	}
 	m.readClipboard, m.writeClipboard = ui.ReadClipboard, ui.WriteClipboard
 	if *copilotCheck || *copilotSmoke {
@@ -442,7 +461,11 @@ func run() error {
 	var closeIcon func()
 	var closeSaves func()
 	var closeTerminals func()
+	var closeWatches func()
 	defer func() {
+		if closeWatches != nil {
+			closeWatches()
+		}
 		if closeTerminals != nil {
 			closeTerminals()
 		}
@@ -468,6 +491,7 @@ func run() error {
 	var languageAcceptance lspAcceptance
 	closingAcceptance := closeAcceptance{mode: *closeSmoke}
 	var shellAcceptance terminalAcceptance
+	watchingAcceptance := filewatchAcceptance{requireLSP: *filewatchSmoke && *lspEnabled}
 	deadline := 25 * time.Second
 	if *copilotUISmoke {
 		deadline = 90 * time.Second
@@ -478,11 +502,14 @@ func run() error {
 	if *terminalSmoke {
 		deadline = 60 * time.Second
 	}
+	if *filewatchSmoke {
+		deadline = 90 * time.Second
+	}
 	if *largeSmoke && *largeSmokeMiB > 16 {
 		deadline = 2 * time.Minute
 	}
 	watchdog := time.AfterFunc(deadline, func() {
-		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" || *terminalSmoke {
+		if *smoke || *copilotUISmoke || *largeSmoke || *lspSmoke || *closeSmoke != "" || *terminalSmoke || *filewatchSmoke {
 			fmt.Fprintln(os.Stderr, "gocode smoke timed out")
 			if *terminalSmoke {
 				_ = pprof.Lookup("goroutine").WriteTo(os.Stderr, 2)
@@ -496,9 +523,10 @@ func run() error {
 			cx = viewContext
 			m.native = viewContext
 			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
+			closeWatches = m.startDocumentWatch(hostCtx, viewContext.Dispatch)
 			closeTerminals = m.startTerminals(hostCtx, viewContext)
 			closeIcon = applyAppIcon("gocode — " + filepath.Base(m.workspace))
-			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke && *closeSmoke == "" && !*terminalSmoke {
+			if !*smoke && !*largeSmoke && !*lspSmoke && !*copilotUISmoke && *closeSmoke == "" && !*terminalSmoke && !*filewatchSmoke {
 				closeUpdates = m.startUpdates(hostCtx, viewContext, updateRoot, updateConfigPath, updateConfig)
 				editing := m.editing
 				m.newTerminal()
@@ -597,6 +625,9 @@ func run() error {
 		if *terminalSmoke {
 			shellAcceptance.step(viewContext, m)
 		}
+		if *filewatchSmoke {
+			watchingAcceptance.step(viewContext, m)
+		}
 
 		return m.view(viewContext)
 	})
@@ -608,6 +639,12 @@ func run() error {
 			return fmt.Errorf("terminal native acceptance: %s", shellAcceptance.failure)
 		}
 		fmt.Println("gocode terminal acceptance passed: real shell input syntax colors + native ANSI truecolor + keyboard + grid resize + Ctrl+C + exit + unchanged editor")
+	}
+	if *filewatchSmoke {
+		if err := watchingAcceptance.verify(m); err != nil {
+			return err
+		}
+		fmt.Printf("gocode file watch acceptance passed: actual atomic replacements + clean reload + dirty conflict + native cancel/confirm + EOL undo/redo + VSIX changes; configured LSP=%t\n", watchingAcceptance.requireLSP)
 	}
 	if *closeSmoke != "" {
 		if err := closingAcceptance.verify(m); err != nil {

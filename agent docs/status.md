@@ -1,5 +1,24 @@
 # Milestone ledger
 
+## Editable disk watching in development (2026-10-07)
+
+Public godesktop v0.5.3/source d22bf93187911a2fd829c993a6b096338e9a1b64 passed
+all five jobs in CI 37513434533 and is independently pinned with GOWORK=off.
+The new worker uses fsnotify v1.10.1 parent watches plus bounded reconciliation.
+Clean reloads retain versions/EOL/undo; dirty changes show explicit reload/overwrite
+controls. Actual file/race tests and native VSIX/gopls acceptance passed locally;
+Windows owned clean/conflict/dialog/final captures were visually inspected. The
+intentional old-text reload mutant failed and restored source passed. Full Windows
+strict-cgo/race/native editor/four-close/large-browser/terminal/watch script passed
+with Repeat=1 after the shared bounded reader and parent-recreation test landed.
+The first rerun caught the binary-file error classification changing; the restored
+Binary/UTF-8 diagnostic passed the final complete rerun. Final actual gopls recovery
+and file-watch/gopls modes, no-cgo suite, two channel tests, workflow lint and
+PowerShell parsing passed. Final all-platform source CI, packages,
+signed public-byte update/rollback and user installation promotion are pending.
+The installed stable payload remains v0.8.1/source 9a498ab. Full scope is active;
+files.md lists recursive-watch, large-browser and asynchronous-open gaps.
+
 ## Language recovery v0.8.1 promotion (2026-10-07)
 
 Immutable source `9a498ab4ae866419a1a8e1c08eb49b15a3be9db5` passed all five

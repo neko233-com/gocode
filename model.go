@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
+	"github.com/neko233-com/gocode/internal/filewatch"
 	"github.com/neko233-com/gocode/internal/update"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
@@ -26,6 +25,8 @@ type document struct {
 	diskHash                     [32]byte
 	diskKnown                    bool
 	saveID                       uint64
+	watchID, reloadID            uint64
+	diskConflict                 *diskConflict
 }
 type model struct {
 	workspace                                          string
@@ -93,6 +94,11 @@ type model struct {
 	killTerminal                                       func(*terminalTab)
 	closeTerminalFocused                               bool
 	terminalAcceptance                                 bool
+	publishWatches                                     func()
+	watchSequence, reloadSequence                      uint64
+	reloadPrompt                                       *document
+	reloadBusy                                         bool
+	reloadError                                        string
 }
 
 type diagnostic struct {
@@ -209,21 +215,20 @@ func (m *model) open(path string) {
 		m.documentEvent("focus", d, textbuffer.ChangeEvent{})
 		return
 	}
-	data, err := os.ReadFile(path)
+	result, _ := filewatch.Read(context.Background(), filewatch.Entry{Path: path})
+	if result.Kind != "text" {
+		m.message = "File is unavailable or changed while opening"
+		if result.Err != nil {
+			m.message = result.Err.Error()
+		}
+		return
+	}
+	buffer, err := textbuffer.New(result.Text)
 	if err != nil {
 		m.message = err.Error()
 		return
 	}
-	if !utf8.Valid(data) || strings.ContainsRune(string(data), 0) {
-		m.message = "Binary files are not supported"
-		return
-	}
-	buffer, err := textbuffer.New(string(data))
-	if err != nil {
-		m.message = err.Error()
-		return
-	}
-	m.docs = append(m.docs, &document{path: path, buffer: buffer, diskHash: sha256.Sum256(data), diskKnown: true})
+	m.docs = append(m.docs, &document{path: path, buffer: buffer, diskHash: result.Hash, diskKnown: true})
 	m.active = len(m.docs) - 1
 	m.editing = true
 	m.documentEvent("open", m.current(), textbuffer.ChangeEvent{})

@@ -76,6 +76,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		crumb = strings.ReplaceAll(filepath.ToSlash(rel), "/", "  ›  ")
 	}
 	parts := []*ui.Element{ui.Row(tabs...).Height(35).Background(ui.RGB(outer)), ui.Row(label(crumb).PaddingXY(10, 0), spacer()).Height(24)}
+	if d := m.current(); d != nil && d.diskConflict != nil {
+		parts = append(parts, m.diskBanner(d))
+	}
 	if m.navigation {
 		parts = append(parts, label("Go to line or :byte offset: "+m.query+"▏").Height(32).Padding(8).Background(ui.RGB(0x313131)))
 	}
@@ -150,6 +153,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		visible = max(1, visible-10)
 	}
 	visible = max(1, visible-len(m.completions)*24/20)
+	if d := m.current(); d != nil && d.diskConflict != nil {
+		visible = max(1, visible-2)
+	}
 	parts = append(parts, m.codeView(visible).Flex(1))
 	if m.showPanel {
 		width, _ := cx.WindowSize()
@@ -160,6 +166,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	base := ui.Column(bar, body, m.statusbar()).Background(ui.RGB(outer))
 	if m.closePrompt {
 		return m.closeOverlay(cx, base)
+	}
+	if m.reloadPrompt != nil {
+		return m.reloadOverlay(base)
 	}
 	return base
 }

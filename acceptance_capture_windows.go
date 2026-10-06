@@ -19,6 +19,76 @@ func captureCopilotAcceptance(workspace string) error {
 	file := os.Getenv("GOCODE_AI_SCREENSHOT")
 	return captureAcceptance(workspace, file)
 }
+func activateFileWatchControl(cx *ui.Context, workspace string, bounds ui.Bounds, _ func(), done func(error)) {
+	go func() {
+		window, err := winprobe.Find("gocode — "+filepath.Base(workspace), uint32(os.Getpid()))
+		if err == nil {
+			err = window.Pointer(0x201, int(bounds.X+bounds.Width/2), int(bounds.Y+bounds.Height/2))
+		}
+		if err == nil {
+			err = window.Pointer(0x202, int(bounds.X+bounds.Width/2), int(bounds.Y+bounds.Height/2))
+		}
+		cx.Dispatch(func() { done(err) })
+	}()
+}
+func captureFileWatchAcceptance(workspace, stage string, suffix, control ui.Bounds) error {
+	window, err := winprobe.Find("gocode — "+filepath.Base(workspace), uint32(os.Getpid()))
+	if err != nil {
+		return err
+	}
+	pixels, err := window.Capture()
+	if err != nil {
+		return err
+	}
+	scale := float64(window.DPI()) / 96
+	region := func(b ui.Bounds) image.Rectangle {
+		return image.Rect(int(math.Floor(float64(b.X)*scale)), int(math.Floor(float64(b.Y)*scale)), int(math.Ceil(float64(b.X+b.Width)*scale)), int(math.Ceil(float64(b.Y+b.Height)*scale))).Intersect(pixels.Bounds())
+	}
+	yellow, background := 0, 0
+	for y := region(suffix).Min.Y; y < region(suffix).Max.Y; y++ {
+		for x := region(suffix).Min.X; x < region(suffix).Max.X; x++ {
+			r, g, b, _ := pixels.At(x, y).RGBA()
+			value := uint32(r>>8)<<16 | uint32(g>>8)<<8 | uint32(b>>8)
+			if matchesTerminalInk(value, 0x1f1f1f, 0xdcdcaa) {
+				yellow++
+			}
+		}
+	}
+	wanted := uint32(0x332b00)
+	if stage == "reload-dialog" {
+		wanted = accent
+	}
+	if stage == "confirmed-reload" {
+		control.X += control.Width * .5
+		control.Width *= .5
+	}
+	for y := region(control).Min.Y; y < region(control).Max.Y; y++ {
+		for x := region(control).Min.X; x < region(control).Max.X; x++ {
+			r, g, b, _ := pixels.At(x, y).RGBA()
+			if stage == "confirmed-reload" && r>>8 > 100 && g>>8 > 100 && b>>8 > 100 || stage != "confirmed-reload" && uint32(r>>8)<<16|uint32(g>>8)<<8|uint32(b>>8) == wanted {
+				background++
+			}
+		}
+	}
+	// A dialog shades the source text; its real confirmation-button pixels are
+	// the gate. Final/clean captures require function ink beyond the prior name.
+	if stage != "reload-dialog" && yellow < 20 || control.Width > 0 && background < 100 {
+		return fmt.Errorf("%w: %s ink=%d control=%d", errWatchPixelsPending, stage, yellow, background)
+	}
+	directory := os.Getenv("GOCODE_FILEWATCH_SCREENSHOTS")
+	if directory == "" {
+		return nil
+	}
+	if err := os.MkdirAll(directory, 0755); err != nil {
+		return err
+	}
+	f, err := os.Create(filepath.Join(directory, stage+".png"))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return png.Encode(f, pixels)
+}
 func captureLargefileAcceptance(workspace string) error {
 	return captureAcceptance(workspace, os.Getenv("GOCODE_LARGEFILE_SCREENSHOT"))
 }

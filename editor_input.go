@@ -10,6 +10,9 @@ import (
 )
 
 func (m *model) documentEvent(kind string, d *document, change textbuffer.ChangeEvent) {
+	if m.publishWatches != nil && kind != "selection" {
+		m.publishWatches()
+	}
 	if kind == "change" || kind == "selection" || kind == "focus" || kind == "close" {
 		if m.cancelInline != nil {
 			m.cancelInline()
@@ -89,6 +92,12 @@ func (m *model) applyDocumentEdits(path string, version int, edits []textbuffer.
 }
 
 func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
+	if m.reloadPrompt != nil && !m.closePrompt {
+		if e.Kind == ui.KeyPressed && !m.reloadBusy && e.Key == 27 {
+			m.cancelReload()
+		}
+		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
+	}
 	if m.closePrompt {
 		if e.Kind == ui.KeyPressed && !m.closeBusy {
 			if e.Key == 27 {

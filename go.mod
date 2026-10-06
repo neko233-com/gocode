@@ -6,8 +6,9 @@ require (
 	github.com/charmbracelet/ultraviolet v0.0.0-20260303162955-0b88c25f3fff
 	github.com/charmbracelet/x/vt v0.0.0-20261004011457-ad85c59fdf4e
 	github.com/creack/pty v1.1.24
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/github/copilot-sdk/go v1.0.16
-	github.com/neko233-com/godesktop v0.5.2
+	github.com/neko233-com/godesktop v0.5.3
 	golang.org/x/sys v0.44.0
 )
 

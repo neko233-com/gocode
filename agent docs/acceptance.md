@@ -2,6 +2,12 @@
 
 - Editable text: UTF-16/CRLF/selection/undo/save, immutable snapshots, rejected
   overlapping/stale edits, extension/provider version agreement.
+  External changes require actual parent-directory/atomic-replace/delete watches,
+  clean monotonic reloads, dirty preservation, confirmed discard/cancel, newer
+  VSIX edits during reads, save acknowledgement races and bounded event storms.
+  -filewatch-smoke gates real VSIX changes and optional actual-gopls hover, native
+  Windows pointer controls and owned suffix/banner/modal/Problems GPU pixels.
+  See files.md for bounds, fallbacks and unfinished workspace/large-browser scope.
 - Large files: actual >=1 GiB baseline (higher user-selected target when supplied),
   bounded index/cache/read buffers, cancellation, first/middle/tail and huge-line
   navigation, file-change handling, responsive native frames and memory report.
