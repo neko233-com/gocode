@@ -68,6 +68,8 @@ type model struct {
 	navigation, largeScrollbar                         bool
 	requestLSP                                         func(*document, string)
 	lspStatus                                          string
+	languageBindings                                   []*languageBinding
+	restartLanguages                                   func()
 	completionSources                                  map[string][]completionSuggestion
 	updatesConfig                                      update.Config
 	configureUpdates                                   func(update.Config)

@@ -23,6 +23,7 @@ import (
 const MaxDocumentBytes = 2 << 20 // JSON escaping can expand each source byte sixfold.
 
 type Config struct {
+	ClientVersion         string         `json:"-"`
 	Name                  string         `json:"name"`
 	Languages             []string       `json:"languages"`
 	Command               string         `json:"command"`
@@ -128,7 +129,7 @@ func Initialize(ctx context.Context, rpc *lsp.Client, workspace string, config C
 	initCtx, stop := context.WithTimeout(ctx, 30*time.Second)
 	defer stop()
 	err := rpc.Call(initCtx, "initialize", map[string]any{
-		"processId": os.Getpid(), "clientInfo": map[string]string{"name": "gocode", "version": "0.4.0"}, "rootUri": copilotservice.FileURI(workspace),
+		"processId": os.Getpid(), "clientInfo": map[string]string{"name": "gocode", "version": config.ClientVersion}, "rootUri": copilotservice.FileURI(workspace),
 		"workspaceFolders": []any{map[string]string{"uri": copilotservice.FileURI(workspace), "name": filepath.Base(workspace)}},
 		"capabilities": map[string]any{
 			"general":   map[string]any{"positionEncodings": []string{"utf-16"}},

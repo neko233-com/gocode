@@ -7,6 +7,11 @@
   navigation, file-change handling, responsive native frames and memory report.
 - Language: real generic server initialization, edits/diagnostics, completion,
   formatting, hover/definition, save/close/restart and stale-result suppression.
+  Real process crash/reinitialize, latest unsaved didOpen, independent other-server
+  state, crash-loop stop/manual repair, actual initialize cancellation and bounded
+  diagnostic/request/job queues are required. -lsp-smoke kills its owned real
+  gopls and verifies recovery in the native window. Lifecycle results also guard
+  document identity when a closed path is reopened at the same version.
 - Native: Windows amd64 PE/GOAMD64=v1/race/strict-cgo, owned HWND input/GPU pixels,
   drag/resize/restore/DPI; macOS Intel/ARM real AppKit/Metal behavior.
 - Visual: pin VS Code source, snapshot font/theme/viewport/DPI, inspect meaningful

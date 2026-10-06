@@ -81,6 +81,10 @@ IME/完整字形样式仍待实现。详见 [终端契约](agent%20docs/terminal
 
 `go run . -install-gopls` 在 gocode 的用户工具目录安装固定版本的官方 gopls；下次启动自动连接。也可以通过 `-lsp-config <JSON>` 配置其他标准语言服务器，或用 `-lsp=false` 关闭。支持原生补全、版本化诊断、Shift+Alt+F 格式化、F12 定义跳转、Ctrl/Cmd+K 悬停信息。[配置与策略](docs/language-servers.md) 说明协议边界和配置格式。
 
+语言服务器意外退出后会独立退避重启，重新发送最新未保存文档；旧诊断和请求结果
+会失效。三分钟内四次重试仍失败则停止自动重启，可以用原生命令列表的
+Restart Language Servers 重试。当前源码／发行版验收状态见 agent docs/status.md。
+
 标准 LSP、VSIX、Copilot 同步的源码快照上限为 2 MiB，以保证有界协议消息；超大文件不会被整体发送给这些服务。编辑和浏览模式不会将截断内容保存回原文件。
 
 ## GitHub Copilot

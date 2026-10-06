@@ -473,7 +473,7 @@ func run() error {
 		deadline = 90 * time.Second
 	}
 	if *lspSmoke {
-		deadline = 60 * time.Second
+		deadline = 90 * time.Second
 	}
 	if *terminalSmoke {
 		deadline = 60 * time.Second
@@ -625,7 +625,7 @@ func run() error {
 		if !languageAcceptance.verified {
 			return fmt.Errorf("LSP native acceptance: %s", languageAcceptance.failure)
 		}
-		fmt.Println("gocode LSP acceptance passed: real formatting + hover + definition + completion + versioned diagnostics and clearing")
+		fmt.Println("gocode LSP acceptance passed: real formatting + hover + definition + completion + diagnostics + owned gopls crash/reinitialize + unsaved replay + recovered hover/completion")
 	}
 	if *copilotUISmoke {
 		if !aiAcceptance.verified {

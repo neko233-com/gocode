@@ -55,7 +55,26 @@ formatting, hover, definition, unsaved-prefix completion, diagnostics and cleari
 while retaining the main function and all unrelated source. CI runs this on both
 Windows runners and macOS architectures without a paid AI request.
 
+Each server restarts independently after an unexpected transport/process exit,
+with 250/500/1000/2000 ms backoff and at most four automatic retries within three
+minutes. A fifth failure stops retries; the native palette's Restart Language
+Servers command resets the budget. Startup cancellation also reaps a server stuck
+in initialize. Restart uses the existing user configuration, not a workspace file.
+Old requests/diagnostics/completions are invalidated; the replacement receives
+didOpen with the latest eligible unsaved document snapshots and versions. Hooks
+are installed once. Shutdown waits at most three seconds; server descendants and
+uninterruptible OS work still require stronger platform supervision.
+
+Document queues have 32 slots per generation, requests eight, event queues 16;
+each lifecycle/diagnostic stream has only one pending native UI callback. Overflow
+restarts that server rather than silently losing document synchronization.
+Diagnostics retain at most 2,000 entries/256 KiB message text per event, with
+2 KiB per message. Full source/protocol policy remains as above. -lsp-smoke now
+also kills its owned real gopls, edits while offline, and verifies replayed unsaved
+diagnostics, hover and completion after reinitialization. Source/release evidence
+and cross-platform completion status remain in agent docs/status.md.
+
 Not yet implemented: code actions/rename/references/symbols, semantic tokens,
 inlay hints, completion resolve/snippet UI, multi-location picker, watched-file
-registration, crash restart/backoff and full configuration UI. Server applyEdit
+registration and full configuration UI. Server applyEdit
 requests currently return `applied:false`; that capability is not advertised.

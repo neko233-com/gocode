@@ -15,6 +15,13 @@ document versions, diagnostics, formatting/navigation and server requests to the
 native UI. Copilot completion uses the official LSP, chat the official Go SDK.
 VSIX native edits use acknowledged version-checked RPC. Unknown APIs fail clearly.
 
+Standard language processes restart independently with a bounded crash budget.
+Only immutable source jobs/results cross threads; ready events replay current
+unsaved snapshots. UI hooks do not accumulate on restart. Process generations
+invalidate old results even when the same path/version is reopened. Per-session
+document/request/event bounds and real-process/native recovery gates are in
+docs/language-servers.md and status.md.
+
 Ctrl/Cmd+S, palette saves, VSIX Document.save and close confirmation share one
 UI-owned queue (32 pending jobs) and one disk writer. UI callbacks freeze path/
 immutable snapshot; a 30-second worker hashes/writes at most 8 MiB with fixed

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/languageserver"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
@@ -17,6 +18,7 @@ type lspAcceptance struct {
 	failure        string
 	loggedPhase    int
 	logged         bool
+	previous       *languageserver.Session
 }
 
 func (a *lspAcceptance) step(cx *ui.Context, m *model) {
@@ -126,6 +128,88 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 	if a.phase == 7 && cx.RenderedFrames() > a.frame {
 		if !strings.Contains(d.buffer.Text(), "func main()") || !strings.Contains(d.buffer.Text(), "_ = greeting()") || strings.Contains(d.buffer.Text(), "missing") || !d.dirty() {
 			a.failure = "versioned unsaved source was not retained"
+			cx.Quit()
+			return
+		}
+		if err := captureLSPAcceptance(m.workspace); err != nil {
+			a.failure = err.Error()
+			cx.Quit()
+			return
+		}
+		if len(m.languageBindings) == 0 || m.languageBindings[0].session == nil {
+			a.failure = "language lifecycle binding unavailable"
+			cx.Quit()
+			return
+		}
+		a.previous = m.languageBindings[0].session
+		// Close kills and reaps this owned real gopls process outside the UI.
+		go a.previous.Client.RPC.Close()
+		a.phase = 8
+	}
+	if a.phase == 8 && m.languageBindings[0].session == nil {
+		for key := range m.diagnostics {
+			if strings.HasPrefix(key, "lsp:"+m.languageBindings[0].config.Name+"\x00") {
+				a.failure = "dead server diagnostics retained"
+				cx.Quit()
+				return
+			}
+		}
+		line, _ := find("_ = greeting()", false)
+		if line < 0 {
+			a.failure = "source missing during recovery"
+			cx.Quit()
+			return
+		}
+		position := textbuffer.Position{Line: line}
+		if err := m.applyDocumentEdits(d.path, d.buffer.Version(), []textbuffer.Edit{{Range: textbuffer.Range{Start: position, End: position}, Text: "\t_ = missingRestart\n"}}); err != nil {
+			a.failure = err.Error()
+			cx.Quit()
+			return
+		}
+		a.phase = 9
+	}
+	if a.phase == 9 && m.languageBindings[0].session != nil && m.languageBindings[0].session != a.previous {
+		for key, items := range m.diagnostics {
+			if strings.HasPrefix(key, "lsp:") {
+				for _, item := range items {
+					if strings.Contains(item.Message, "undefined: missingRestart") {
+						line, column := find("greeting", true)
+						m.moveCursor(d, line, column+2, false)
+						m.output = nil
+						m.requestLSP(d, "textDocument/hover")
+						a.phase = 10
+					}
+				}
+			}
+		}
+	}
+	if a.phase == 10 && strings.Contains(strings.Join(m.output, "\n"), "greeting() string") {
+		line, column := find("greeting", false)
+		r := textbuffer.Range{Start: d.buffer.PositionFromRunes(line, column), End: d.buffer.PositionFromRunes(line, column+8)}
+		if err := m.applyDocumentEdits(d.path, d.buffer.Version(), []textbuffer.Edit{{Range: r, Text: "greet"}}); err != nil {
+			a.failure = err.Error()
+			cx.Quit()
+			return
+		}
+		m.moveCursor(d, line, column+5, false)
+		m.requestLSP(d, "textDocument/completion")
+		a.phase = 11
+	}
+	if a.phase == 11 {
+		for _, item := range m.completions {
+			if strings.HasPrefix(item.item.title(), "greeting") {
+				m.chooseCompletion(item)
+				m.panel = "PROBLEMS"
+				m.showPanel = true
+				a.frame = cx.RenderedFrames()
+				a.phase = 12
+				break
+			}
+		}
+	}
+	if a.phase == 12 && cx.RenderedFrames() > a.frame {
+		if !strings.Contains(d.buffer.Text(), "_ = greeting()") || !strings.Contains(d.buffer.Text(), "missingRestart") || !d.dirty() || a.previous.Valid() {
+			a.failure = "recovered unsaved document or old generation invalidation failed"
 			cx.Quit()
 			return
 		}

@@ -118,6 +118,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 				m.palette = false
 			}).Height(28))
 		}
+		if m.restartLanguages != nil {
+			items = append(items, button("Restart Language Servers", "palette-lsp-restart", func(*ui.Context) { m.restartLanguages(); m.palette = false }).Height(28))
+		}
 		for _, command := range m.commands {
 			if strings.Contains(strings.ToLower(command.Title), strings.ToLower(m.query)) {
 				items = append(items, button(command.Title, "palette-"+command.ID, func(*ui.Context) { m.execute(command.ID); m.palette = false }).Height(28))

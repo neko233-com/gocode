@@ -1,5 +1,37 @@
 # Milestone ledger
 
+## Language recovery v0.8.0 development (2026-10-07)
+
+Each configured language server now has an independent process supervisor with
+four exponential-backoff retries in a rolling three-minute failure window. The
+fifth failure stops automatic restarts; the native palette can restart/reset
+servers explicitly. One generation owns 32 document jobs, eight request slots,
+16 events and at most one pending lifecycle/diagnostic UI dispatch. Diagnostic
+payloads retain at most 2,000 items and 256 KiB of UTF-8 message text per event.
+Disconnect cancels old work and clears only that server's diagnostics/completions;
+new initialize replays current eligible unsaved snapshots without stacking hooks.
+Result guards include the server session, document identity, version and cursor.
+
+Owned real stdio process crash/reinitialize/manual restart, crash-loop budget,
+request/job bounds and workbench unsaved replay tests pass. Three randomized
+strict-cgo/race workbench repetitions pass, including independent other-server
+state and a genuine queued result delivered after the same path is reopened.
+Enhanced real gopls native acceptance kills/reaps its own process, edits while
+offline, then verifies new diagnostics, hover and completion from the replacement.
+Local Windows native acceptance passed; initial capture found the recovered UI
+still displayed its old disconnect notice, which is now cleared only when that
+server's unchanged notice belongs to the recovered generation. Final console and
+GUI subsystem real-gopls checks passed and the corrected owned-GPU capture was
+visually inspected: ready status, retained dirty source and recovered diagnostic.
+Full Windows amd64 strict-cgo/race/vet, native console/GUI/editor/four-close/
+large-file/terminal regression passed. Final supervisor/workbench cases passed
+three randomized race repetitions, including 3,000 actual wire diagnostics with
+UTF-8/text/item bounds, repaired-runtime manual recovery, and an actual initialize
+handler marker before cancellation/reaping. A stopped-after-crash negative control
+failed the real-process test; restoring the source passed. Workflow lint/ShellCheck
+and diff checks passed. Exact cross-platform CI and immutable promotion are next. Installed
+stable stays v0.7.0 until the next source/package gates pass.
+
 ## Terminal v0.7.0 promotion (2026-10-07)
 
 Real native ConPTY/PTY terminal and shell input highlighting are published at
