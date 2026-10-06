@@ -4,9 +4,10 @@ package main
 
 import ui "github.com/neko233-com/godesktop"
 
-func captureCopilotAcceptance(string) error                     { return nil }
-func captureLargefileAcceptance(string) error                   { return nil }
-func captureLSPAcceptance(string) error                         { return nil }
-func captureCloseAcceptance(string, string) error               { return nil }
-func captureTerminalAcceptance(string, string, ui.Bounds) error { return nil }
-func resizeTerminalAcceptance(string) (float32, error)          { return 0, nil }
+func captureCopilotAcceptance(string) error                            { return nil }
+func captureLargefileAcceptance(string) error                          { return nil }
+func captureLSPAcceptance(string) error                                { return nil }
+func captureRecoveredLSPAcceptance(string, ui.Bounds, ui.Bounds) error { return nil }
+func captureCloseAcceptance(string, string) error                      { return nil }
+func captureTerminalAcceptance(string, string, ui.Bounds) error        { return nil }
+func resizeTerminalAcceptance(string) (float32, error)                 { return 0, nil }

@@ -12,6 +12,8 @@
   diagnostic/request/job queues are required. -lsp-smoke kills its owned real
   gopls and verifies recovery in the native window. Lifecycle results also guard
   document identity when a closed path is reopened at the same version.
+  The final Windows recovery gate inspects actual completed-token/Problems glyph
+  ink in process-owned pixels; a render submission counter alone is insufficient.
 - Native: Windows amd64 PE/GOAMD64=v1/race/strict-cgo, owned HWND input/GPU pixels,
   drag/resize/restore/DPI; macOS Intel/ARM real AppKit/Metal behavior.
 - Visual: pin VS Code source, snapshot font/theme/viewport/DPI, inspect meaningful

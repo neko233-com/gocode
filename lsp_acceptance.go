@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -19,6 +20,7 @@ type lspAcceptance struct {
 	loggedPhase    int
 	logged         bool
 	previous       *languageserver.Session
+	pixelsLogged   bool
 }
 
 func (a *lspAcceptance) step(cx *ui.Context, m *model) {
@@ -207,20 +209,43 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 			}
 		}
 	}
-	if a.phase == 12 && cx.RenderedFrames() > a.frame {
+	if a.phase == 12 && cx.RenderedFrames() >= a.frame+3 {
 		if !strings.Contains(d.buffer.Text(), "_ = greeting()") || !strings.Contains(d.buffer.Text(), "missingRestart") || !d.dirty() || a.previous.Valid() {
 			a.failure = "recovered unsaved document or old generation invalidation failed"
 			cx.Quit()
 			return
 		}
-		if err := captureLSPAcceptance(m.workspace); err != nil {
-			a.failure = err.Error()
-			cx.Quit()
-			return
+		line, _ := find("greeting", false)
+		suffix, _ := cx.ElementBounds(fmt.Sprintf("code-line-%d", line))
+		prefix := float32(68) // Native row's existing 52-DIP gutter + 16-DIP gap.
+		for _, f := range highlight(d.buffer.Line(line)) {
+			if f.text == "greeting" {
+				advance := ui.TextAdvance("greet", 14, codeFont())
+				suffix.X += prefix + advance
+				suffix.Width = ui.TextAdvance("greeting", 14, codeFont()) - advance
+				break
+			}
+			width, _ := ui.MeasureText(f.text, 14, codeFont())
+			prefix += width
 		}
-		a.verified = true
-		cx.Quit()
-		return
+		problem, _ := cx.ElementBounds("problem-0")
+		if m.panel == "PROBLEMS" && suffix.Height > 0 && problem.Height > 0 {
+			if err := captureRecoveredLSPAcceptance(m.workspace, suffix, problem); err != nil {
+				if !errors.Is(err, errLSPPixelsPending) {
+					a.failure = err.Error()
+					cx.Quit()
+					return
+				}
+				if !a.pixelsLogged {
+					fmt.Fprintln(os.Stderr, "native LSP final pixels pending:", err)
+					a.pixelsLogged = true
+				}
+			} else {
+				a.verified = true
+				cx.Quit()
+				return
+			}
+		}
 	}
 	if !a.tick {
 		a.tick = true

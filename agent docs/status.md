@@ -1,6 +1,6 @@
 # Milestone ledger
 
-## Language recovery v0.8.0 development (2026-10-07)
+## Language recovery v0.8.1 development (2026-10-07)
 
 Each configured language server now has an independent process supervisor with
 four exponential-backoff retries in a rolling three-minute failure window. The
@@ -31,6 +31,24 @@ handler marker before cancellation/reaping. A stopped-after-crash negative contr
 failed the real-process test; restoring the source passed. Workflow lint/ShellCheck
 and diff checks passed. Exact cross-platform CI and immutable promotion are next. Installed
 stable stays v0.7.0 until the next source/package gates pass.
+
+Source b767b83787c0cbc9a628e41857efc25928b9a0af passed all five jobs in
+37505379810 and publication 37506593322 created v0.8.0. Inspecting downloaded
+Windows 2022 GPU evidence then found the final capture still showed the preceding
+greet()/Output state despite the successful model checks. A submitted frame count
+alone did not prove the newly completed text/panel reached the owned drawable.
+v0.8.0 is held as a prerelease without replacing its immutable artifacts/tag;
+the user installation stays at v0.7.0. Generated metadata source d7b9dbd came
+from that publication, not a corrected visual source.
+
+The correction waits three submitted frames and also checks actual owned GPU ink:
+yellow ing suffix after greet in the real editor row and the recovered Problems
+diagnostic in its existing keyed button bounds. Font metrics/layout/DPI determine
+the regions; screenshot bytes are saved only from the exact passing capture.
+No product UI marker or artificial acceptance glyph is added. Corrected full
+Windows race/vet/native console+GUI/editor/close/large-file/terminal checks passed;
+three repeated real-gopls final-pixel runs plus a GUI subsystem run passed. The
+positive capture was visually inspected. Exact new CI is required.
 
 ## Terminal v0.7.0 promotion (2026-10-07)
 
