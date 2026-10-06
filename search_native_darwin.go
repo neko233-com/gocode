@@ -2,19 +2,28 @@
 
 package main
 
+/*
+#include <stdlib.h>
+const char *gocode_search_test_text(const char *title, const char *text);
+*/
+import "C"
+
 import (
+	"errors"
 	ui "github.com/neko233-com/godesktop"
-	"github.com/neko233-com/godesktop/testing/metalprobe"
+	"path/filepath"
+	"unsafe"
 )
 
-func searchNativeText(cx *ui.Context, _ string, text string, done func(error)) {
+func searchNativeText(cx *ui.Context, workspace string, text string, done func(error)) {
 	cx.Dispatch(func() {
-		for _, r := range text {
-			if err := metalprobe.Key(int(r), 0, true); err != nil {
-				done(err)
-				return
-			}
+		title, chars := C.CString("gocode — "+filepath.Base(workspace)), C.CString(text)
+		defer C.free(unsafe.Pointer(title))
+		defer C.free(unsafe.Pointer(chars))
+		var err error
+		if message := C.gocode_search_test_text(title, chars); message != nil {
+			err = errors.New(C.GoString(message))
 		}
-		done(nil)
+		done(err)
 	})
 }
