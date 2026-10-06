@@ -7,8 +7,8 @@ param(
 )
 $ErrorActionPreference='Stop'
 if(-not [Environment]::Is64BitOperatingSystem){throw 'gocode requires Windows x64.'}
-$taskVersion='0.9.0'
-$taskHash='7342039b456539422ec26b1c9e20c988e21467bedddce74d8d66df440907974e'
+$taskVersion='0.10.0'
+$taskHash='65e104577ae4ca81c2bdc2808bdecaa59bddc1647adb508f4232af3cbc8996c6'
 $taskURL='https://github.com/neko233-com/gocode/releases/download/v'+$taskVersion+'/gocode-'+$taskVersion+'-windows-amd64.msi'
 if($Mirror){$taskURI=[Uri]$Mirror;if($taskURI.Scheme -ne 'https' -or $taskURI.UserInfo -or $taskURI.Query -or $taskURI.Fragment){throw 'Mirror must be an HTTPS prefix without credentials/query/fragment.'}}
 if($Route -eq 'mirror' -and -not $Mirror){throw 'Manual mirror route needs -Mirror.'}
