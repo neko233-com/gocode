@@ -128,6 +128,7 @@ func run() error {
 	lspSmoke := flag.Bool("lsp-smoke", false, "Verify real LSP formatting/hover/definition/completion/diagnostics in a native disposable workspace")
 	openSmoke := flag.Bool("open-smoke", false, "Verify native typing/resize/cancel and awaited VSIX opens during delayed disk workers")
 	uiSmoke := flag.Bool("ui-smoke", false, "Verify owned native workbench logo, complete tab captions and tab controls")
+	tabsSmoke := flag.Bool("tabs-smoke", false, "Verify native tab overflow, wheel/drag routing, identity and held-Control navigation")
 	installGopls := flag.Bool("install-gopls", false, "Install the pinned official gopls in gocode's per-user tools directory and exit")
 	installCopilot := flag.Bool("install-copilot", false, "Install pinned official Copilot sidecars in gocode's per-user tools directory (requires Node.js/npm)")
 	copilotRoot := flag.String("copilot-runtime", "", "Directory containing the pinned Copilot node_modules")
@@ -136,6 +137,9 @@ func run() error {
 	copilotUISmoke := flag.Bool("copilot-ui-smoke", false, "Verify rendered Copilot suggestion, native Tab acceptance and chat in a disposable workspace")
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
+	if *tabsSmoke {
+		return runEditorTabsAcceptance()
+	}
 	if *uiSmoke {
 		return runWorkbenchUIAcceptance()
 	}

@@ -1,10 +1,10 @@
 # Native workbench visual contract
 
 Reference checked 2026-10-07: VS Code stable 1.140.0 and main
-`4861e8bae38121e9793aad2fac4ae37e922ed525`. Source measurements:
-[titlebar CSS](https://github.com/microsoft/vscode/blob/4861e8bae38121e9793aad2fac4ae37e922ed525/src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css)
+`1d25d5df846ea8edf8d0d6e2c742e8dda9d4916b`. Source measurements:
+[titlebar CSS](https://github.com/microsoft/vscode/blob/1d25d5df846ea8edf8d0d6e2c742e8dda9d4916b/src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css)
 uses a 35-pixel icon slot and centered 16-pixel image;
-[tab CSS](https://github.com/microsoft/vscode/blob/4861e8bae38121e9793aad2fac4ae37e922ed525/src/vs/workbench/browser/parts/editor/media/multieditortabscontrol.css)
+[tab CSS](https://github.com/microsoft/vscode/blob/1d25d5df846ea8edf8d0d6e2c742e8dda9d4916b/src/vs/workbench/browser/parts/editor/media/multieditortabscontrol.css)
 uses a 120-pixel fit baseline with a content minimum. These are source references,
 not a claim that gocode matches every VS Code pixel or feature.
 
@@ -17,8 +17,32 @@ area and bundle icon rather than adding a duplicate titlebar application icon.
 
 Tab sizing uses actual DirectWrite/CoreText UI-font measurements. The caption has
 room for its icon, insets and separate close target, with at least 120 logical
-pixels. It no longer estimates proportional Latin/CJK names by rune count. Tabs
-still need scrolling/overflow, truncation policy and full VS Code tab actions.
+pixels. It no longer estimates proportional Latin/CJK names by rune count.
+Native overflow uses a clipped Viewport with cached measured widths, binary
+search and visible entries/spacers. The current
+[upstream tab controller](https://github.com/microsoft/vscode/blob/1d25d5df846ea8edf8d0d6e2c742e8dda9d4916b/src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts)
+uses scrollYToX and a default 3-pixel scrollbar; gocode follows those behaviors.
+Wheel and draggable thumb retain manual pan until an explicit activation,
+document-set or viewport-size change requires minimal active-tab reveal.
+Tab/close keys belong to document instances, preserving captured input across
+index changes and rejecting a reopened instance of the same path. Ctrl+Tab
+freezes MRU order until Control release/focus cancellation; Ctrl+Shift+Tab
+reverses, Ctrl/Cmd+PageUp/Down use tab order, Ctrl/Cmd+W retains dirty-close guards
+and the terminal's word-delete chord. Width policy, pinned/wrapped/preview tabs,
+MRU switcher overlay, tab reorder/drop, split groups and full menus remain gaps.
+
+Candidate `-tabs-smoke` opens 40 real files, captures completed GPU viewport,
+selected indicator and scrollbar pixels, exercises native ordered/MRU keys,
+positioned horizontal wheel and owned thumb drag, then replaces a pressed close
+target with a new document at the same path/index before releasing. It checks
+the replacement/neighbor survived and every file byte remained unchanged.
+Windows uses owned HWND messages and temporarily restores only its UI thread's
+keyboard-state table; Mac uses owned native pointer/key NSEvents and real
+CG/NSEvent scroll deltas plus Quartz-to-owned-view coordinate conversion. The
+unposted CGEvent lacks an AppKit window attachment, so it enters scrollWheel's
+shared native delivery method after that conversion. No global input is posted.
+Windows console/GUI gates pass at 1280×820 logical / 150%; Mac normal/1.5/2 and
+public dependency/release promotion remain pending for this candidate.
 
 `gocode -ui-smoke` opens actual main.go, README.md and a Chinese Markdown file in
 an owned temporary workspace, renders the production view, checks final caption

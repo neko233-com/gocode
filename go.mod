@@ -8,7 +8,7 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/github/copilot-sdk/go v1.0.16
-	github.com/neko233-com/godesktop v0.6.0
+	github.com/neko233-com/godesktop v0.7.0
 	golang.org/x/sys v0.44.0
 )
 

@@ -25,6 +25,8 @@ type document struct {
 	saveID                       uint64
 	watchID, reloadID            uint64
 	diskConflict                 *diskConflict
+	tabID                        uint64
+	tabWidth                     float32
 }
 type model struct {
 	logo                                               *ui.Bitmap
@@ -32,6 +34,7 @@ type model struct {
 	files                                              []string
 	docs                                               []*document
 	active                                             int
+	tabs                                               editorTabState
 	activity, panel                                    string
 	showPanel, palette, editing                        bool
 	query, message, status                             string
@@ -198,7 +201,9 @@ func (m *model) removeTab(index int) {
 		l.cancel()
 		go l.close()
 	}
-	m.docs = append(m.docs[:index], m.docs[index+1:]...)
+	copy(m.docs[index:], m.docs[index+1:])
+	m.docs[len(m.docs)-1] = nil
+	m.docs = m.docs[:len(m.docs)-1]
 	if index < m.active {
 		m.active--
 	}

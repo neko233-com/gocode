@@ -10,6 +10,7 @@ import (
 )
 
 func (m *model) documentEvent(kind string, d *document, change textbuffer.ChangeEvent) {
+	m.recordTabEvent(kind, d)
 	if kind == "focus" {
 		m.openSequence++
 	}
@@ -95,6 +96,14 @@ func (m *model) applyDocumentEdits(path string, version int, edits []textbuffer.
 }
 
 func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
+	if e.Kind == ui.InputCancelled {
+		m.endTabSwitch()
+		m.tabs.dragging = false
+	}
+	if e.Kind == ui.KeyReleased && e.Key == 17 {
+		m.endTabSwitch()
+		return true
+	}
 	if m.reloadPrompt != nil && !m.closePrompt {
 		if e.Kind == ui.KeyPressed && !m.reloadBusy && e.Key == 27 {
 			m.cancelReload()
@@ -112,11 +121,20 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		}
 		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
 	}
+	if m.tabInput(cx, e) {
+		return true
+	}
 	if m.terminalPointer(cx, e) {
 		return true
 	}
 	if e.Kind == ui.PointerPressed {
 		m.terminalFocused = false
+	}
+	if e.Kind == ui.Scroll && cx != nil {
+		b, ok := cx.ElementBounds("editor-content")
+		if !ok || e.PointerX < b.X || e.PointerX >= b.X+b.Width || e.PointerY < b.Y || e.PointerY >= b.Y+b.Height {
+			return false
+		}
 	}
 	if d := m.current(); d != nil && d.large != nil && (e.Kind == ui.PointerPressed || e.Kind == ui.PointerMoved || e.Kind == ui.PointerReleased || e.Kind == ui.InputCancelled || e.Kind == ui.Scroll) {
 		return m.largeInput(cx, d, e)

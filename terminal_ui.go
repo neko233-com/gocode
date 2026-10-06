@@ -298,7 +298,11 @@ func (m *model) terminalPointer(cx *ui.Context, e ui.InputEvent) bool {
 	if cx == nil {
 		return false
 	}
-	inside := func(b ui.Bounds) bool { return e.X >= b.X && e.X < b.X+b.Width && e.Y >= b.Y && e.Y < b.Y+b.Height }
+	px, py := e.X, e.Y
+	if e.Kind == ui.Scroll {
+		px, py = e.PointerX, e.PointerY
+	}
+	inside := func(b ui.Bounds) bool { return px >= b.X && px < b.X+b.Width && py >= b.Y && py < b.Y+b.Height }
 	if m.panelResizing {
 		switch e.Kind {
 		case ui.PointerMoved:

@@ -1,5 +1,27 @@
 # Milestone ledger
 
+## Native overflow candidate (2026-10-07)
+
+Clipped virtualized tab entries, document-instance input identity, manual wheel/
+thumb pan, minimal active reveal, ordered page navigation and held-Control MRU
+are implemented. Root native input now separates positioned scroll coordinates
+from deltas and reports key releases. Terminal/editor/header routing uses the
+pointer position. Local strict-cgo console 40-file native GPU/input gate passes,
+including actual wheel/drag, reopened captured close target, two MRU hops and
+Control release. Last-tab PNG was visually inspected at 1920×1230 / 150%.
+Candidate full tests require propagating the ignored modfile through GOFLAGS to
+their spawned builds; an initial direct test flag did not propagate, correctly
+rejecting compilation against public v0.6.0. With that propagation, the complete
+local three-repeat strict-cgo/race/vet and console/GUI native suites pass, including
+opener/VSIX, four close guards, large browsing, highlighted terminal and file watch.
+No-cgo tests and workflow lint pass. A real native path-key mutant misclosed the
+reopened document on pointer release and failed the boundary gate; restoring
+instance identity passed. Upstream titlebar/tab CSS and controller blobs remain
+identical at refreshed main 1d25d5d. Mac/public promotion is pending;
+public core v0.7.0/source 5e7789b passed all five jobs in 37540201901 and is tagged
+immutably. gocode now pins that public module with no local replace. Application
+publication/installation remains v0.11.0 pending its independent source/package gates.
+
 ## Native image / measured captions v0.11.0 promotion (2026-10-07)
 
 Immutable application/package source `05439efb84156feeb14b1d45f76631bd1d0673cc`

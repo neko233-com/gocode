@@ -60,6 +60,9 @@ try {
     & ./bin/gocode.exe -ui-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native workbench logo/caption/tab GPU acceptance failed.' }
     Invoke-CheckedGUI -ui-smoke
+    & ./bin/gocode.exe -tabs-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native overflow/routing/identity/MRU tab acceptance failed.' }
+    Invoke-CheckedGUI -tabs-smoke
     & ./bin/gocode.exe -extensions-dir .cache/extensions -open-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native delayed disk/scan and awaited VSIX opening acceptance failed.' }
     Invoke-CheckedGUI -extensions-dir .cache/extensions -open-smoke

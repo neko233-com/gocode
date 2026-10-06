@@ -71,10 +71,10 @@ func runWorkbenchUIAcceptance() error {
 			if failure != nil {
 				cx.Quit()
 			} else if phase < 2 {
-				key := "tab-2"
+				key := m.tabKey(m.docs[2])
 				action := func() { m.active = 2 }
 				if phase == 1 {
-					key = "close-1"
+					key = m.tabCloseKey(m.docs[1])
 					action = func() { m.closeTab(1) }
 				}
 				bounds, ok := cx.ElementBounds(key)
@@ -167,12 +167,12 @@ func verifyWorkbenchPixels(cx *ui.Context, m *model, stage string) error {
 		}
 	}
 	for i, d := range m.docs {
-		bounds, ok := cx.ElementBounds(fmt.Sprintf("tab-%d", i))
+		bounds, ok := cx.ElementBounds(m.tabKey(d))
 		if !ok {
 			return fmt.Errorf("%s tab %d missing", stage, i)
 		}
 		name := filepath.Base(d.path)
-		closeBounds, ok := cx.ElementBounds(fmt.Sprintf("close-%d", i))
+		closeBounds, ok := cx.ElementBounds(m.tabCloseKey(d))
 		nameWidth, _ := ui.MeasureText(name, 13, "")
 		if !ok || closeBounds.X+.01 < bounds.X+33+nameWidth {
 			return fmt.Errorf("%s caption %s overlaps native close control", stage, name)
@@ -189,7 +189,7 @@ func verifyWorkbenchPixels(cx *ui.Context, m *model, stage string) error {
 			}
 		}
 	}
-	active, ok := cx.ElementBounds(fmt.Sprintf("tab-%d", m.active))
+	active, ok := cx.ElementBounds(m.tabKey(m.current()))
 	if !ok || ink(region(active.X+4, active.Y, active.Width-8, 2), func(r, g, b uint8) bool {
 		return r < 40 && g > 80 && b > 160
 	}) < 5 {

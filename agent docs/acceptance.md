@@ -34,6 +34,10 @@
   -ui-smoke checks actual completed caption/selection pixels and native tab actions
   in disposable real files. Windows also checks the titlebar PNG; Mac captures its
   own Metal drawable at normal/1.5/2 density. See ui.md for scope and source pins.
+  -tabs-smoke checks 40 real documents, bounded visible hit targets, actual
+  wheel/thumb input without editor scrolling, selected/scrollbar GPU pixels,
+  wrap/reveal, held-Control MRU/release and captured close identity after a path
+  is reopened at the same index. Every source byte must remain unchanged.
 - Distribution: real MSI install/uninstall/upgrade in an owned root, portable and
   CLI install, icons/shortcuts/PATH, update probe/hash/metadata/rollback tests,
   published asset checks, then the explicitly requested local install.

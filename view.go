@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	ui "github.com/neko233-com/godesktop"
-	textbuffer "github.com/neko233-com/godesktop/editor"
 )
 
 const (
@@ -51,24 +50,6 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	}
 	activities = append(activities, spacer(), ui.Icon("account").Height(48).Foreground(ui.RGB(muted)), ui.Icon("settings").Height(48).Foreground(ui.RGB(muted)).Key("settings").OnClick(func(*ui.Context) { m.activity = "settings"; m.palette = false; m.updateFocused = false }))
 	activity := ui.Column(activities...).Width(48).Background(ui.RGB(outer))
-	tabs := []*ui.Element{}
-	for i, d := range m.docs {
-		bg := uint32(outer)
-		top := ui.Color{}
-		if i == m.active {
-			bg = editor
-			top = ui.RGB(accent)
-		}
-		name := filepath.Base(d.path)
-		symbol := "×"
-		if d.dirty() {
-			symbol = "●"
-		}
-		nameWidth, _ := ui.MeasureText(name, 13, "")
-		tab := ui.Column(ui.Column().Height(1).Background(top), ui.Row(label("{} ").Foreground(ui.RGB(0x519aba)).Width(28), label(name).Flex(1), button(symbol, fmt.Sprintf("close-%d", i), func(*ui.Context) { m.closeTab(i) }).Width(26)).Padding(5).Height(34)).Width(max(120, nameWidth+64)).Background(ui.RGB(bg)).Key(fmt.Sprintf("tab-%d", i)).OnClick(func(*ui.Context) { m.active = i; m.documentEvent("focus", d, textbuffer.ChangeEvent{}) })
-		tabs = append(tabs, tab, ui.Column().Width(1).Background(ui.RGB(border)))
-	}
-	tabs = append(tabs, spacer(), icon("split", "split", func(*ui.Context) { m.message = "Split editors are not implemented in this preview" }))
 	crumb := "Welcome"
 	if d := m.current(); d != nil {
 		rel, err := filepath.Rel(m.workspace, d.path)
@@ -77,7 +58,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		}
 		crumb = strings.ReplaceAll(filepath.ToSlash(rel), "/", "  ›  ")
 	}
-	parts := []*ui.Element{ui.Row(tabs...).Height(35).Background(ui.RGB(outer)), ui.Row(label(crumb).PaddingXY(10, 0), spacer()).Height(24)}
+	parts := []*ui.Element{m.tabsView(cx), ui.Row(label(crumb).PaddingXY(10, 0), spacer()).Height(24)}
 	if m.openBusy || len(m.openJobs) > 0 {
 		parts = append(parts, ui.Row(label("Opening "+filepath.Base(m.openingPath)+"…").Flex(1), button("Cancel", "cancel-open", func(*ui.Context) {
 			if m.cancelPendingOpens != nil {
@@ -168,7 +149,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	if d := m.current(); d != nil && d.diskConflict != nil {
 		visible = max(1, visible-2)
 	}
-	parts = append(parts, m.codeView(visible).Flex(1))
+	parts = append(parts, m.codeView(visible).Flex(1).Key("editor-content"))
 	if m.showPanel {
 		width, _ := cx.WindowSize()
 		parts = append(parts, m.panelView(max(120, width-290)))

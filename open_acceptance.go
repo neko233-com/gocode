@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	ui "github.com/neko233-com/godesktop"
-	textbuffer "github.com/neko233-com/godesktop/editor"
 	"github.com/neko233-com/godesktop/extensions"
 )
 
@@ -180,7 +179,7 @@ func (a *openAcceptance) step(cx *ui.Context, m *model, ctx context.Context, hos
 			a.failure = "VSIX showTextDocument acknowledged before the disk result"
 			return
 		}
-		a.control(cx, m, "tab-0", func() { m.active = 0; m.documentEvent("focus", a.original, textbuffer.ChangeEvent{}) }, func() { close(a.readGate); a.phase = 5 })
+		a.control(cx, m, m.tabKey(a.original), func() { m.focusTab(a.original) }, func() { close(a.readGate); a.phase = 5 })
 	case 5:
 		if !a.vsixDone || m.openBusy {
 			return

@@ -101,6 +101,8 @@ jobs:
             .cache/filewatch-native-lsp/*.png
             .cache/open-native/*.png
             .cache/workbench-ui/*.png
+            .cache/editor-tabs/*.png
+            .cache/editor-tabs/*.json
             .cache/copilot-health.json
             dist/*.zip
             dist/*.msi
@@ -137,6 +139,9 @@ jobs:
           ./bin/gocode -ui-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_UI_SCREENSHOTS=.cache/workbench-ui-150 ./bin/gocode -ui-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_UI_SCREENSHOTS=.cache/workbench-ui-200 ./bin/gocode -ui-smoke
+          ./bin/gocode -tabs-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_TABS_SCREENSHOTS=.cache/editor-tabs-150 ./bin/gocode -tabs-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_TABS_SCREENSHOTS=.cache/editor-tabs-200 ./bin/gocode -tabs-smoke
           ./bin/gocode -extensions-dir .cache/extensions -open-smoke
           ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
           for mode in save discard cancel external; do
@@ -166,6 +171,12 @@ jobs:
             .cache/workbench-ui/*.png
             .cache/workbench-ui-150/*.png
             .cache/workbench-ui-200/*.png
+            .cache/editor-tabs/*.png
+            .cache/editor-tabs/*.json
+            .cache/editor-tabs-150/*.png
+            .cache/editor-tabs-150/*.json
+            .cache/editor-tabs-200/*.png
+            .cache/editor-tabs-200/*.json
             dist/*.zip
             dist/*.tar.gz
           include-hidden-files: true
