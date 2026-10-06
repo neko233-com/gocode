@@ -56,3 +56,11 @@ extension root; a -version/health-only rollback check does not prove GUI startup
 The local installation target is the user's per-user Programs directory, with a
 gocode command and Start Menu/desktop access; verify real installed launch/update
 settings. Never install test payloads over an unrelated application.
+
+Current verified install: v0.6.0 payload selected by the original v0.5.1 MSI stable
+launcher through actual signed/hashed public ZIP update. The baseline installer
+and launcher file versions remain 0.5.1 until an MSI upgrade; -version reports
+the selected 0.6.0 source. Actual prior-release GUI rollback with shared extensions
+passed in an owned root. Direct probe reachability does not guarantee a full body
+download: v0.6.0 direct timed out, while auto and explicit gh-proxy downloads passed
+signature/SHA256 and the user installation succeeded without relaxing integrity.

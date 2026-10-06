@@ -195,3 +195,34 @@ negative control above still prevented promotion. The corrected builtin isolatio
 passed local real old/new/old native startup plus acknowledged VSIX save, full
 strict-cgo race tests, vet, workflow lint and diff checks. Publish only after the
 next exact-source CI verifies this final correction.
+
+v0.6.0 is now published and installed (2026-10-06): immutable application source
+`242a1a917b189ded070ac00c7ac75f8eba9b6296`, all five jobs green in source CI
+`37474545017`, publication workflow `37475908095`. Actual tested Windows MSI/ZIP
+and Mac Intel/ARM bundles were reused; signed update metadata and maintained
+PowerShell/macOS installers, winget/Scoop/Homebrew channels were generated at
+metadata commit `2ff7885cd40be9b5a4a94e29d51598d760674f18`. Registry acceptance
+remains separate. No immutable tag or released artifact was overwritten.
+
+Real signed public ZIP acceptance staged/health-checked/launched v0.6.0 from the
+original v0.4.0 binary, ran native large-file/four-close/VSIX-save checks, then
+rolled back to source `cfcd3513aedc4ec50ae19625fbd2f04446039abe` and actually
+rendered that prior app using the same extension store. Automatic routing chose
+gh-proxy.com despite GitHub probe reachability=true. A separate full direct
+GitHub download timed out/failed size verification; it did not change selection.
+Manual gh-proxy download independently passed signed SHA256. No direct-download
+success claim for this run. The owned test root was rolled back, separate from
+the user's final installation.
+
+The real installed v0.5.1 launcher then applied v0.6.0 via its own -update command,
+verified public metadata/archive/native health and selected exact source 242a1a9.
+Install root remains `C:\Users\14170\AppData\Local\Programs\gocode`; MSI baseline
+and stable launchers remain 0.5.1, current payload is 0.6.0. Auto=true/mode=auto,
+installed -update-check returns 0.6.0/source 242a1a9. Start Menu/desktop/PATH remain
+valid. Installed GUI/icon/settings/source-preservation, actual close save, VSIX
+Document.save/CRLF/undo/redo/completion and real gopls native checks passed.
+Installed official Copilot check reports authenticated=true, lspInitialized=true,
+sdkConnected=true, networkPromptSent=false. No new AI prompt was sent by this check.
+Owned `.cache/installed-acceptance/updates-native.png` was visually inspected:
+Automatic true, Automatic route, Up to date (0.6.0), gopls ready. The source harness
+continues to track the incomplete full VS Code/official Copilot VSIX/UI parity.
