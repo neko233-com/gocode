@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.12.0.schema.json
+PackageIdentifier: neko233-com.gocode
+PackageVersion: 0.5.0
+PackageLocale: en-US
+Publisher: neko233-com
+PublisherUrl: https://github.com/neko233-com
+PackageName: gocode
+PackageUrl: https://github.com/neko233-com/gocode
+License: MIT
+LicenseUrl: https://github.com/neko233-com/gocode/blob/main/LICENSE
+ShortDescription: Native Go desktop code editor powered by godesktop.
+Moniker: gocode
+Commands:
+  - gocode
+Installers:
+  - Architecture: x64
+    InstallerType: msi
+    Scope: user
+    InstallerUrl: https://github.com/neko233-com/gocode/releases/download/v0.5.0/gocode-0.5.0-windows-amd64.msi
+    InstallerSha256: 21C5D846A0A3CA7DF8DFFD3866FEA16006270A964D48EC058D93A81DA168B4D0
+    ProductCode: '{5C1069A6-9019-F5C7-BEA3-F9A35ECF40CE}'
+    InstallModes: [silent, silentWithProgress]
+    UpgradeBehavior: install
+ManifestType: singleton
+ManifestVersion: 1.12.0
