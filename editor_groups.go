@@ -9,7 +9,7 @@ import (
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
 
-const maxEditorGroups = 8
+const maxEditorGroups = 9
 
 func containsDocument(documents []*document, d *document) bool { return slices.Contains(documents, d) }
 func documentIndex(documents []*document, d *document) int     { return slices.Index(documents, d) }
@@ -18,14 +18,21 @@ type editorView struct {
 	selection            textbuffer.Selection
 	line, column, scroll int
 	large                *largeDocument
+	holdScroll           bool
 }
 type editorGroup struct {
-	id         uint64
-	generation uint64
-	docs       []*document
-	current    *document
-	views      map[*document]*editorView
-	tabs       *editorTabState
+	id                      uint64
+	generation              uint64
+	docs                    []*document
+	current                 *document
+	views                   map[*document]*editorView
+	tabs                    *editorTabState
+	editorID                uint64
+	editorDocument          *document
+	visibleRows             int
+	rangeBuffer             *textbuffer.Buffer
+	rangeVersion, rangeLine int
+	rangeEnd                textbuffer.Position
 }
 type editorSplit struct {
 	id          uint64
@@ -90,7 +97,7 @@ func (m *model) groupDocuments() []*document {
 	return m.docs
 }
 func captureView(d *document) *editorView {
-	v := &editorView{line: d.line, column: d.column, scroll: d.scroll, large: d.large}
+	v := &editorView{line: d.line, column: d.column, scroll: d.scroll, large: d.large, holdScroll: d.holdScroll}
 	if d.buffer != nil {
 		v.selection = d.buffer.Selection()
 	}
@@ -133,6 +140,7 @@ func vOrCreate(g *editorGroup, d *document) *editorView {
 }
 func restoreView(d *document, v *editorView, owner uint64) {
 	d.line, d.column, d.scroll = v.line, v.column, v.scroll
+	d.holdScroll = v.holdScroll
 	if v.large != nil {
 		d.large = v.large
 	}
@@ -141,7 +149,9 @@ func restoreView(d *document, v *editorView, owner uint64) {
 			p := d.buffer.PositionFromRunes(max(0, min(v.selection.Active.Line, d.buffer.LineCount()-1)), 0)
 			_ = d.buffer.SetSelection(textbuffer.Selection{Anchor: p, Active: p})
 		}
-		d.followSelection()
+		p := d.buffer.Selection().Active
+		d.line = p.Line
+		d.column, _ = d.buffer.RuneColumn(p)
 	}
 	d.selectionOwner = owner
 }
@@ -215,19 +225,25 @@ func (m *model) focusGroup(id uint64) {
 	m.documentEvent("focus", m.current(), textbuffer.ChangeEvent{})
 }
 func (m *model) splitEditor(down bool) {
+	next := m.splitEditorGroup(m.groups.active, down, true)
+	if next != nil {
+		m.focusGroup(next.id)
+	}
+}
+func (m *model) splitEditorGroup(groupID uint64, down, duplicate bool) *editorGroup {
 	m.ensureGroups()
 	m.captureActiveView()
 	if len(m.allGroups()) >= maxEditorGroups {
-		m.message = "At most 8 editor groups can be open"
-		return
+		m.message = "At most 9 editor groups can be open"
+		return nil
 	}
-	g := m.findGroup(m.groups.active)
+	g := m.findGroup(groupID)
 	if g == nil {
-		return
+		return nil
 	}
 	m.groups.sequence++
 	next := &editorGroup{id: m.groups.sequence, views: map[*document]*editorView{}, tabs: &editorTabState{}}
-	if g.current != nil {
+	if duplicate && g.current != nil {
 		m.addGroupDocument(next, g.current)
 		next.current = g.current
 		if g.current.large != nil {
@@ -251,7 +267,7 @@ func (m *model) splitEditor(down bool) {
 		}
 	}
 	split(m.groups.root)
-	m.focusGroup(next.id)
+	return next
 }
 func (m *model) forgetGroupDocument(d *document) {
 	for _, g := range m.allGroups() {

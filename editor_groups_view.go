@@ -11,6 +11,7 @@ func (m *model) editorGroupsView(cx *ui.Context, width, height float32) *ui.Elem
 	render = func(n *editorSplit, w, h float32) *ui.Element {
 		if n.group != nil {
 			g := n.group
+			g.visibleRows = max(1, int((h-59)/20))
 			d := g.current
 			parts := []*ui.Element{m.tabsViewFor(g, g.docs, g.tabs, d, w), ui.Row(label(m.groupBreadcrumb(d)).PaddingXY(10, 0), spacer()).Height(24)}
 			key := func(k string) string { return groupKey(g, k) }
@@ -19,6 +20,7 @@ func (m *model) editorGroupsView(cx *ui.Context, width, height float32) *ui.Elem
 				copy := *d
 				v := vOrCreate(g, d)
 				copy.line, copy.column, copy.scroll = v.line, v.column, v.scroll
+				copy.holdScroll = v.holdScroll
 				copy.large = v.large
 				copyDocument = &copy
 			}
@@ -32,7 +34,7 @@ func (m *model) editorGroupsView(cx *ui.Context, width, height float32) *ui.Elem
 				}
 				return true
 			}
-			code := m.codeViewFor(copyDocument, max(1, int((h-59)/20)), w, selection, m.editing && m.groups.active == g.id, key, func(line int) {
+			code := m.codeViewFor(copyDocument, g.visibleRows, w, selection, m.editing && m.groups.active == g.id, key, func(line int) {
 				if !focus() {
 					return
 				}

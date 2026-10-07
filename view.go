@@ -37,6 +37,11 @@ func codeFont() string {
 }
 
 func (m *model) view(cx *ui.Context) *ui.Element {
+	defer func() {
+		if m.publishEditors != nil {
+			m.publishEditors(0)
+		}
+	}()
 	_, height := cx.WindowSize()
 	bar := m.titlebar(cx)
 	activities := []*ui.Element{}
@@ -295,17 +300,15 @@ func (m *model) codeViewFor(d *document, visible int, width float32, selected te
 	if d.large != nil {
 		return m.largeCodeViewFor(d, visible, width, key, navigate, goTo)
 	}
-	if editing && d.line >= d.scroll+visible {
+	if editing && !d.holdScroll && d.line >= d.scroll+visible {
 		d.scroll = max(0, d.line-visible+1)
 	}
 	rows := []*ui.Element{}
 	selection := selected.Range()
 	for i := d.scroll; i < d.buffer.LineCount() && i < d.scroll+visible; i++ {
 		line := d.buffer.Line(i)
-		runes := []rune(line)
-		if len(runes) > 400 {
-			line = string(runes[:400])
-		}
+		runes := codeLinePreview(line, 400)
+		line = string(runes)
 		segments := []*ui.Element{}
 		for _, f := range highlight(line) {
 			segments = append(segments, ui.Text(f.text).FontFamily(codeFont()).FontSize(14).Foreground(ui.RGB(f.color)))
@@ -342,7 +345,7 @@ func (m *model) codeViewFor(d *document, visible int, width float32, selected te
 	minimap := []*ui.Element{ui.Column().Height(4)}
 	for i := 0; i < min(100, d.buffer.LineCount()); i++ {
 		line := d.buffer.Line(i)
-		width := float32(min(70, len([]rune(strings.TrimSpace(line)))))
+		width := float32(runeCountUpTo(strings.TrimSpace(line), 70))
 		color := uint32(0x484848)
 		if strings.HasPrefix(strings.TrimSpace(line), "//") {
 			color = 0x3e5037

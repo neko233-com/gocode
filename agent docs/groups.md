@@ -1,5 +1,37 @@
 # Native editor groups
 
+Candidate v0.17.0 extends the tree to nine groups and Ctrl/Cmd+1..9, matching
+ViewColumn.One–Nine. Real VSIX view identity/visibility/column/range/selection,
+hidden worker opens and guarded show/selection/reveal are implemented; status.md
+records candidate validation and pending independent public-module promotion.
+Published v0.16.0 below retains its earlier eight-group/native-only contract.
+
+The v0.17 candidate uses one TextDocument per native canonical resource and one
+TextEditor per actually visible eligible view. Hidden tabs are excluded, identities
+survive column renumbering, and closed views/reopened document instances reject
+stale edits/save/selection/reveal. Snapshot generations and complete coordinate
+preflight guard events; at most nine native views and 128 ordered/pending host
+operations are admitted. Native service documents are limited to 2 MiB.
+
+Hidden openTextDocument reads use the shared cancellable worker. showTextDocument
+supports Active/Beside/One–Nine, preserveFocus and UTF-16 selection. Its invocation
+receipt captures origin/layout before the read so newer focus or closed targets
+invalidate late focusing results. Selection/reveal/edit ordering is acknowledged
+by native state. Manual/reveal scroll stays independent until caret movement.
+The real VSIX gate uses shared Unicode/CRLF content, hidden resources, independent
+reveal, actual mouse focus/close, surviving reference renumbering, disposed edits
+and disk-acknowledged save. Local 150% mutated and 100% survivor PNGs were visually
+inspected. Current independent public-module/platform/publication status is in
+status.md. Full tabGroups, editor options/decorations/snippets and undo merging
+remain unfinished.
+
+Renderer previews decode at most 400 runes and minimap length queries stop at 70;
+an actual 7 MiB Unicode-line benchmark holds preview allocation to <=4096 bytes/op.
+Core short position queries on an actual 8 MiB line allocate zero objects. These
+are scoped measurements, not whole-frame performance claims.
+
+## v0.16.0 historical release contract
+
 Released v0.16.0 uses public godesktop v0.9.0 with GOWORK=off and no replace.
 Released/installed versions and immutable CI evidence remain in status.md.
 
@@ -7,7 +39,7 @@ Visual thesis: Dark Modern planar editor groups use restrained borders and nativ
 font measurements. Content thesis: every group contains its own tabs, breadcrumb
 and source, while navigation, panel and status remain workspace-wide. Interaction
 thesis: one focused caret, independent view state, and live 4-DIP sash resizing.
-The reference is VS Code stable 1.140.0/main 0c68085a477224a09c7f73da287200713e685984,
+The reference is VS Code stable 1.140.0/main 26e0111cea3247abadfdd27f991a15a6a13f1c85,
 including editorActions.ts and editorgroupview.css in the MIT Code-OSS repository.
 This source comparison does not establish full pixel parity.
 

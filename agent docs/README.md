@@ -12,7 +12,7 @@ Open editable-file watching/reload/conflict contracts are in [files](files.md).
 The existing docs/vscode-parity.md remains the API/function coverage ledger.
 
 Reference: latest stable VS Code 1.140.0 and current main
-`0c68085a477224a09c7f73da287200713e685984` (2026-10-07). Use source measurements,
+`26e0111cea3247abadfdd27f991a15a6a13f1c85` (2026-10-07). Use source measurements,
 colors/fonts/layout and native screenshots, rather than remembered old UI details.
 
 Production promotion requires real core/editor/process/native/visual/installer

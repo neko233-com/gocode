@@ -33,6 +33,13 @@ func (m *model) documentEvent(kind string, d *document, change textbuffer.Change
 	if m.onDocument != nil {
 		m.onDocument(kind, d, change)
 	}
+	if m.publishEditors != nil && kind != "close" {
+		selectionKind := 0
+		if kind == "selection" {
+			selectionKind = m.editorSelectionKind
+		}
+		m.publishEditors(selectionKind)
+	}
 	if kind == "change" && m.requestInline != nil && d != nil {
 		m.requestInline(d)
 	}
@@ -45,6 +52,7 @@ func (d *document) cursor() textbuffer.Position {
 	return d.buffer.PositionFromRunes(d.line, d.column)
 }
 func (d *document) followSelection() {
+	d.holdScroll = false
 	p := d.buffer.Selection().Active
 	d.line = p.Line
 	d.column, _ = d.buffer.RuneColumn(p)
@@ -100,6 +108,11 @@ func (m *model) applyDocumentEdits(path string, version int, edits []textbuffer.
 }
 
 func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
+	if e.Kind == ui.PointerPressed || e.Kind == ui.PointerMoved || e.Kind == ui.PointerReleased {
+		m.editorSelectionKind = 2
+	} else if e.Kind == ui.KeyPressed || e.Kind == ui.Character {
+		m.editorSelectionKind = 1
+	}
 	if e.Kind == ui.InputCancelled {
 		m.endTabSwitch()
 		m.activeTabs().dragging = false
@@ -212,6 +225,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 	if e.Kind == ui.Scroll {
 		if d := m.current(); d != nil {
 			d.scroll = max(0, min(d.buffer.LineCount()-1, d.scroll-int(e.Y)))
+			d.holdScroll = true
 		}
 		return true
 	}

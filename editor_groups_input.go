@@ -43,7 +43,7 @@ func (m *model) groupInput(cx *ui.Context, e ui.InputEvent) bool {
 			m.splitEditor(e.Modifiers&ui.ModifierShift != 0)
 			return true
 		}
-		if e.Key >= '1' && e.Key <= '8' {
+		if e.Key >= '1' && e.Key <= '9' {
 			gs := m.allGroups()
 			i := e.Key - '1'
 			if i < len(gs) {
@@ -118,6 +118,7 @@ func (m *model) groupInput(cx *ui.Context, e ui.InputEvent) bool {
 					v.line = copy.line
 				} else {
 					v.scroll = max(0, min(d.buffer.LineCount()-1, v.scroll-int(e.Y)))
+					v.holdScroll = true
 				}
 				return true
 			}

@@ -70,6 +70,20 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = cmd.Process.Kill() })
 	var w winprobe.Window
+	t.Cleanup(func() {
+		if t.Failed() {
+			data, err := os.ReadFile(filepath.Join(workspace, "main.go"))
+			t.Logf("owned source after failure: %q (%v); native output: %s", data, err, output.String())
+			if name := os.Getenv("GOCODE_SCREENSHOT"); name != "" && w != 0 {
+				if pixels, err := w.Capture(); err == nil {
+					if f, err := os.Create(name + ".failed.png"); err == nil {
+						_ = png.Encode(f, pixels)
+						_ = f.Close()
+					}
+				}
+			}
+		}
+	})
 	until(t, func() bool {
 		var err error
 		w, err = winprobe.Find("gocode — "+filepath.Base(workspace), uint32(cmd.Process.Pid))
@@ -151,16 +165,20 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		t.Fatal(err)
 	}
 	click(54, 16)
-	click(430, 146)
+	// The native group tree is now initialized before service startup, so the
+	// workspace-wide command palette precedes the group tabs and breadcrumb.
+	// Click its actual first action rather than the old single-editor location.
+	until(t, func() bool { color, err := w.Pixel(700, 90); return err == nil && color == 0x252526 })
+	click(430, 90)
 	until(t, func() bool {
 		data, _ := os.ReadFile(filepath.Join(workspace, "main.go"))
 		return strings.HasPrefix(string(data), "界😀package main")
 	})
 	// Close the save notification, then execute an installed VSIX from its UI.
-	click(viewWidth-15, 110)
+	click(viewWidth-15, 50)
 	click(24, 250)
 	click(130, 215)
-	until(t, func() bool { color, err := w.Pixel(700, 108); return err == nil && color == 0x252526 })
+	until(t, func() bool { color, err := w.Pixel(700, 50); return err == nil && color == 0x252526 })
 	if name := os.Getenv("GOCODE_SCREENSHOT"); name != "" {
 		image, err := w.Capture()
 		if err != nil {

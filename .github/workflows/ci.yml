@@ -174,6 +174,9 @@ jobs:
           ./bin/gocode -groups-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-150 ./bin/gocode -groups-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-200 ./bin/gocode -groups-smoke
+          ./bin/gocode -groups-vsix-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-vsix-150 ./bin/gocode -groups-vsix-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-vsix-200 ./bin/gocode -groups-vsix-smoke
           ./bin/gocode -groups-large-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-large-150 ./bin/gocode -groups-large-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-large-200 ./bin/gocode -groups-large-smoke
@@ -224,6 +227,10 @@ jobs:
             .cache/editor-groups-150/*.json
             .cache/editor-groups-200/*.png
             .cache/editor-groups-200/*.json
+            .cache/editor-groups-vsix-150/*.png
+            .cache/editor-groups-vsix-150/*.json
+            .cache/editor-groups-vsix-200/*.png
+            .cache/editor-groups-vsix-200/*.json
             .cache/editor-groups-large-150/*.png
             .cache/editor-groups-large-150/*.json
             .cache/editor-groups-large-200/*.png

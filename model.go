@@ -16,10 +16,12 @@ import (
 
 type document struct {
 	path                         string
+	instance                     string
 	buffer                       *textbuffer.Buffer
 	large                        *largeDocument
 	serviceBytes, serviceVersion int
 	line, column, scroll         int
+	holdScroll                   bool
 	diskHash                     [32]byte
 	diskKnown                    bool
 	saveID                       uint64
@@ -48,6 +50,10 @@ type model struct {
 	installed                                          []extensionInfo
 	execute                                            func(string)
 	awaitExtensions                                    func(context.Context) error
+	publishEditors                                     func(int)
+	editorSequence, editorGeneration                   uint64
+	editorSelectionKind                                int
+	lastEditors                                        *editorLayoutState
 	pointerX                                           float32
 	smoke                                              bool
 	pointerShift                                       bool
@@ -110,6 +116,7 @@ type model struct {
 	reloadError                                        string
 	pathAliases                                        map[string]*document
 	requestOpen                                        func(context.Context, string, func(*document, error))
+	requestDocumentOpen                                func(context.Context, string, func(*document, error))
 	openJobs                                           []openJob
 	openBusy                                           bool
 	openingPath                                        string

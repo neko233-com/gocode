@@ -120,6 +120,7 @@ func run() error {
 	terminalSmoke := flag.Bool("terminal-smoke", false, "Verify real shell input highlighting, ANSI colors, keyboard, resize, interrupt and exit in a native owned workspace")
 	replaceSmoke := flag.Bool("replace-smoke", false, "Verify native workspace replacement preview, stale disk guards, actual saves and undo in owned files")
 	groupsSmoke := flag.Bool("groups-smoke", false, "Verify owned native editor splits, shared edits, independent caret/scroll, sash drag and scoped group saves")
+	groupsVSIXSmoke := flag.Bool("groups-vsix-smoke", false, "Verify real VSIX editor views, columns, focus, selection, reveal, disposal and native save")
 	groupsLargeSmoke := flag.Bool("groups-large-smoke", false, "Verify independent file-backed split pages and shared index lifetime")
 	groupsLargeMiB := flag.Int("groups-large-mib", 32, "Native large split fixture size, 16–10240 MiB")
 	filewatchSmoke := flag.Bool("filewatch-smoke", false, "Verify real external replacements, dirty conflict, native reload confirmation, VSIX and optional configured LSP in an owned workspace")
@@ -148,6 +149,9 @@ func run() error {
 	}
 	if *groupsSmoke {
 		return runEditorGroupsAcceptance()
+	}
+	if *groupsVSIXSmoke {
+		return runEditorGroupsVSIXAcceptance()
 	}
 	if *searchSmoke {
 		return runSearchAcceptance(*searchSmokeMiB)

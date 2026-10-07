@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/microsoft/vscode",
   "stable": "1.140.0",
-  "mainCommit": "0c68085a477224a09c7f73da287200713e685984",
+  "mainCommit": "26e0111cea3247abadfdd27f991a15a6a13f1c85",
   "captured": "2026-10-07",
   "theme": "Dark Modern",
   "assetSource": "resources/win32/code.ico",

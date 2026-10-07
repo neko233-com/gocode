@@ -84,7 +84,7 @@ func TestEditorGroupTabsMRUCloseScopeAndLimits(t *testing.T) {
 	for range maxEditorGroups + 3 {
 		m.splitEditor(true)
 	}
-	if len(m.allGroups()) != maxEditorGroups || !strings.Contains(m.message, "8 editor") {
+	if len(m.allGroups()) != maxEditorGroups || !strings.Contains(m.message, "9 editor") {
 		t.Fatal("group/large-page state unbounded")
 	}
 }

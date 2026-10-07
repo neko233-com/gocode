@@ -1,5 +1,35 @@
 # Milestone ledger
 
+## Native VSIX editor views v0.17.0 candidate (2026-10-07)
+
+The real Node bridge now models visible native views separately from canonical
+documents, with stable renumbering, disposed/reopened identity and monotonic layout
+receipts. Native openTextDocument reads on the bounded worker without showing/focusing
+a tab. showTextDocument adds Active/Beside/One–Nine, preserveFocus/UTF-16 selection;
+selection/reveal and text edits validate actual view and source identities/versions.
+View/column/range/selection events and ordered operations match owned native state.
+Manual/reveal scrolling remains independent until native caret movement resumes.
+
+Three-repeat model/editor/actual Node races pass. Actual -groups-vsix-smoke installs
+a genuine temporary VSIX, checks hidden/shared views and independent reveal, uses
+real mouse focus/close, verifies surviving/disposed references, then awaits actual
+CRLF save and preserves the hidden file. Completed group GPU pixels pass at local
+150%/process 100%, alongside existing native editor/opener regression. A causal
+per-invocation opening receipt fixes the delayed hidden-open/new-focus regression
+without weakening its old native gate. Core v0.10.0 is published at immutable
+8da1ad62268bc5ef1de58ec8703fa288fcd86250 after all five jobs in CI 37567374583 pass.
+go.mod now imports that public module with GOWORK=off/no replace. Independent full
+Windows strict-cgo/three-repeat race/vet and all console/GUI native gates pass
+(model 31.3%, search 81.4%). Exact app CI and release/install promotion are pending.
+The first full run exposed old native palette/notification click coordinates:
+eager group initialization moves workspace actions before group headers. Actual
+failure pixels showed correct Unicode text but a Chat click instead of Save.
+The gate now clicks the rendered action/notification rows and retains exact saved
+bytes, extension, settings, maximize/minimize/restore/close assertions. Its isolated
+strict-cgo/race rerun and the subsequent complete three-repeat/console/GUI run pass.
+Published and installed app remains v0.16.0/source 38f7d15. Full tabGroups/preview/
+docking/options/undo merging/IME/accessibility and official Copilot VSIX remain gaps.
+
 ## Native editor groups v0.16.0 promotion (2026-10-07)
 
 Immutable application/package source `38f7d15533361ffc0b7a6e0c9b74d0dc21839962`

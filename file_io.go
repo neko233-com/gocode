@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/neko233-com/gocode/internal/filewatch"
+	"github.com/neko233-com/gocode/internal/languageserver"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
 
@@ -23,6 +24,7 @@ var errOpenSuperseded = errors.New("opening was cancelled or superseded by newer
 type openJob struct {
 	ticket uint64
 	group  uint64
+	hidden bool
 	ctx    context.Context
 	path   string
 	done   func(*document, error)
@@ -101,7 +103,9 @@ func (m *model) adoptDocument(requestPath string, loaded *document, focus bool) 
 	return m.adoptDocumentInGroup(requestPath, loaded, focus, m.groups.active)
 }
 func (m *model) adoptDocumentInGroup(requestPath string, loaded *document, focus bool, groupID uint64) *document {
-	g := m.findGroup(groupID)
+	return m.adoptDocumentWithGroup(requestPath, loaded, focus, m.findGroup(groupID))
+}
+func (m *model) adoptDocumentWithGroup(requestPath string, loaded *document, focus bool, g *editorGroup) *document {
 	for _, d := range m.docs {
 		if pathKey(d.path) == pathKey(loaded.path) {
 			m.rememberDocument(requestPath, d)
@@ -155,7 +159,21 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 		m.cancelCurrentOpen = func() { abandoned.Store(true); stop() }
 		stopRequest := context.AfterFunc(job.ctx, stop)
 		workers.Go(func() {
-			loaded, failure := read(request, job.path)
+			var loaded *document
+			var failure error
+			if job.hidden {
+				info, err := os.Stat(job.path)
+				failure = err
+				if err == nil && (!info.Mode().IsRegular() || info.Size() > languageserver.MaxDocumentBytes) {
+					failure = errors.New("document exceeds extension UTF-8 text policy")
+				}
+			}
+			if failure == nil {
+				loaded, failure = read(request, job.path)
+			}
+			if failure == nil && job.hidden && !loaded.serviceEligible() {
+				failure = errors.New("document exceeds extension UTF-8 text policy")
+			}
 			// A context timeout after a successful large-file open still owns that
 			// result. Dispose it before posting; never leak a discarded index worker.
 			if failure == nil {
@@ -189,17 +207,21 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 				if err == nil && closed {
 					err = errOpenSuperseded
 				}
-				if err == nil && m.groups.root != nil && m.findGroup(job.group) == nil {
+				if err == nil && !job.hidden && m.groups.root != nil && m.findGroup(job.group) == nil {
 					err = errOpenSuperseded
 				}
 				var d *document
 				if err == nil {
-					focused := job.ticket == m.openSequence
-					d = m.adoptDocumentInGroup(job.path, loaded, focused, job.group)
+					focused := !job.hidden && job.ticket == m.openSequence
+					if job.hidden {
+						d = m.adoptDocumentWithGroup(job.path, loaded, false, nil)
+					} else {
+						d = m.adoptDocumentInGroup(job.path, loaded, focused, job.group)
+					}
 					if d == loaded {
 						unused = nil
 					}
-					if !focused {
+					if !focused && !job.hidden {
 						err = errOpenSuperseded
 					}
 				}
@@ -240,7 +262,7 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 			})
 		})
 	}
-	m.requestOpen = func(request context.Context, path string, done func(*document, error)) {
+	enqueue := func(request context.Context, path string, hidden bool, done func(*document, error)) {
 		if err := errors.Join(ctx.Err(), request.Err()); err != nil {
 			if done != nil {
 				done(nil, err)
@@ -248,10 +270,20 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 			return
 		}
 		path = m.lexicalPath(path)
-		m.openSequence++
+		if !hidden {
+			m.openSequence++
+		}
 		ticket := m.openSequence
 		if d := m.findDocument(path); d != nil {
-			m.focusTab(d)
+			if hidden && !d.serviceEligible() {
+				if done != nil {
+					done(nil, errors.New("document exceeds extension UTF-8 text policy"))
+				}
+				return
+			}
+			if !hidden {
+				m.focusTab(d)
+			}
 			if done != nil {
 				done(d, nil)
 			}
@@ -265,8 +297,14 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 			}
 			return
 		}
-		m.openJobs = append(m.openJobs, openJob{ticket: ticket, group: m.groups.active, ctx: request, path: path, done: done})
+		m.openJobs = append(m.openJobs, openJob{ticket: ticket, group: m.groups.active, hidden: hidden, ctx: request, path: path, done: done})
 		next()
+	}
+	m.requestOpen = func(request context.Context, path string, done func(*document, error)) {
+		enqueue(request, path, false, done)
+	}
+	m.requestDocumentOpen = func(request context.Context, path string, done func(*document, error)) {
+		enqueue(request, path, true, done)
 	}
 	m.cancelPendingOpens = func() {
 		m.openSequence++

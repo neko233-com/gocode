@@ -13,7 +13,7 @@
 | 命令/快捷键 | 部分 | 核心快捷键和扩展命令；标签增加按住 Ctrl 的 MRU 顺序切换/反向、松开提交、按标签顺序 PageUp/Down 及保留脏文档的 W 关闭；缺 MRU 浮层、when/context keys、自定义键位及完整菜单贡献 |
 | 语言功能 | 部分 | VSIX/通用 LSP 补全、Problems、gopls 格式化/定义跳转/Output 悬停、原子附加导入编辑；缺语义着色、重构、多位置/浮层和 snippet UI |
 | LSP | 部分 | 用户服务器配置、gopls 固定安装、UTF-16 能力协商、增量/完整同步、版本诊断/清除、save/close/取消/进程回收、独立崩溃重启/退避和未保存文档重放；新源码跨平台验证见 harness，文件监听、多工作区和完整语言能力仍缺 |
-| VSIX 宿主 | 部分 | 本地安装、CommonJS 激活、活动文档/事务/事件、语言提供者、持久状态；大量 API 和贡献点尚缺，未知 API 抛错 |
+| VSIX 宿主 | 部分 | 本地安装、CommonJS 激活、文档/事务/事件、语言提供者、持久状态；v0.17.0 增加原生 visibleTextEditors/viewColumn/选区/可见范围事件、隐藏打开、preserveFocus、独立 reveal、关闭重开身份与延迟焦点保护，实际验证状态见 agent docs/status.md；完整 tabGroups、options/decorations/snippets/undo merging 和大量贡献点尚缺，未知 API 抛错 |
 | 配置/主题 | 部分 | 扩展读取/更新 JSON 配置；缺 JSONC、配置 UI、schema/defaults、主题/语法贡献和配置实际应用到全部编辑器行为 |
 | 终端 | 部分 | Windows ConPTY/macOS PTY、真实 shell 输入高亮、VT/真彩色/Unicode/备用屏、网格 resize、输入/中断/退出、标签/选区/滚动与有界历史；终端扩展 API、shell integration、链接、完整 IME/字形样式待实现；各平台新源码验证状态见 harness |
 | Git / SCM / Diff | 未实现 | 需要仓库状态、stage/commit、diff/merge、历史与扩展 SCM API |
