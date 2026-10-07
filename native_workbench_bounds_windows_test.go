@@ -6,6 +6,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,8 +31,12 @@ func nativeWorkbenchBoundsOverlay(t *testing.T, root string) string {
 	}
 	mainPath := filepath.Join(workspace, "main.go")
 	probePath := filepath.Join(workspace, "native_workbench_bounds_probe_injected.go")
+	mailboxPath := filepath.Join(workspace, "native_workbench_mailbox_injected.go")
 	if _, err := os.Lstat(probePath); !os.IsNotExist(err) {
 		t.Fatal("native probe overlay would mask an existing source file", err)
+	}
+	if _, err := os.Lstat(mailboxPath); !os.IsNotExist(err) {
+		t.Fatal("native mailbox overlay would mask an existing source file", err)
 	}
 	data, err := os.ReadFile(mainPath)
 	if err != nil || len(data) > 256<<10 {
@@ -45,15 +52,19 @@ func nativeWorkbenchBoundsOverlay(t *testing.T, root string) string {
 	source = strings.Replace(source, runNeedle, "\tdefer nativeWorkbenchStopBounds()\n"+runNeedle, 1)
 	backingMain := filepath.Join(root, "main-overlay.go")
 	backingProbe := filepath.Join(root, "bounds-overlay.go")
+	backingMailbox := filepath.Join(root, "mailbox-overlay.go")
 	if err = os.WriteFile(backingMain, []byte(source), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if err = os.WriteFile(backingProbe, []byte(nativeWorkbenchBoundsObserverSource), 0600); err != nil {
 		t.Fatal(err)
 	}
+	if err = os.WriteFile(backingMailbox, nativeWorkbenchMailboxOverlaySource(t, workspace), 0600); err != nil {
+		t.Fatal(err)
+	}
 	overlay, err := json.Marshal(struct {
 		Replace map[string]string
-	}{map[string]string{mainPath: backingMain, probePath: backingProbe}})
+	}{map[string]string{mainPath: backingMain, probePath: backingProbe, mailboxPath: backingMailbox}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,6 +73,35 @@ func nativeWorkbenchBoundsOverlay(t *testing.T, root string) string {
 		t.Fatal(err)
 	}
 	return path
+}
+
+// Reuse the exact tested declarations in the child overlay instead of keeping
+// a second string implementation of Windows sharing/retry semantics.
+func nativeWorkbenchMailboxOverlaySource(t *testing.T, workspace string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(workspace, "native_workbench_mailbox_windows_test.go"))
+	if err != nil || len(data) > 32<<10 {
+		t.Fatal("read bounded mailbox test helpers", err)
+	}
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "native_workbench_mailbox_windows_test.go", data, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wanted := map[string]bool{"nativeWorkbenchMailboxOpen": true, "nativeWorkbenchMailboxRead": true, "nativeWorkbenchMailboxTransient": true, "nativeWorkbenchMailboxReplace": true}
+	var result strings.Builder
+	result.WriteString("package main\nimport(\"context\";\"errors\";\"io\";\"os\";\"time\";\"golang.org/x/sys/windows\")\n")
+	for _, decl := range file.Decls {
+		if fn, ok := decl.(*ast.FuncDecl); ok && wanted[fn.Name.Name] {
+			result.Write(data[fset.Position(fn.Pos()).Offset:fset.Position(fn.End()).Offset])
+			result.WriteByte('\n')
+			delete(wanted, fn.Name.Name)
+		}
+	}
+	if len(wanted) != 0 {
+		t.Fatal("unknown mailbox helper template", wanted)
+	}
+	return []byte(result.String())
 }
 
 func TestNativeWorkbenchBoundsOverlayCompilesWithoutMutatingSource(t *testing.T) {
@@ -88,6 +128,9 @@ func TestNativeWorkbenchBoundsOverlayCompilesWithoutMutatingSource(t *testing.T)
 	}
 	if _, err = os.Lstat("native_workbench_bounds_probe_injected.go"); !os.IsNotExist(err) {
 		t.Fatal("test geometry observer leaked a repository source file", err)
+	}
+	if _, err = os.Lstat("native_workbench_mailbox_injected.go"); !os.IsNotExist(err) {
+		t.Fatal("test mailbox observer leaked a repository source file", err)
 	}
 }
 
@@ -118,16 +161,22 @@ func (c *nativeWorkbenchBoundsClient) lookup(t *testing.T, tab, key string) ui.B
 		t.Fatal("bounded native geometry request", err)
 	}
 	path := filepath.Join(c.root, "request.json")
-	if err = os.WriteFile(path+".pending", request, 0600); err == nil {
-		err = os.Rename(path+".pending", path)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err = nativeWorkbenchMailboxReplace(ctx, path, request)
 	if err != nil {
 		t.Fatal(err)
 	}
 	var result nativeWorkbenchBoundsResponse
 	until(t, func() bool {
-		data, e := os.ReadFile(filepath.Join(c.root, "response.json"))
-		if e != nil || len(data) > 4096 || json.Unmarshal(data, &result) != nil {
+		if err := ctx.Err(); err != nil {
+			t.Fatal("native geometry original 10s request deadline", err)
+		}
+		data, e := nativeWorkbenchMailboxRead(filepath.Join(c.root, "response.json"))
+		if e != nil && !os.IsNotExist(e) {
+			t.Fatal("read native geometry mailbox", e)
+		}
+		if e != nil || json.Unmarshal(data, &result) != nil {
 			return false
 		}
 		b := result.Bounds[key]
@@ -144,7 +193,6 @@ const nativeWorkbenchBoundsObserverSource = `package main
 import (
  "context"
  "encoding/json"
- "io"
  "os"
  "path/filepath"
  "sync"
@@ -198,9 +246,9 @@ func nativeWorkbenchBoundsWorker(ctx context.Context, cx *ui.Context, root strin
  type response struct { Sequence uint64 ` + "`json:\"sequence\"`" + `; PID int ` + "`json:\"pid\"`" + `; Completed uint64 ` + "`json:\"completed\"`" + `; ViewGeneration uint64 ` + "`json:\"view_generation\"`" + `; TreeTab string ` + "`json:\"tree_tab\"`" + `; Bounds map[string]ui.Bounds ` + "`json:\"bounds\"`" + ` }
  for {
   select { case <-ctx.Done(): return; case <-ticker.C: }
-  file, err := os.Open(filepath.Join(root,"request.json"))
-  if err != nil { continue }
-  data, err := io.ReadAll(io.LimitReader(file,4097)); _ = file.Close()
+  data, err := nativeWorkbenchMailboxRead(filepath.Join(root,"request.json"))
+  if os.IsNotExist(err) { continue }
+  if err != nil { panic(err) }
   var r request
   if err != nil || len(data)>4096 || json.Unmarshal(data,&r)!=nil || r.Sequence==0 || r.Sequence>32 || r.Sequence<=answered || len(r.Keys)<1 || len(r.Keys)>2 || (r.Tab!="Details" && r.Tab!="Feature Contributions") { continue }
   allowed := true
@@ -223,8 +271,10 @@ func nativeWorkbenchBoundsWorker(ctx context.Context, cx *ui.Context, root strin
   encoded, err := json.Marshal(snapshot)
   if err != nil || len(encoded)>4096 { return }
   path := filepath.Join(root,"response.json")
-  if err = os.WriteFile(path+".pending",encoded,0600); err == nil { err=os.Rename(path+".pending",path) }
-  if err != nil { return }
+  writeCtx,cancelWrite:=context.WithTimeout(ctx,10*time.Second)
+  err=nativeWorkbenchMailboxReplace(writeCtx,path,encoded)
+  cancelWrite()
+  if err != nil { if ctx.Err()!=nil{return};panic(err) }
   answered=r.Sequence
  }
 }

@@ -130,6 +130,15 @@ func TestNativeExtensionDetailViewportAndIdempotence(t *testing.T) {
 		if err != nil || len(body) > 4096 || json.Unmarshal(body, &report) != nil || len(report.Gates) != 10 || report.NativeFontWidth <= 0 || report.DescriptionRows < 10 || report.Commands != 2000 || report.ExecutedCommand != "details.command.1999" || len(report.DiskSHA256) != 64 || report.Backend != "direct3d12" || report.Submitted < 3 {
 			t.Fatalf("native detail gates missing: %#v %v", report, err)
 		}
+		if len(report.Captures) != 3 {
+			t.Fatalf("completed native capture evidence missing: %#v", report.Captures)
+		}
+		for i, name := range []string{"details", "narrow", "contributions-bottom"} {
+			proof := report.Captures[i]
+			if proof.Name != name || proof.MinimumCompleted < 3 || proof.Completed < proof.MinimumCompleted || proof.Width <= 0 || proof.Height <= 0 {
+				t.Fatalf("accepted capture lacks real completion/dimension proof: %#v", proof)
+			}
+		}
 		entries, err := os.ReadDir(scratch)
 		if err != nil || len(entries) != 0 {
 			t.Fatal("native detail left disposable runtimes/workspaces", entries, err)

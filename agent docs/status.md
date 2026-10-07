@@ -2,6 +2,48 @@
 
 ## Unpublished v0.24.0 extension editor candidate (2026-10-08)
 
+Immutable candidate source 1549cac2d112bb8050b663f18c9e3cc9cc56760d is pushed,
+but [CI 37698299244](https://github.com/neko233-com/gocode/actions/runs/37698299244)
+attempt 1 fails both Windows jobs. Ubuntu/113055346232 (183s), macOS
+Intel/113055346247 (723s) and ARM/113055346419 (346s) pass. Windows
+2022/113055345926 (912s) and 2025/113055346289 (997s) fail their complete
+Windows validation step; later GiB/services/MSI/package steps are skipped.
+No v0.24.0 tag, release or installed promotion is made. The exact failed logs
+and five-job result are retained as .cache/ci-v024-37698299244-{failed.log,progress.json}.
+
+All six detail repeats fail when a real resize returns the public-core error
+"GPU readback has not caught up with window resize". The UI generation has
+advanced while the independently completed GPU image still has its old size.
+One Windows 2025 workbench repeat also fails replacing request.json.pending
+while the test observer reads request.json. These are acceptance synchronization
+and Windows file-sharing defects; the earlier local pass is retained as local
+evidence, not rewritten as successful immutable CI. The correction waits for
+real completed frames/current owned-window dimensions, and bounds atomic file
+replacement by the existing context. Exact deadlines, real input/pixel/disk
+guards and the four-artifact/idempotence contract remain unchanged. Corrected
+local regression and new exact-source CI are required before publication.
+
+The corrected targeted public16/GOWORK=off Windows run passes all three
+strict-cgo/race/shuffle repeats with GPU debug=1, actual 96-DPI awareness and
+small-window conditions: main 66.068s, whole 72.023s, seed 1791415409992643500,
+.cache/app24-ci-fix-native-final-second.log. All three normal workbench children
+and six detail HWND/Node lifecycles pass; ten ordered detail gates, real 2000
+VSIX commands, both keymaps, four reused artifacts and empty private settings/
+scratch/Go temp remain. The first targeted 150.775s failure is separately frozen:
+direct test focus dispatched before a fresh viewport could let PageDown consume
+a zero extent. The fixture now waits for its matching profile/Details/viewport
+and three real completions before the unchanged native key replay. Product
+main and detail implementation bytes are unchanged. Complete default-three
+debug=0/default-policy regression now passes 837.634s, main 486.174s/34.7%,
+.cache/app24-ci-fix-full-windows.log. All default-three package checks, vet,
+AMD64 PE/build and independent console/GUI native modes pass. Known owned
+processes and workspace-bin/private-temp gocode/Node/gopls candidates are absent;
+private settings and temp entries are zero. Root inspects all three current
+150% detail GPU captures with completed-frame floors 6/12/18 and actual matching
+sizes. .cache/app24-ci-fix-validation.json binds nine source hashes, exact public
+module origin/sum, all retained failures, fixed artifacts and cleanup. This is
+a dirty local correction on base 1549cac2; new immutable CI remains required.
+
 Public core v0.16.0 remains the independent GOWORK=off/no-replace dependency.
 Native extension details keep a fixed metadata/actions header and 36-DIP navbar,
 with independently clipped/scrolled measured content and bounded virtual rows.

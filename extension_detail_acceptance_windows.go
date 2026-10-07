@@ -25,20 +25,21 @@ import (
 )
 
 type extensionDetailNativeReport struct {
-	PID             uint32   `json:"pid"`
-	Version         string   `json:"version"`
-	Source          string   `json:"source"`
-	Gates           []string `json:"gates"`
-	DescriptionRows int      `json:"description_rows"`
-	Commands        int      `json:"manifest_commands"`
-	NativeFontWidth float32  `json:"native_font_width"`
-	MaxMeasuredLine float32  `json:"max_measured_line"`
-	ViewportWidth   float32  `json:"viewport_width"`
-	BottomScroll    float32  `json:"bottom_scroll"`
-	ExecutedCommand string   `json:"executed_command"`
-	DiskSHA256      string   `json:"unchanged_disk_sha256"`
-	Backend         string   `json:"renderer_backend"`
-	Submitted       uint64   `json:"submitted_frames"`
+	PID             uint32                        `json:"pid"`
+	Version         string                        `json:"version"`
+	Source          string                        `json:"source"`
+	Gates           []string                      `json:"gates"`
+	DescriptionRows int                           `json:"description_rows"`
+	Commands        int                           `json:"manifest_commands"`
+	NativeFontWidth float32                       `json:"native_font_width"`
+	MaxMeasuredLine float32                       `json:"max_measured_line"`
+	ViewportWidth   float32                       `json:"viewport_width"`
+	BottomScroll    float32                       `json:"bottom_scroll"`
+	ExecutedCommand string                        `json:"executed_command"`
+	DiskSHA256      string                        `json:"unchanged_disk_sha256"`
+	Backend         string                        `json:"renderer_backend"`
+	Submitted       uint64                        `json:"submitted_frames"`
+	Captures        []extensionDetailCaptureProof `json:"captures"`
 }
 
 type extensionDetailNativeState struct {
@@ -278,10 +279,18 @@ func runExtensionDetailAcceptance() error {
 			report.Gates = append(report.Gates, "native-font-and-bounded-description")
 			stage = "pointer-wheel"
 			capture := func(name string) error {
-				pixels, e := window.Capture()
+				// UI layout is ahead of GPU completion. At most two older frames
+				// can still finish; three real subsequent completions establish
+				// that this tree reached the GPU before its pixels are accepted.
+				pixels, proof, e := waitExtensionDetailGPUCapture(ctx, state.frame+3, func() (uint64, error) {
+					current, err := readUI(func() { cx.Invalidate() })
+					return current.frame, err
+				}, window.ClientSize, window.Capture)
 				if e != nil {
 					return e
 				}
+				proof.Name = name
+				report.Captures = append(report.Captures, proof)
 				file, e := os.Create(filepath.Join(filepath.Dir(reportPath), name+".png"))
 				if e != nil {
 					return e
@@ -497,8 +506,13 @@ func runExtensionDetailAcceptance() error {
 				if err != nil {
 					return err
 				}
+				// A focus receipt only changes the model. Old closed-editor GPU
+				// completions can arrive before the reopened viewport is built.
+				// Wait for its real layout and three subsequent completions before
+				// sending PageDown to this newly focused profile.
+				focusReceiptFrame := state.frame
 				state, err = waitUI(func(s extensionDetailNativeState) bool {
-					return s.profile == profile && s.tab == "Details" && s.scroll == 0 && s.frame > state.frame
+					return s.profile == profile && s.tab == "Details" && s.scroll == 0 && s.focused && s.rows > 10 && s.bounds["extension-detail-viewport"].Height > 0 && s.frame >= focusReceiptFrame+3
 				})
 				if err != nil {
 					return err

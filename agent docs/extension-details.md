@@ -253,6 +253,22 @@ remain unchanged. Fixed .cache/live-release-check/v024-preparation.json records
 helper hashes and the preserved v23 evidence; actual release/install runs remain
 pending.
 
+An independent review of these ignored helpers finds a count-only inner detail
+gate check: ten wrong, duplicate or reordered names could pass, and the first
+PowerShell checker accepted an unknown name. That negative control and seven
+pre-correction helper snapshots are retained. Revision R2 now requires the exact
+ten case-sensitive gate names in order in both Go and PowerShell, in addition
+to all original PID/source/root/payload/order guards. The native execution,
+27 outer gates, 8m total limit, signed downloads, rollback and installed 60s
+guards are byte-identical after their validation boundary. Pure strict-cgo/race
+three repeats pass 1.830s, no-cgo 0.680s; all 17 PowerShell negative/positive
+cases pass three repeats in 0.855s, both scripts parse and scratch is empty.
+The source-bound preparation record is
+.cache/live-release-check/v024-preparation-gates-r2.json. It explicitly records
+nativeExecuted=false and no release source; this stronger helper is still only
+prepared until a corrected immutable source passes CI and real released bytes
+are published and exercised.
+
 ## Remaining scope
 
 The Details body currently shows actual manifest/catalog description and
@@ -296,3 +312,80 @@ captures, now reporting version 0.24.0 and checkout base bad4e20; the pre-bump
 snapshot and hashes remain separate. These are unpublished dirty-candidate
 checks. Exact immutable application CI, publication, 27 released-byte gates and
 actual-user installation remain required before promotion.
+
+## Immutable CI failure and synchronization correction
+
+Source 1549cac2d112bb8050b663f18c9e3cc9cc56760d is immutable and untagged.
+[CI 37698299244](https://github.com/neko233-com/gocode/actions/runs/37698299244)
+attempt 1 passes Ubuntu, macOS Intel and ARM, but fails Windows 2022 and 2025.
+Their main package reports 485.330s/34.6% and 552.160s/34.6% respectively;
+the aggregate 12m alarm does not fire. All six native detail repeats report
+the actual public16 resize-lag error at resize-description. Windows 2025 also
+reports Access denied on the geometry request's atomic replacement. Later
+Windows GiB/services/MSI/packaging steps are skipped. Their diagnostic artifacts
+are not tested release packages. No source tag or release is created.
+
+The corrected capture helper waits for three real GPU completions after the
+action, checks the current owned client dimensions before and after capture,
+and retries only the known public16 resize-lag error or a changing image size.
+Other capture/identity failures remain fatal. The existing 50-second acceptance
+context and 60-second child guard remain. Reports record actual completion,
+image size and resize retries for each capture stage; layout state alone is
+never accepted as proof of a newly rendered image.
+
+Both directions of the private geometry observer use bounded 4KiB reads with
+FILE_SHARE_READ/WRITE/DELETE and cancellable atomic replacement. The original
+10-second context, 32-request budget, sequence/PID/view-generation/completed-frame
+checks, actual USER32 clicks and unchanged production main.go remain. Actual
+held-reader negative controls demonstrate that adding delete sharing alone
+does not guarantee MoveFileEx replacement of an open Windows destination.
+Known sharing/lock/access-denied errors retry only within the existing context;
+unknown failures are immediate. Cancellation preserves the previous immutable
+request and removes the owned .pending file. This is test transport, not a
+change to user-file saving or a claim that arbitrary occupied files can be
+overwritten. Fixed failure logs remain separate from corrected local evidence.
+
+An initial corrected targeted run preserves a further fixture failure in
+.cache/app24-ci-fix-native-first-failure.log (main 150.775s). The three normal
+workbench repetitions pass at actual 96 DPI/small window, but two detail runs
+reach their original deadline because direct test-only focus dispatch is
+followed by PageDown before the new viewport exists. An old in-flight completion
+can satisfy a simple frame>previous check. The fixture now requires its exact
+profile/Details tab and nonzero content/rows after the focus receipt, then three
+actual GPU completions before the unchanged USER32 key replay. Product main,
+extension detail UI and keyboard behavior are byte-identical.
+
+The final targeted three-repeat public16/GOWORK=off strict-cgo/race/shuffle run
+passes with debug=1, actual DPIUNAWARE 96 DPI and small-window conditions, main
+66.068s/whole 72.023s, seed 1791415409992643500. Fixed log:
+.cache/app24-ci-fix-native-final-second.log. The normal workbench runs take
+10.57/8.34/8.30s; each detail repetition has two actual HWND/Node children and
+takes 14.05/11.92/11.80s. Original ten gates/2000 commands/two keymaps/four fixed
+artifacts and private scratch/settings/Go temp cleanup pass. This focused proof
+does not replace the complete default-three script or forthcoming exact-source
+Windows CI. Publication and actual-user installation remain pending.
+
+The corrected complete default-three public16/GOWORK=off script then exits 0
+in 837.6336332s, main 486.174s/34.7%, debug=0/default adapter policy.
+.cache/app24-ci-fix-full-windows.log retains every package/vet/build/AMD64 PE
+and standalone console/GUI native result; the original 12m aggregate package
+alarm and per-process/dialog/50/60s/real pixel/disk guards are unchanged.
+The focused non-GUI regression also passes three strict-cgo/race repeats in
+10.110s, including actual held-reader replacement/cancellation and unchanged
+production-source overlay compilation.
+
+Root visually inspects details/narrow/contributions-bottom at actual 150%.
+The report's three capture floors 6/12/18 are met by actual completed 6/12/18,
+with client/image sizes 1920x1230 and 1372x1196 and no resize retries. Header/
+navbar stay fixed, rounded ancestor boundaries contain the rewrapped body, and
+the final real contribution 1999 is visible and executes in Node. Unicode/CRLF
+disk SHA256 d79793cb0662042ea31b20a1f6d7c1189035f41975190a2bb3368c194527e52b
+is unchanged. This is PID 218468/version 0.24.0/base 1549cac2 with dirty correction,
+not that failed immutable source's CI or a released executable.
+
+.cache/app24-ci-fix-validation.json binds exact public16 origin 5178f551,
+module sum, six corrected fixture sources and byte-identical main/detail/view,
+failure and passing logs, four fixed artifacts and actual cleanup. The final
+owned detail PID and all workspace-bin/private-temp gocode/Node/gopls candidates
+are absent; private settings/temp are empty. New exact-source CI is the next
+gate; no tag/release or installed v0.24.0 success is inferred from this local pass.
