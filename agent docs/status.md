@@ -1,5 +1,47 @@
 # Milestone ledger
 
+## Workspace history v0.15.0 promotion (2026-10-07)
+
+Immutable application/package source `9ba89081f8aea463853c58a6c0955a9a91c950af`
+passed all five jobs in [CI 37557043933](https://github.com/neko233-com/gocode/actions/runs/37557043933):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. GOWORK=off/no replace imports
+public core v0.9.0/cb8b077, whose exact all-five CI 37555224866 passed. Full local
+public-module strict-cgo/race/vet/console/GUI regression passed (model 30.2%, search
+81.4%). Native group confirmation/Cancel/All/current-file split and redo preserve
+older history/save points; immutable worker receipts guard every identity/version/
+caret/stack and expired groups. Complete commits precede callbacks and never save
+over external disk bytes. Metadata/worker bounds and remaining gaps are in history.md.
+
+Initial CI 37556152512 exposed a 100% DPI glyph assertion error, reproduced with
+owned pixels and corrected without changing the UI/model. A missing-label overlay
+still fails with zero glyph ink. Final Windows 100% 1024×728 confirmation (314 ink),
+ARM 200% 2048×1368 confirmation (1,091 ink) and Intel 150% 1920×1230 grouped Undo
+PNGs were visually reviewed. Both Mac architectures pass normal/1.5/2 native gates.
+Windows 2025 actual 1,073,741,824-byte single-line race search reports 32.7752619 s /
+748,960 new Go allocation bytes / 2,147,492,044 I/O bytes in this scoped run. Actual
+GiB browser/native navigation and existing VSIX/recovered-gopls/watch/opener/terminal/
+tabs/search/MSI/package gates remain green; timings are not universal guarantees.
+
+[Publication 37558228545](https://github.com/neko233-com/gocode/actions/runs/37558228545)
+reuses tested packages and tags v0.15.0 at 9ba8908. Metadata
+`35bc1bd4108ee8568f0087bca4c2ef537416077e` changes seven known files; two policy
+tests pass. Windows ZIP SHA256 is
+`80606203d889efed6c6b3d38ebb88d3582a97b495a2ca5000534c1f559187c80`; MSI is
+`a56f70df8d61d4bcf91a24f3cb5bf9b4159d8e1f001564989c92110a71cb8406`.
+Real signed automatic/direct/manual ghfast.top archive bodies, all released native
+gates and actual prior v0.4.0/cfcd3513 native GUI rollback pass.
+
+The user's actual v0.14.0 updater selects v0.15.0/source 9ba8908 via direct GitHub.
+Stable MSI/launcher baseline stays 0.5.1. Installed GUI/both icon handles/Settings/
+owned source, grouped history, 40 tabs, search and highlighted real terminal pass;
+ConPTY 1.25.260930003 is verified. The first terminal test invocation omitted the
+GPU readback test environment; enabling it passes without a product change.
+Actual installed 150% modal and Settings PNGs were visually reviewed: Up to date
+(0.15.0), automatic route and gopls ready. Auto=true/mode=auto, both mirrors,
+desktop/nested Start Menu stable launcher targets and normalized user PATH remain.
+Copilot authenticated/LSP/SDK=true, networkPromptSent=false. Full closed-resource/
+provider history, production/GPUI/VS Code/official Copilot VSIX parity stays active.
+
 ## Workspace history candidate (2026-10-07)
 
 Replacement groups now support native multi-file confirmation, worker-prepared

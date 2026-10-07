@@ -56,8 +56,10 @@ not a filesystem-wide transaction against other programs or power loss. A late
 conflict may leave earlier files saved and later buffers dirty. Unsaved counts/
 errors are visible, dirty replacements remain undoable and external bytes are
 preserved. Per-document Undo produces dirty text without silently rewriting disk.
-Grouped workspace undo, individual/file controls, full diff editor, provider/
-encoding/multi-root and large-file editing remain open.
+v0.15.0 adds grouped workspace undo/redo, native confirmation and current-file
+split through public core v0.9.0; exact native/release/install evidence and
+closed-resource/provider gaps are in history.md. Individual replacement controls,
+full diff editor, encoding/multi-root and large-file editing remain open.
 
 ## Evidence
 

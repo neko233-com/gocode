@@ -1,10 +1,10 @@
 # Free distribution contract
 
-Latest promotion: v0.14.0/source de2a98f, five-platform source CI 37552538844 and
-publication 37553566847 reusing tested artifacts. Seven generated metadata files
-at 7749adf passed local policy tests and real signed automatic/direct/manual ZIP
+Latest promotion: v0.15.0/source 9ba8908, five-platform source CI 37557043933 and
+publication 37558228545 reusing tested artifacts. Seven generated metadata files
+at 35bc1bd passed local policy tests and real signed automatic/direct/manual ZIP
 body checks. Released native gates and actual v0.4.0 GUI rollback passed. User
-selected payload is 0.14.0; stable MSI/launcher baseline remains 0.5.1. Actual
+selected payload is 0.15.0; stable MSI/launcher baseline remains 0.5.1. Actual
 installed native/visual/SDK-LSP-without-prompt gates passed with Auto=true/mode=auto.
 Exact hashes and source references are in status.md and distribution/SHA256SUMS.
 

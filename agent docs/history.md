@@ -1,5 +1,13 @@
 # Workspace history contract
 
+Promoted v0.15.0/source 9ba8908 after exact all-five source CI 37557043933 and
+publication 37558228545. Public core v0.9.0/cb8b077 and GOWORK=off/no replace pass.
+Signed direct/automatic/manual mirror archives, released native acceptance and
+actual v0.4.0 GUI rollback pass; the user selects installed v0.15.0 with preserved
+stable entry points/configuration. Final Windows 100%, ARM 200%, Intel 150% and
+installed 150% modal/Settings pixels were visually reviewed. Exact source/hash/
+native/service evidence is in status.md; this does not establish full parity.
+
 Source reference checked 2026-10-07: VS Code main
 `491cf07046747e11065bf5cb1cb96cba7ab81782`.
 [UndoRedoService](https://github.com/microsoft/vscode/blob/491cf07046747e11065bf5cb1cb96cba7ab81782/src/vs/platform/undoRedo/common/undoRedoService.ts)
