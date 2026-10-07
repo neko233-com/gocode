@@ -56,7 +56,7 @@ are skipped. Ignored open editor snapshots remain searchable through explicit fi
 This is Go/RE2 regex syntax, including multiline expressions; PCRE2 lookaround and
 backreferences are not supported. Global Git excludes, .ignore variants, complete
 VS Code settings/encoding/provider integration and result-tree collapse remain
-gaps. Native workspace replacement is implemented in the v0.14.0 candidate;
+gaps. Native workspace replacement is verified and published in v0.14.0;
 [replace.md](replace.md) records preview/commit/save behavior, verification and
 remaining global-undo/individual/diff/regex compatibility gaps. Full VS Code
 search/replace parity is not yet achieved.

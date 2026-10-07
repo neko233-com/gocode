@@ -79,6 +79,11 @@ to activate its document and missed unsaved input; it is fixed. A subsequent run
 exposed actual lost focus on blank-editor clicks; production input now focuses
 the closest real line and the unchanged native undo scenario passes.
 
-Windows console/GUI and Mac Intel/ARM normal/1.5/2 gates are wired. Cross-platform,
-public-package/released-byte and installed promotion remain pending for v0.14.0.
-Published/installed application remains v0.13.0.
+Immutable v0.14.0/source de2a98f passed all five source jobs in CI 37552538844,
+including Windows console/GUI and Mac Intel/ARM normal/1.5/2 native gates.
+Publication 37553566847 reused tested packages. Released-byte replacement and
+other native gates, signed actual direct/mirror ZIP integrity, original v0.4.0
+native rollback and the user's installed 0.14.0 GUI/replace/SDK-LSP checks pass.
+Windows 100% preview, ARM 200% changed-review, Intel 150% Undo and installed
+150% preview/Settings PNGs were visually reviewed. Exact source/hash/install
+scope and remaining parity gaps are in status.md.

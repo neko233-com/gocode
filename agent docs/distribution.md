@@ -1,10 +1,10 @@
 # Free distribution contract
 
-Latest promotion: v0.13.0/source d4a869e, five-platform source CI 37547147426 and
-publication 37548090734 reusing tested artifacts. Seven generated metadata files
-at c708e34 passed local policy tests and real signed automatic/direct/manual ZIP
+Latest promotion: v0.14.0/source de2a98f, five-platform source CI 37552538844 and
+publication 37553566847 reusing tested artifacts. Seven generated metadata files
+at 7749adf passed local policy tests and real signed automatic/direct/manual ZIP
 body checks. Released native gates and actual v0.4.0 GUI rollback passed. User
-selected payload is 0.13.0; stable MSI/launcher baseline remains 0.5.1. Actual
+selected payload is 0.14.0; stable MSI/launcher baseline remains 0.5.1. Actual
 installed native/visual/SDK-LSP-without-prompt gates passed with Auto=true/mode=auto.
 Exact hashes and source references are in status.md and distribution/SHA256SUMS.
 
@@ -65,17 +65,17 @@ The local installation target is the user's per-user Programs directory, with a
 gocode command and Start Menu/desktop access; verify real installed launch/update
 settings. Never install test payloads over an unrelated application.
 
-Current verified install: v0.13.0/source d4a869e payload selected by the original
+Current verified install: v0.14.0/source de2a98f payload selected by the original
 v0.5.1 MSI stable launcher through its actual -update command and signed/hashed
 public ZIP. The baseline installer and launcher file versions remain 0.5.1 until
-an MSI upgrade; -version reports the selected 0.13.0 source. The embedded official
+an MSI upgrade; -version reports the selected 0.14.0 source. The embedded official
 ConPTY runtime, actual native highlighted terminal, icons/GUI/settings, native
-search, tabs and measured-caption gates passed after installation.
+search/replacement, tabs and measured-caption gates passed after installation.
 Released-byte gopls recovery and external file-watch/reload/conflict/VSIX controls
 also pass; these remain separate from the installed GUI/SDK checks.
 Auto=true/mode=auto is retained. The owned update
 root rolled back to the original v0.4.0 and rendered its GUI with shared extensions.
-v0.13.0 automatic direct GitHub routing and a separate full direct download succeeded;
+v0.14.0 automatic direct GitHub routing and a separate full direct download succeeded;
 manual ghfast.top also passed signed SHA256. The earlier v0.6.0 direct timeout
 remains historical evidence; a range probe alone never establishes body success.
 The unmodified fsnotify BSD notice is appended to existing packaged LICENSE.txt.

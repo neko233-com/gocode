@@ -1,5 +1,48 @@
 # Milestone ledger
 
+## Native workspace replacement v0.14.0 promotion (2026-10-07)
+
+Immutable application/package source `de2a98fb0a041cd88c0ec5ac658bb2fd41a62f9b`
+passed all five jobs in [CI 37552538844](https://github.com/neko233-com/gocode/actions/runs/37552538844):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. GOWORK=off independently uses
+public godesktop v0.8.0/source d5d139d, whose all-five CI 37549368977 also passed.
+Local full strict-cgo/race/vet and console/GUI suites pass (search 81.4%). New
+replacement planning, prepared all-buffer adoption, per-file saves/conflicts/undo,
+blank-editor focus and captured-preview identity accompany existing real VSIX,
+opener/watch/recovered-gopls/terminal/tabs/search/large/MSI/package gates.
+
+Mac normal/1.5/2 gates pass actual owned events and completed Metal pixels.
+ARM dimensions are 1024×684 / 1536×1026 / 2048×1368; Intel dimensions are
+1280×820 / 1920×1230 / 2560×1640. Windows 2022 100% preview, ARM 200% changed
+review and Intel 150% Undo PNGs were visually inspected. Windows 2025 actual
+1,073,741,824-byte single-line race search reported 32.0390007 s / 748,656 new
+Go allocation bytes / 2,147,492,044 measured I/O bytes. Native GiB search and
+navigation also passed. Timing is scoped to that run, distinct from prior runs.
+
+[Publication 37553566847](https://github.com/neko233-com/gocode/actions/runs/37553566847)
+reused the exact tested packages and published v0.14.0 at de2a98f. Metadata
+`7749adfab8d4d68ed4e24a7fd635ded9ecf0349d` changes only seven known channel files;
+two Python policy tests pass. Windows ZIP SHA256 is
+`5dab3d34039fa7d2622173cad7855f46f7202f76c1051974f7c5941b19156dea`; MSI is
+`7ffdbb25771391a2f21a36fc0da2b7a53950a61f9357f2139cae5c77fedfac45`.
+Real signed automatic GitHub update plus independent full direct/manual ghfast.top
+ZIP integrity pass. Released bytes pass new native replacement and existing
+large/four-close/editor/VSIX/terminal/recovered-gopls/watch/opener/UI/tabs/search
+gates. Actual prior v0.4.0/source cfcd3513 renders after owned rollback with shared
+extensions; health/version-only checks would not prove native startup.
+
+The user's actual v0.13.0 updater selected 0.14.0/source de2a98f via direct GitHub.
+Baseline MSI/launcher remains 0.5.1. Installed GUI/icons/Settings/source preservation,
+replacement/search/40-tab/caption/highlighted terminal, embedded official ConPTY
+1.25.260930003 and update checks pass. Actual preview and Settings 1920×1230 /
+150% PNGs were visually reviewed: Up to date (0.14.0), auto route and gopls ready.
+Auto=true/mode=auto, both mirrors, desktop/nested Start Menu stable launcher targets
+and normalized user PATH are preserved. Copilot authenticated/LSP/SDK=true;
+networkPromptSent=false. Replacement is an atomic UI buffer batch followed by
+individual disk saves; late conflicts retain undoable dirty text, not filesystem-
+wide atomicity. Exact limits/global undo/individual/diff/JS/PCRE2 gaps are in
+replace.md. Full production/GPUI/VS Code/official Copilot VSIX parity remains active.
+
 ## Native workspace replacement candidate (2026-10-07)
 
 Source uses independently downloaded public godesktop v0.8.0/source d5d139d,
