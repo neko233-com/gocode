@@ -1,10 +1,10 @@
 #!/bin/sh
 set -eu
 [ "$(uname -s)" = Darwin ] || { echo 'This installer requires macOS' >&2; exit 1; }
-task_version='0.13.0'
+task_version='0.14.0'
 task_route=${GOCODE_UPDATE_MODE:-auto}
 task_mirror=${GOCODE_UPDATE_MIRROR:-}
-case "$(uname -m)" in arm64) task_arch=arm64; task_hash='8781bbccb2ef6d4e27547b514f56d905680a32130982a903be098bd92909f651';; x86_64) task_arch=amd64; task_hash='bdaa22c8474e0f58293abd16435a319cce52425cc7d367126ae5a0ca9bfca251';; *) echo 'Unsupported macOS architecture' >&2; exit 1;; esac
+case "$(uname -m)" in arm64) task_arch=arm64; task_hash='541819f684f41ea1d55b5dc0fe7201a584eb674095f58258979c269a81d9e2c4';; x86_64) task_arch=amd64; task_hash='41c244f15aa9e1843985548097c3ae98b490d818ccb5bfcc5a15863524ebf5d6';; *) echo 'Unsupported macOS architecture' >&2; exit 1;; esac
 task_destination="$HOME/Applications/gocode.app"
 task_command="$task_destination/Contents/MacOS/gocode"
 if [ -e "$task_destination" ]; then
