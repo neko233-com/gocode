@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 func TestTerminalOptionsRejectBeforeStartup(t *testing.T) {
@@ -28,6 +30,22 @@ func TestTerminalOptionsRejectBeforeStartup(t *testing.T) {
 	cancel()
 	if _, err := prepareExtensionTerminal(ctx, t.TempDir(), options, true); err == nil {
 		t.Fatal("cancelled request reached preparation")
+	}
+}
+
+func TestTerminalDefaultNamePreservesUnicodeProtocolBound(t *testing.T) {
+	directory := t.TempDir()
+	path := filepath.Join(directory, strings.Repeat("界", 90)+".exe")
+	if err := os.WriteFile(path, nil, 0700); err != nil {
+		t.Fatal(err)
+	}
+	config, err := prepareExtensionTerminal(context.Background(), directory, terminalLaunchOptions{ShellPath: path}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer config.Discard()
+	if !utf8.ValidString(config.Name) || len(config.Name) > 256 || config.Name != strings.Repeat("界", 85) || config.Command[0] != path {
+		t.Fatal("default name corrupted the snapshot or executable path", config.Name, config.Command)
 	}
 }
 

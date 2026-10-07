@@ -189,6 +189,12 @@ func prepareExtensionTerminal(ctx context.Context, workspace string, options ter
 	if options.Name != "" {
 		config.Name = options.Name
 	}
+	if len(config.Name) > 256 {
+		config.Name = config.Name[:256]
+		for !utf8.ValidString(config.Name) {
+			config.Name = config.Name[:len(config.Name)-1]
+		}
+	}
 	return config, nil
 }
 
