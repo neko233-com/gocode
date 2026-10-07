@@ -41,3 +41,12 @@ and 200% PNGs were inspected. VERSION 0.18.0 now imports public v0.11.0 with
 GOWORK=off/no replace. Independent application native CI/release and installation
 remain pending. Public/installed app stays v0.17.0 until promotion is complete.
 Independent public-module strict-cgo/three-repeat race/vet now pass locally.
+
+Public/installed v0.18.0 source 10bebade1495f234d8bf52cba72491ad598421c9 now passes
+all five jobs in CI 37575737909; publication 37576841022 reuses those packages.
+Both Mac architectures pass normal/1.5/2 terminal and editor color pixels.
+Actual ARM 200% terminal and Intel 150% split PNGs were inspected. Each 200%
+terminal report has 717 intrinsic yellow emoji pixels; independent split counts
+are ARM 5125/5200 and Intel 7482/7448 at 150%. Exact release hashes, signed
+direct/mirror bodies, rollback, installed actual GiB/GUI/Settings/ConPTY and
+unchanged config/PATH evidence are recorded in status.md. Full parity stays open.

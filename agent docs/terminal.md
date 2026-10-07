@@ -1,6 +1,6 @@
 # Native terminal contract
 
-Latest reference (2026-10-07): VS Code main bf519293a7de013c7e3897185784065b0799c9f2,
+Theme reference (2026-10-07): VS Code main bf519293a7de013c7e3897185784065b0799c9f2,
 extensions/theme-defaults/themes/dark_modern.json and terminalColorRegistry.ts.
 Dark Modern terminal foreground is #CCCCCC; unset terminal.background inherits
 panel #181818. Native terminal default/cell backgrounds now follow that panel
@@ -10,9 +10,12 @@ Terminal process I/O, VT parsing and shell preparation run in owned workers.
 Only immutable cell snapshots and native view/input state cross the UI thread.
 No Electron, xterm.js or browser surface is involved.
 
-Candidate cross-platform owned drawable color/emoji PNG/JSON gates and the
+Public v0.18.0 cross-platform owned drawable color/emoji PNG/JSON gates and the
 previous Mac no-op capture gap are documented in color-glyphs.md. Mac terminal
 window-width resize and full native color fonts on Windows remain unverified.
+Both Mac architectures pass normal/1.5/2 terminal density; actual ARM 200% PTY
+output shows native emoji details and ANSI/shell highlighting. Release and
+installed source/hash/ConPTY/settings/rollback evidence is in status.md.
 
 ## Processes and shells
 

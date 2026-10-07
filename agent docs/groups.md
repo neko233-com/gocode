@@ -99,9 +99,12 @@ and installed GUI/actual GiB split/Settings gates pass. Exact hashes and source
 evidence are in status.md. Windows 100%, ARM 200%, Intel 150% and installed 150%
 PNG frames were visually reviewed. Mac emoji appears as a solid monochrome fallback
 in these captures; correct emoji glyph/color rendering remains a framework gap.
+Those v0.16/v0.17 captures are historical. Public/installed v0.18.0 imports
+core v0.11.0 and passes actual intrinsic Mac emoji pixels in both split views;
+both Mac normal/1.5/2 source gates and selected PNGs are verified in color-glyphs.md.
 
 Full group persistence/restoration, tab move/drop/docking, configurable layouts,
-multi-window and VSIX visibleTextEditors/viewColumn integration remain gaps.
+multi-window and complete VSIX tabGroups/options/decorations remain gaps.
 The native gate currently drags the horizontal sash and checks nested vertical
 geometry; it does not independently prove vertical-sash native dragging. Complete
 IME/grapheme/bidi/multicursor/accessibility, SCM/DAP and official Copilot VSIX

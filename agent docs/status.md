@@ -1,5 +1,50 @@
 # Milestone ledger
 
+## Native color and terminal pixels v0.18.0 promotion (2026-10-07)
+
+Immutable source/package `10bebade1495f234d8bf52cba72491ad598421c9` passes all five
+jobs in [CI 37575737909](https://github.com/neko233-com/gocode/actions/runs/37575737909):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. GOWORK=off/no replace imports
+public godesktop v0.11.0/6706e59, whose exact all-five CI 37574802922 and Intel
+ordinary/readback/color/recovery diagnosis 37574803095 pass. Static slot/explicit
+LOD sampling fixes the earlier Intel regression without relaxed deadlines.
+Independent local strict-cgo/three-repeat race/vet, complete console/GUI Windows
+native regression, no-cgo fallback and actionlint/ShellCheck/diff checks pass.
+Model coverage is 31.3%, search 81.4%; native pixel gates are separate evidence.
+
+Both Mac architectures pass normal/1.5/2 actual terminal command/string/ANSI/emoji
+pixels and editor split colors. ARM 200% terminal (2048×1368) and Intel 150% split
+(1920×1230) PNGs were inspected. Their 200% terminal reports each record 717
+intrinsic emoji pixels; initial 150% split counts are ARM 5125/5200 and Intel
+7482/7448. Owned source artifacts supply exact PNG/JSON evidence; authenticated
+range reads retrieved selected ZIP entries with CRC validation after a partial
+full-artifact extraction. Windows local and installed 150% terminal/Settings
+frames were also inspected. Go/PTY renderer pixels are not browser screenshots.
+
+[Publication 37576841022](https://github.com/neko233-com/gocode/actions/runs/37576841022)
+tags exact source and reuses tested packages. Metadata `da39222` changes exactly
+seven free distribution files; both Python policy tests pass. Windows ZIP SHA256
+is `f5dc457906806ce1de11f4d9b99b7c003ba835927d9471b146ef2006f042d6cb`;
+MSI is `45f9ebc0dbb46c10949ca21e67efe13e7e0a049ad1f9fc7817c5520f6bc99a89`.
+Actual signed automatic/direct GitHub/manual ghfast.top archive bodies, all
+released native gates and real prior v0.4.0 GUI rollback pass.
+
+User stable 0.5.1 launcher updates actual v0.17→v0.18 via direct GitHub; selected
+source is 10bebade1495f234d8bf52cba72491ad598421c9. Installed GUI, both icon handles,
+Settings, groups/VSIX, actual 1,073,741,824-byte split with unchanged whole hash,
+highlighted ConPTY and source checks pass. Settings shows Up to date (0.18.0),
+automatic updates/route and gopls ready. Config SHA256 remains
+d8a85199a0018d88355ab5786881c778dc63596858a58bbe64fde8f799c9ed5f; user PATH remains
+aec04bdd1653d4c8c70dc2b50aec868029787ecf0cc34cbd1f4a9f7df3d30aa3. Desktop and
+Start Menu shortcuts still target the stable gocode-launch.exe. Official Copilot
+authenticated/LSPInitialized/SDKConnected=true; networkPromptSent=false.
+
+Windows color fonts, Mac terminal native width resize, complete editor
+IME/grapheme/bidi/multicursor/accessibility, tabGroups/preview/pin/docking and
+multi-window, SCM/DAP/tasks/remote/webviews and full VS Code/GPUI/official Copilot
+VSIX parity remain active. Copilot retains the accepted SDK/Language Server route.
+See color-glyphs.md for actual bounds, diagnostic scope and maintained gaps.
+
 ## Candidate native color and terminal pixels (2026-10-07)
 
 The Mac alpha-only emoji gap is being fixed in the parent Metal atlas with
