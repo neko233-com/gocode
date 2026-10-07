@@ -16,6 +16,7 @@ func (m *model) documentEvent(kind string, d *document, change textbuffer.Change
 		m.searchChanged(m.native)
 	}
 	if kind == "focus" {
+		m.dismissSCMDiff()
 		m.openSequence++
 	}
 	if m.publishWatches != nil && kind != "selection" {
@@ -148,6 +149,9 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 			}
 		}
 		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
+	}
+	if m.scmInput(cx, e) {
+		return true
 	}
 	if m.groupInput(cx, e) {
 		return true

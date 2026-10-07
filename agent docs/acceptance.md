@@ -1,5 +1,13 @@
 # Acceptance contract
 
+- Git: -scm-smoke owns a real temporary repository, identity and hooks directory.
+  Actual native pointer controls stage/unstage/restage and commit the real index;
+  original/staged Unicode/CRLF GPU diff pixels and final HEAD/index/source bytes
+  must agree. Windows console/GUI and Mac normal/1.5/2 retain PNG/JSON evidence.
+  Real Git worktree/SHA256/conflict/submodule/ignored/rename fixtures, process-tree
+  cancellation, bounded output/stdin and parser fuzz complement native checks.
+  Dirty sources and newer tab focus remain protected. See scm.md for scope.
+
 - Extension terminals: -terminal-vsix-smoke installs a real VSIX and exercises
   actual native PID/cwd/strict environment, ordered Unicode sendText/default
   execution, hidden/show/hide/preserveFocus and ANSI/emoji GPU pixels. Stable API

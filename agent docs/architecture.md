@@ -10,6 +10,12 @@ explicitly where full editing/language-service capabilities are limited.
 
 ## Services
 
+Git Source Control runs installed Git in one cancellable, bounded worker with
+real immutable status/index/diff snapshots. Native controls perform actual index
+and HEAD actions; stale index/HEAD and unsaved source guards preserve user work.
+Delayed diff results cannot steal newer editor focus. Process ownership, bounds,
+real Git/native evidence and remaining SCM/merge/provider gaps are in scm.md.
+
 Native startup uses an empty model plus bounded Explorer/open workers. Live
 documents are UI-owned; disk jobs build private buffers, transfer once and dispose
 unadopted large indexes before continuing. Tickets guard focus/closed identity;

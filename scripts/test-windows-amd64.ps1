@@ -95,6 +95,9 @@ try {
     & ./bin/gocode.exe -terminal-vsix-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native VSIX terminal PID/cwd/env/input/events/process cleanup failed.' }
     Invoke-CheckedGUI -terminal-vsix-smoke
+    & ./bin/gocode.exe -scm-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native real Git index/HEAD/diff/stage/unstage/commit failed.' }
+    Invoke-CheckedGUI -scm-smoke
     & ./bin/gocode.exe -extensions-dir .cache/extensions -filewatch-smoke -lsp=false
     if ($LASTEXITCODE -ne 0) { throw 'Native external file watch/VSIX acceptance failed.' }
 } finally {

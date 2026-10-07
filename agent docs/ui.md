@@ -1,5 +1,10 @@
 # Native workbench visual contract
 
+Latest reference rechecked 2026-10-07: stable 1.141.0 (published 11:01 UTC) and
+main 9fcc9a12e1c6bd8bfcf4c77b3cdd4a854cc43c12. Current Dark Modern source was
+read again; asset/theme measurement provenance below remains its original pin.
+Native Git/diff visual and actual index/HEAD acceptance is recorded in scm.md.
+
 Reference checked 2026-10-07: VS Code stable 1.140.0 and main
 `1d25d5df846ea8edf8d0d6e2c742e8dda9d4916b`. Source measurements:
 [titlebar CSS](https://github.com/microsoft/vscode/blob/1d25d5df846ea8edf8d0d6e2c742e8dda9d4916b/src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css)

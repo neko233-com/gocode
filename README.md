@@ -49,6 +49,7 @@ go.mod 固定依赖公开发布的 godesktop v0.13.0，没有本地 replace，�
 
 ## 编辑与扩展
 
+- v0.21.0 候选版增加真实 Git 工作台：Ctrl/Cmd+Shift+G、初始化、暂存/取消暂存、提交与原生左右差异视图，保留未暂存内容和未保存文档。需要已安装 Git；跨平台/发行状态与范围见 [Git 工程记录](agent%20docs/scm.md)。
 - UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。
 - v0.20.0 将 VSIX Terminal API 连接真实 ConPTY/PTY：创建/PID/cwd/env/Unicode 输入、显示/隐藏/焦点与生命周期事件，扩展销毁和用户关闭会回收进程。公开模块、五平台/发行/本机验收，以及 Pseudoterminal/shell integration 等缺口，见 [终端工程记录](agent%20docs/terminal.md)。
 - v0.19.0 使用公开核心保留 Windows 与 Mac 彩色 emoji 的原生 RGBA、透明度和裁剪；普通文字与彩色字形混合批次仍有界。Windows ConPTY 的实际彩色 emoji 输出和编辑器分栏 GPU 像素验收见 [彩色字形记录](agent%20docs/color-glyphs.md)。
@@ -70,7 +71,7 @@ go.mod 固定依赖公开发布的 godesktop v0.13.0，没有本地 replace，�
 
 普通文件最多 8 MiB 使用版本化编辑；较大的 UTF-8 文件进入有界内存的只读浏览。Ctrl/Cmd+G 输入行号或 `:字节位置`，滚轮/PageUp/PageDown/拖动滚动条导航；超长单行通过字节视图浏览，Ctrl/Cmd+C 复制当前页面。真实 1 GiB 文本和单行文件均有验收。[大文件策略](docs/large-files.md) 记录内存、速度和边界。
 
-文件树目前最多 250 项，普通编辑视图单行显示最多 400 个 rune。跳过 .git、.cache、node_modules、vendor、bin 和符号链接。完整 IME、字素簇/双向文本导航、多光标、Git 操作、DAP、webview、远程扩展等仍需实现。
+文件树目前最多 250 项，普通编辑视图单行显示最多 400 个 rune。跳过 .git、.cache、node_modules、vendor、bin 和符号链接。完整 IME、字素簇/双向文本导航、多光标、Git 合并/历史/远程操作、DAP、webview、远程扩展等仍需实现。
 
 ## 原生终端
 
@@ -112,6 +113,7 @@ Ctrl/Cmd+I 打开原生聊天面板，Enter 发送，Cancel/Esc 取消。语言�
 powershell -ExecutionPolicy Bypass -File scripts/test-windows-amd64.ps1
 go run . -editor-smoke -extensions-dir .cache/acceptance-extensions
 go run . -tabs-smoke
+go run . -scm-smoke
 go run . -search-smoke -search-smoke-mib 1024
 go run . -largefile-smoke -largefile-smoke-mib 1024
 go run . -lsp-smoke
@@ -126,4 +128,4 @@ CI 覆盖 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd6
 
 MIT License。VS Code 界面/API 作为参考，项目与 Microsoft 无隶属关系。官方 Copilot 运行时按其上游许可通过 npm 单独安装。
 
-工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到 2026-10-07 main `a4a3dff`（stable 1.140.0）；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，资源固定版本与 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。
+工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到 2026-10-07 main `9fcc9a1`（stable 1.141.0）；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，资源固定版本与 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。

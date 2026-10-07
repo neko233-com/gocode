@@ -13,8 +13,8 @@ Intrinsic emoji and actual cross-platform terminal GPU acceptance are in
 Open editable-file watching/reload/conflict contracts are in [files](files.md).
 The existing docs/vscode-parity.md remains the API/function coverage ledger.
 
-Reference: latest stable VS Code 1.140.0 and current main
-`3f07e1aba32acacb8b08ae91bfdc954b580ad1fd` (2026-10-07). Use source measurements,
+Reference: latest stable VS Code 1.141.0 and current main
+`9fcc9a12e1c6bd8bfcf4c77b3cdd4a854cc43c12` (2026-10-07). Use source measurements,
 colors/fonts/layout and native screenshots, rather than remembered old UI details.
 
 Production promotion requires real core/editor/process/native/visual/installer
@@ -30,3 +30,6 @@ Workspace grouped undo/redo, confirmation/split and preparation are in
 
 Native split ownership, independent views, scoped close and shared large readers
 are in [groups](groups.md).
+
+Native repository status, real index/HEAD actions, bounded side-by-side diff and
+owned Git process cancellation are in [SCM](scm.md).

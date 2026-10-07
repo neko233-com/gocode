@@ -119,6 +119,8 @@ jobs:
             .cache/terminal-native/*.json
             .cache/terminal-vsix/*.png
             .cache/terminal-vsix/*.json
+            .cache/scm-native/*.png
+            .cache/scm-native/*.json
             .cache/filewatch-native/*.png
             .cache/filewatch-native-lsp/*.png
             .cache/open-native/*.png
@@ -203,6 +205,9 @@ jobs:
           ./bin/gocode -terminal-vsix-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_TERMINAL_VSIX_SCREENSHOTS=.cache/terminal-vsix-150 ./bin/gocode -terminal-vsix-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_TERMINAL_VSIX_SCREENSHOTS=.cache/terminal-vsix-200 ./bin/gocode -terminal-vsix-smoke
+          ./bin/gocode -scm-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_SCM_SCREENSHOTS=.cache/scm-native-150 ./bin/gocode -scm-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_SCM_SCREENSHOTS=.cache/scm-native-200 ./bin/gocode -scm-smoke
           ./bin/gocode -extensions-dir .cache/extensions -filewatch-smoke -lsp=false
       - name: Install pinned official Copilot sidecars
         run: ./bin/gocode -install-copilot
@@ -270,6 +275,12 @@ jobs:
             .cache/terminal-vsix-150/*.json
             .cache/terminal-vsix-200/*.png
             .cache/terminal-vsix-200/*.json
+            .cache/scm-native/*.png
+            .cache/scm-native/*.json
+            .cache/scm-native-150/*.png
+            .cache/scm-native-150/*.json
+            .cache/scm-native-200/*.png
+            .cache/scm-native-200/*.json
             dist/*.zip
             dist/*.tar.gz
           include-hidden-files: true
@@ -301,5 +312,7 @@ jobs:
         env:
           CGO_ENABLED: '0'
         run: go test ./...
+      - name: Fuzz bounded Git porcelain parsing
+        run: go test -run '^$' -fuzz '^FuzzPorcelainStatus$' -fuzztime=10s -parallel=2 ./internal/git
       - name: Verify generated channel hashes and input policy
         run: python3 -m unittest discover -s scripts -p '*_test.py'

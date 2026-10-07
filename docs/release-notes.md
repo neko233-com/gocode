@@ -1,9 +1,33 @@
-gocode v0.19.0 uses public godesktop v0.12.0 to preserve intrinsic Windows color-font glyphs. Native DirectWrite shaping/fallback feeds bounded Direct2D COLR/COLRv1 RGBA cache pages; ordinary text keeps R8 and its foreground tint. Colored details are rasterized at a bounded physical baseline phase and placed without a second filter. Opacity, shader clipping and one mixed GPU batch remain effective. Generated DXIL is tracked by cgo, and explicit nonuniform indexing passes the existing GPU-validation lifecycle gates.
+gocode v0.21.0 adds native Source Control using real installed Git and public
+godesktop v0.13.0. Ctrl/Cmd+Shift+G opens repository status, initialization,
+individual/all staging and unstaging, a Unicode commit message and index-only
+commit. Existing identity/hooks/signing settings are respected. Dirty open
+documents and stale HEAD/index snapshots reject unsafe actions; unstaging and
+committing preserve working-tree bytes.
 
-Windows and Mac native split gates require actual yellow emoji pixels in both editor viewports. The real Windows ConPTY command now emits emoji inside its ANSI truecolor output; the decoded frame must contain the complete colored sequence, followed by actual owned GPU color pixels. Existing input highlighting, keyboard, grid/window resize, Ctrl+C, shell exit, shared-source, VSIX, UTF-16/CRLF/save, LSP, search/history, actual GiB and installer checks remain required. Both Mac architectures retain normal/1.5/2 terminal and editor checks.
+Clicking a resource opens a native read-only side-by-side diff with aligned line
+numbers, syntax colors, red/green changes and virtual synchronized scrolling.
+Original/staged/worktree text is derived from exact bounded snapshots. Literal
+Unicode/CRLF/rename paths, SHA256 repositories and linked worktrees are covered;
+binary metadata, large-file bounds, conflicts and submodules fail explicitly.
+Returning to an editor tab restores editing, and delayed diff jobs preserve newer
+focus. Escape/Ctrl+W closes the diff; page/arrow/home/end navigate its rows.
 
-Publication requires successful exact-source five-platform CI and reuses its tested MSI/ZIP and Mac bundles. Signed automatic/manual updates retain direct/mirror routing, rollback and settings/PATH preservation. Copilot continues through the accepted official SDK/Language Server route while VSIX compatibility expands.
+Git operations use a bounded cancellable worker. Windows launches suspended with
+only owned stdio handles and joins a kill-on-close Job Object before execution;
+Mac/Linux use owned process groups. Actual descendant cancellation, Unicode
+stdin, stdout/stderr caps, malformed status records and real Git repository
+fixtures complement the native pointer stage/unstage/restage/commit gate.
+Windows console/GUI and both Mac architectures retain GPU diff PNG/JSON evidence,
+including Mac normal/1.5/2 densities. Existing terminal/VSIX/large-file/editor/LSP
+regressions remain required.
 
-Windows PowerShell sessions explicitly select UTF-8 for Console input/output and native pipelines after loading user profiles. This fixes real Console.WriteLine Chinese/emoji output becoming question marks with inherited OEM code pages. Actual PowerShell 7 and 5.1 regression processes start with OEM 437/ASCII and require decoded ANSI-colored Unicode output; profile files and the system locale remain untouched.
+Publication requires successful exact-source five-platform CI and reuses its
+tested packages. Free signed metadata, direct/mirror updates, rollback and user
+settings/PATH preservation remain supported. Copilot continues through the chosen
+official SDK/Language Server route while VSIX compatibility expands.
 
-Dedicated third-party SVG/bitmap/currentColor font fixtures, Mac terminal native window-width resize, complete tabGroups/preview/pin/docking/persistence, editor options/decorations/snippets/undo merging, multi-window, IME/grapheme/bidi/multicursor/accessibility, SCM/DAP/tasks/remote/webviews and full VS Code/GPUI/official Copilot VSIX parity remain active work. Exact source, package, release and installed evidence belongs in agent docs/status.md and color-glyphs.md.
+Full diff editing/hunk staging, merge/history/branch/remote/multi-repository and
+extension SCM APIs remain pending, alongside full VS Code/GPUI/Copilot VSIX
+parity. Precise bounds and source/release/installed evidence are recorded in
+agent docs/scm.md and status.md.

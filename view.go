@@ -55,6 +55,8 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		activities = append(activities, ui.Row(ui.Column().Width(2).Background(indicator), ui.Icon(name).Width(46).Height(48).Foreground(ui.RGB(color))).Height(48).Key("activity-"+name).OnClick(func(c *ui.Context) {
 			if name == "search" {
 				m.showSearch(c)
+			} else if name == "source-control" {
+				m.showSCM()
 			} else {
 				m.activity = name
 				m.palette = false
@@ -166,7 +168,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	if d := m.current(); d != nil && d.diskConflict != nil {
 		visible = max(1, visible-2)
 	}
-	if m.groups.root == nil {
+	if m.scm.diff != nil {
+		parts = append(parts, m.scmDiffView(cx, visible).Flex(1))
+	} else if m.groups.root == nil {
 		parts = append(parts, m.codeView(visible).Flex(1).Key("editor-content"))
 	} else {
 		width, _ := cx.WindowSize()
@@ -265,11 +269,11 @@ func (m *model) sidebar(cx *ui.Context) *ui.Element {
 			children = append(children, button(c.Title, "extension-"+c.ID, func(*ui.Context) { m.execute(c.ID) }).Height(32))
 		}
 	case "source-control":
-		children = append(children, label("Source control is planned.").PaddingXY(12, 0).Height(32), label("Open files remain editable.").PaddingXY(12, 0).Height(32))
+		children = append(children, m.scmSidebar(cx))
 	case "debug":
 		children = append(children, label("No debug adapter configured.").PaddingXY(12, 0).Height(32), button("Open command palette", "debug-palette", func(*ui.Context) { m.palette = true }).Height(32))
 	}
-	if m.activity != "search" {
+	if m.activity != "search" && m.activity != "source-control" {
 		children = append(children, spacer())
 	}
 	if m.activity == "files" {

@@ -41,6 +41,7 @@ type model struct {
 	tabs                                               editorTabState
 	groups                                             editorGroups
 	search                                             searchState
+	scm                                                scmState
 	history                                            workspaceHistory
 	activity, panel                                    string
 	showPanel, palette, editing                        bool

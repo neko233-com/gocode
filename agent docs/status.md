@@ -1,5 +1,23 @@
 # Milestone ledger
 
+## Candidate native Git v0.21.0 (2026-10-07)
+
+Actual Windows HWND pointer stage/unstage/restage/commit passes and checks real
+HEAD/index/disk plus Unicode/CRLF original/staged GPU diff pixels. Captured
+working/staged PNGs were inspected. Real Git tests cover literal rename/deletion,
+binary, stale index, worktrees, SHA256, conflicts/submodules and bounded rejection
+of an actual 1 GiB sparse file. Owned Windows child-tree cancellation, exact
+Unicode stdin and output/error caps pass. Parser fuzz ran 517,473 executions.
+Diff selection is read-only; late results preserve newer editor focus. Source
+CI now wires console/GUI Windows and normal/1.5/2 Mac native Git acceptance.
+Independent Windows strict-cgo/three-repeat race/vet and full console/GUI native
+regressions pass (model 30.7%, Git 79.1%, search 81.4%). Final parser validation
+also passes three-repeat race and a second 470,413-execution fuzz run; no-cgo,
+actionlint/ShellCheck and diff checks pass. Latest VS Code stable 1.141.0/main
+9fcc9a1 was rechecked. Exact source CI, immutable release and installed promotion
+are pending. Public/installed v0.20.0 below remains authoritative.
+See scm.md for exact limits and remaining merge/history/remote/provider gaps.
+
 ## Native VSIX terminal v0.20.0 promotion (2026-10-07)
 
 Immutable application/package source `05ae59a211ca6649553682ab609d938600c6a86a`
