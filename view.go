@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
@@ -41,6 +42,7 @@ func codeFont() string {
 }
 
 func (m *model) view(cx *ui.Context) *ui.Element {
+	m.observeAutoSaveFocus(time.Now())
 	defer func() {
 		if m.publishEditors != nil {
 			m.publishEditors(0)
@@ -234,8 +236,7 @@ func (m *model) sidebar(cx *ui.Context) *ui.Element {
 	children := []*ui.Element{ui.Row(label(title).FontSize(11).PaddingXY(18, 0).Flex(1), label("…").Width(28)).Height(35)}
 	switch m.activity {
 	case "settings":
-		children = append(children, m.keyboardSidebar())
-		children = append(children, m.updatesSidebar().Flex(1))
+		children = append(children, ui.Viewport(ui.Column(m.keyboardSidebar(), m.autoSaveSidebar(), m.updatesSidebar())).ScrollOffset(0, m.settingsScroll).Flex(1).Key("settings-content"))
 	case "files":
 		children = append(children, ui.Row(ui.Icon("chevron-down").Width(22).Height(22), label(strings.ToUpper(filepath.Base(m.workspace))).FontSize(11)).Height(24))
 		if m.workspaceBusy {
@@ -286,7 +287,7 @@ func (m *model) sidebar(cx *ui.Context) *ui.Element {
 	case "debug":
 		children = append(children, label("No debug adapter configured.").PaddingXY(12, 0).Height(32), button("Open command palette", "debug-palette", func(*ui.Context) { m.palette = true }).Height(32))
 	}
-	if m.activity != "search" && m.activity != "source-control" && m.activity != "extensions" {
+	if m.activity != "settings" && m.activity != "search" && m.activity != "source-control" && m.activity != "extensions" {
 		children = append(children, spacer())
 	}
 	if m.activity == "files" {

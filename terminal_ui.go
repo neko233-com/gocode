@@ -13,6 +13,7 @@ import (
 
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/neko233-com/gocode/internal/terminal"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 )
 
@@ -23,6 +24,7 @@ type terminalTab struct {
 	hidden, extensionOwned, interacted bool
 	pending                            bool
 	ready                              chan struct{}
+	workersDone                        <-chan struct{}
 	onReady                            func(error)
 	name, state                        string
 	session                            *terminal.Session
@@ -35,6 +37,10 @@ type terminalTab struct {
 // Only this controller's worker registry is shared; tabs/model fields are UI
 // state. A single pending dispatch per session bounds a flood of terminal output.
 func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
+	return m.bindTerminals(parent, cx.Dispatch)
+}
+
+func (m *model) bindTerminals(parent context.Context, dispatch func(func()) bool) func() {
 	ctx, cancel := context.WithCancel(parent)
 	var mu sync.Mutex
 	sessions := map[*terminal.Session]bool{}
@@ -73,6 +79,15 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 			name = "Starting…"
 		}
 		tab := &terminalTab{id: sequence, wireID: id, options: options, extensionOwned: extensionOwned, hidden: options.HideFromUser, pending: true, ready: make(chan struct{}), onReady: complete, name: name, state: "Starting shell…", cancel: tabCancel, size: terminal.Size{Columns: 80, Rows: 10}}
+		workersDone := make(chan struct{})
+		tab.workersDone = workersDone
+		var remaining atomic.Int32
+		remaining.Store(2)
+		finished := func() {
+			if remaining.Add(-1) == 0 {
+				close(workersDone)
+			}
+		}
 		empty := m.currentTerminal() == nil
 		m.terminals = append(m.terminals, tab)
 		if !extensionOwned || (empty && !tab.hidden) {
@@ -84,11 +99,12 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 		workspace := m.workspace
 		isolated := m.terminalAcceptance
 		workers.Go(func() {
+			defer finished()
 			select {
 			case <-tab.ready:
 				return
 			case <-request.Done():
-				cx.Dispatch(func() {
+				uidispatch.Retry(tabCtx, dispatch, func() {
 					if tab.pending {
 						m.closeTerminal(tab, 0)
 					}
@@ -98,7 +114,15 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 			}
 		})
 		workers.Go(func() {
-			config, err := prepareExtensionTerminal(request, workspace, options, isolated)
+			defer finished()
+			// Preparation belongs to both the caller and the tab. A closed tab
+			// cannot keep profile/path work alive merely because the request's
+			// controller is still running. The Session itself belongs to tabCtx.
+			preparation, stopPreparation := context.WithCancel(tabCtx)
+			stopRequest := context.AfterFunc(request, stopPreparation)
+			config, err := prepareExtensionTerminal(preparation, workspace, options, isolated)
+			stopRequest()
+			stopPreparation()
 			if err == nil {
 				var session *terminal.Session
 				if err = errors.Join(tabCtx.Err(), request.Err()); err == nil {
@@ -111,7 +135,7 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 					sessions[session] = true
 					mu.Unlock()
 					defer func() { _ = session.CloseAndWait(); mu.Lock(); delete(sessions, session); mu.Unlock() }()
-					if !cx.Dispatch(func() {
+					if !uidispatch.Retry(tabCtx, dispatch, func() {
 						if tabCtx.Err() == nil && request.Err() == nil {
 							tab.name, tab.state, tab.session, tab.frame = config.Name, "", session, session.Snapshot()
 							tab.size = terminal.Size{}
@@ -133,7 +157,7 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 						case <-tabCtx.Done():
 							return
 						case <-session.Done():
-							cx.Dispatch(func() {
+							uidispatch.Retry(tabCtx, dispatch, func() {
 								if tabCtx.Err() == nil {
 									m.updateTerminalFrame(tab, session.Snapshot())
 								}
@@ -141,7 +165,7 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 							return
 						case <-session.Updates():
 							if pending.CompareAndSwap(false, true) {
-								if !cx.Dispatch(func() {
+								if !uidispatch.Retry(tabCtx, dispatch, func() {
 									pending.Store(false)
 									if tabCtx.Err() == nil {
 										m.updateTerminalFrame(tab, session.Snapshot())
@@ -154,7 +178,7 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 					}
 				}
 			}
-			cx.Dispatch(func() {
+			uidispatch.Retry(tabCtx, dispatch, func() {
 				if tabCtx.Err() == nil {
 					tab.name, tab.state = "Failed", err.Error()
 					m.completeTerminal(tab, err)

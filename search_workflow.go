@@ -10,6 +10,7 @@ import (
 	"time"
 
 	workspaceSearch "github.com/neko233-com/gocode/internal/search"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
@@ -34,6 +35,8 @@ type searchState struct {
 	selectAll, initialized     bool
 	scroll                     float32
 	timer                      *time.Timer
+	timerCancel                context.CancelFunc
+	lifetime                   context.Context
 	submit                     func()
 	validate                   func(func(context.Context) error, func(error))
 	cancel                     func()
@@ -62,6 +65,7 @@ func (m *model) startSearch(parent context.Context, dispatch func(func()) bool, 
 		m.search.query.UseIgnore = true
 	}
 	ctx, stop := context.WithCancel(parent)
+	m.search.lifetime = ctx
 	queue := make(chan searchWork, 1)
 	finished := make(chan struct{})
 	var closed atomic.Bool
@@ -96,7 +100,7 @@ func (m *model) startSearch(parent context.Context, dispatch func(func()) bool, 
 			case job := <-queue:
 				result := job.run(job.ctx)
 				job.cancel()
-				if !dispatch(func() {
+				if !uidispatch.Retry(ctx, dispatch, func() {
 					if !closed.Load() && ctx.Err() == nil {
 						job.done(result)
 					}
@@ -113,6 +117,10 @@ func (m *model) startSearch(parent context.Context, dispatch func(func()) bool, 
 	}
 	m.search.submit = func() {
 		m.clearReplacement()
+		if m.search.timerCancel != nil {
+			m.search.timerCancel()
+			m.search.timerCancel = nil
+		}
 		if m.search.timer != nil {
 			m.search.timer.Stop()
 			m.search.timer = nil
@@ -175,6 +183,10 @@ func (m *model) startSearch(parent context.Context, dispatch func(func()) bool, 
 	}
 	return func() {
 		closed.Store(true)
+		if m.search.timerCancel != nil {
+			m.search.timerCancel()
+			m.search.timerCancel = nil
+		}
 		if m.search.timer != nil {
 			m.search.timer.Stop()
 			m.search.timer = nil
@@ -221,6 +233,10 @@ func searchStatus(r workspaceSearch.Report) string {
 }
 func (m *model) searchChanged(cx *ui.Context) {
 	m.clearReplacement()
+	if m.search.timerCancel != nil {
+		m.search.timerCancel()
+		m.search.timerCancel = nil
+	}
 	m.search.generation++
 	generation := m.search.generation
 	if m.search.cancel != nil {
@@ -236,9 +252,11 @@ func (m *model) searchChanged(cx *ui.Context) {
 	m.search.busy = false
 	m.search.status = ""
 	m.search.scroll = 0
-	if cx != nil && m.search.query.Text != "" {
+	if cx != nil && m.search.query.Text != "" && m.search.lifetime != nil {
+		lifetime, cancel := context.WithCancel(m.search.lifetime)
+		m.search.timerCancel = cancel
 		m.search.timer = time.AfterFunc(200*time.Millisecond, func() {
-			cx.Dispatch(func() {
+			uidispatch.Retry(lifetime, cx.Dispatch, func() {
 				if generation == m.search.generation && m.search.submit != nil {
 					m.search.submit()
 				}
@@ -248,6 +266,10 @@ func (m *model) searchChanged(cx *ui.Context) {
 }
 func (m *model) stopSearch() {
 	m.clearReplacement()
+	if m.search.timerCancel != nil {
+		m.search.timerCancel()
+		m.search.timerCancel = nil
+	}
 	m.search.generation++
 	if m.search.timer != nil {
 		m.search.timer.Stop()

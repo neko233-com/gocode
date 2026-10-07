@@ -16,26 +16,80 @@ type diskConflict struct {
 
 func (m *model) startDocumentWatch(parent context.Context, dispatch func(func()) bool) func() {
 	watcher := filewatch.Start(parent, dispatch, m.applyDiskResult)
+	var reloadTarget *document
+	var reloadEntry filewatch.Entry
 	m.publishWatches = func() {
-		entries := make([]filewatch.Entry, 0, min(len(m.docs), filewatch.MaxFiles))
+		// A requested revert must not wait forever behind the normal watch cap.
+		// Keep one explicit target first, then spend the remaining bounded slots
+		// on ordinary watches. The normal first 128 resume after its receipt.
+		if reloadTarget != nil && reloadTarget.reloadID != 0 && (!m.ownsDocument(reloadTarget) || reloadTarget.buffer == nil || reloadTarget.untitled || reloadTarget.large != nil || reloadTarget.path != reloadEntry.Path) {
+			reloadTarget.reloadID = 0
+			m.reloadBusy = false
+			m.reloadPrompt = nil
+			m.reloadError = "The document was closed; reload was cancelled"
+			m.message = m.reloadError
+		}
+		reloadTarget = nil
 		for _, d := range m.docs {
-			if d.buffer == nil || d.untitled {
-				continue
-			}
-			if len(entries) == filewatch.MaxFiles {
-				m.message = "Automatic file watching is limited to 128 open editable documents"
+			if d.reloadID != 0 {
+				reloadTarget = d
 				break
 			}
+		}
+		if reloadTarget == nil {
+			reloadEntry = filewatch.Entry{}
+		}
+		entries := make([]filewatch.Entry, 0, min(len(m.docs), filewatch.MaxFiles))
+		appendEntry := func(d *document) {
 			if d.watchID == 0 {
 				m.watchSequence++
 				d.watchID = m.watchSequence
 			}
-			entries = append(entries, filewatch.Entry{ID: d.watchID, Path: d.path, Version: d.buffer.Version(), ReloadID: d.reloadID, Hash: d.diskHash, Known: d.diskKnown})
+			entry := filewatch.Entry{ID: d.watchID, Path: d.path, Version: d.buffer.Version(), ReloadID: d.reloadID, Hash: d.diskHash, Known: d.diskKnown}
+			if d == reloadTarget {
+				if reloadEntry.ID != entry.ID || reloadEntry.ReloadID != entry.ReloadID {
+					reloadEntry = entry
+				}
+				// Typing/VSIX changes publish normal subscriptions, but must not
+				// rebase a confirmed discard to their newer buffer revision.
+				entry = reloadEntry
+			}
+			entries = append(entries, entry)
 		}
-		_ = watcher.Update(filewatch.State{Entries: entries, Paused: m.saveBusy || len(m.saveJobs) > 0})
+		if reloadTarget != nil {
+			appendEntry(reloadTarget)
+		}
+		for _, d := range m.docs {
+			if d.buffer == nil || d.untitled || d.large != nil || d == reloadTarget {
+				continue
+			}
+			if len(entries) == filewatch.MaxFiles {
+				if m.reloadError == "" {
+					m.message = "Automatic file watching is limited to 128 open editable documents"
+				}
+				break
+			}
+			appendEntry(d)
+		}
+		if err := watcher.Update(filewatch.State{Entries: entries, Paused: m.saveBusy || len(m.saveJobs) > 0}); err != nil {
+			if reloadTarget != nil {
+				reloadTarget.reloadID = 0
+				m.reloadBusy = false
+				m.reloadError = err.Error()
+			}
+			m.message = err.Error()
+		}
 	}
 	m.publishWatches()
-	return watcher.Close
+	return func() {
+		watcher.Close()
+		if reloadTarget != nil && reloadTarget.reloadID != 0 {
+			reloadTarget.reloadID = 0
+			m.reloadBusy = false
+			m.reloadError = "File watching stopped; reload was cancelled"
+		}
+		m.publishWatches = nil
+	}
 }
 func (m *model) applyDiskResult(result filewatch.Result) bool {
 	var d *document
@@ -51,16 +105,21 @@ func (m *model) applyDiskResult(result filewatch.Result) bool {
 	if m.saveBusy || len(m.saveJobs) > 0 {
 		return false
 	}
-	if d.diskKnown != result.Entry.Known || d.diskHash != result.Entry.Hash {
+	// A queued ordinary watch or cancelled revert receipt is not the current
+	// explicit read, even if its document version and disk hash still match.
+	if result.Entry.ReloadID != d.reloadID {
 		return false
 	}
-	explicit := result.Entry.ReloadID != 0 && d.reloadID == result.Entry.ReloadID
+	explicit := result.Entry.ReloadID != 0
+	if d.diskKnown != result.Entry.Known || d.diskHash != result.Entry.Hash {
+		if explicit {
+			m.finishDiskReload(d, "Disk baseline changed; review and retry")
+		}
+		return false
+	}
 	if d.buffer.Version() != result.Entry.Version {
 		if explicit {
-			d.reloadID = 0
-			m.reloadBusy = false
-			m.reloadError = "New unsaved edits arrived; review and retry"
-			m.publishWatches()
+			m.finishDiskReload(d, "New unsaved edits arrived; review and retry")
 		}
 		return false
 	}
@@ -78,16 +137,16 @@ func (m *model) applyDiskResult(result filewatch.Result) bool {
 		}
 		d.diskConflict = &diskConflict{result.Kind, message, result.Hash}
 		if explicit {
-			d.reloadID = 0
-			m.reloadBusy = false
-			m.reloadError = message
-			m.publishWatches()
+			m.finishDiskReload(d, message)
 		}
 		return true
 	}
 	change, err := d.buffer.Reload(result.Text)
 	if err != nil {
 		m.message = err.Error()
+		if explicit {
+			m.finishDiskReload(d, err.Error())
+		}
 		return true
 	}
 	d.diskHash, d.diskKnown, d.diskConflict, d.reloadID = result.Hash, true, nil, 0
@@ -99,12 +158,11 @@ func (m *model) applyDiskResult(result filewatch.Result) bool {
 		m.reloadPrompt = nil
 		m.reloadBusy = false
 		m.reloadError = ""
-		m.editing = true
 	}
 	return true
 }
 func (m *model) beginReload(d *document) {
-	if d == nil || d.buffer == nil || m.publishWatches == nil || m.saveBusy || len(m.saveJobs) > 0 {
+	if !m.canRequestDiskReload(d) {
 		return
 	}
 	if !d.dirty() {
@@ -115,20 +173,66 @@ func (m *model) beginReload(d *document) {
 	m.pointerSelecting, m.terminalFocused = false, false
 }
 func (m *model) requestDiskReload(d *document) {
-	if d == nil || !m.ownsDocument(d) || m.publishWatches == nil || m.saveBusy || len(m.saveJobs) > 0 {
+	if !m.canRequestDiskReload(d) {
 		return
 	}
 	m.reloadSequence++
 	d.reloadID = m.reloadSequence
-	m.reloadBusy = m.reloadPrompt != nil
+	m.reloadBusy = true
 	m.reloadError = "Reading current disk contents…"
+	m.message = m.reloadError
 	m.publishWatches()
 }
-func (m *model) cancelReload() {
-	if m.reloadBusy {
-		return
+func (m *model) canRequestDiskReload(d *document) bool {
+	message := ""
+	switch {
+	case d == nil || !m.ownsDocument(d):
+		message = "No open document to reload"
+	case d.untitled:
+		message = "Untitled documents have no disk contents to reload"
+	case d.buffer == nil || d.large != nil:
+		message = "Large-file browsing is read-only; reload requires an editable document"
+	case m.publishWatches == nil:
+		message = "File watching is unavailable"
+	case m.saveBusy || len(m.saveJobs) > 0 || m.fileActions.busy || m.closeBusy:
+		message = "A file operation is busy; retry reload after it finishes"
+	case m.reloadBusy || m.reloadPrompt != nil && m.reloadPrompt != d:
+		message = "Another reload is pending; finish or cancel it first"
+	default:
+		for _, candidate := range m.docs {
+			if candidate.reloadID != 0 {
+				message = "Another reload is pending; finish or cancel it first"
+				break
+			}
+		}
 	}
-	m.reloadPrompt, m.reloadError = nil, ""
+	if message != "" {
+		m.message = message
+		// Keep the current request's status intact when rejecting a second one.
+		if !m.reloadBusy {
+			m.reloadError = message
+		}
+		return false
+	}
+	return true
+}
+func (m *model) finishDiskReload(d *document, message string) {
+	d.reloadID = 0
+	m.reloadBusy = false
+	m.reloadError = message
+	m.message = message
+	if m.publishWatches != nil {
+		m.publishWatches()
+	}
+}
+func (m *model) cancelReload() {
+	for _, d := range m.docs {
+		d.reloadID = 0
+	}
+	m.reloadPrompt, m.reloadBusy, m.reloadError = nil, false, ""
+	if m.publishWatches != nil {
+		m.publishWatches()
+	}
 }
 func (m *model) overwriteDisk(d *document) {
 	if d == nil || d.diskConflict == nil || d.diskConflict.kind != "text" || m.requestSave == nil || m.saveBusy || len(m.saveJobs) > 0 {
@@ -157,13 +261,13 @@ func (m *model) reloadOverlay(base *ui.Element) *ui.Element {
 	for _, line := range wrapChatText(m.reloadError, 390) {
 		items = append(items, label(line).FontSize(12).Height(20))
 	}
-	var reload, cancel func(*ui.Context)
+	var reload func(*ui.Context)
+	cancel := func(*ui.Context) { m.cancelReload() }
 	if !m.reloadBusy {
 		reload = func(*ui.Context) { m.requestDiskReload(d) }
-		cancel = func(*ui.Context) { m.cancelReload() }
 	}
 	items = append(items, ui.Row(spacer(), button("Reload", "reload-confirm", reload).Width(100).Height(30).Background(ui.RGB(accent)), button("Cancel", "reload-cancel", cancel).Width(90).Height(30)).Gap(8).Height(40))
-	popup := ui.Column(items...).Padding(22).Width(460).Background(ui.RGB(0x252526))
+	popup := ui.Column(items...).Padding(22).Width(460).Radius(8).ClipRounded(8).Background(ui.RGB(0x252526)).Key("reload-dialog")
 	shade := ui.Column().Background(ui.RGBA(0, .65)).OnClick(func(*ui.Context) {})
 	center := ui.Column(spacer(), ui.Row(spacer(), popup, spacer()).Height(float32(140+20*len(wrapChatText(m.reloadError, 390)))), spacer())
 	return ui.Stack(base, shade, center)

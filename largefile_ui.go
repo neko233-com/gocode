@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/neko233-com/gocode/internal/largefile"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 )
 
@@ -97,7 +98,7 @@ func (m *model) startLargeDocument(d *document) {
 		defer ticker.Stop()
 		for {
 			stats := l.file.Stats()
-			if !cx.Dispatch(func() {
+			if !uidispatch.Retry(l.ctx, cx.Dispatch, func() {
 				if l.ctx.Err() != nil {
 					return
 				}
@@ -121,8 +122,15 @@ func (m *model) startLargeDocument(d *document) {
 }
 
 func (m *model) requestLargePage(d *document, rows int) {
+	if m.native == nil {
+		return
+	}
+	m.requestLargePageWithDispatch(d, rows, m.native.Dispatch)
+}
+
+func (m *model) requestLargePageWithDispatch(d *document, rows int, dispatch func(func()) bool) {
 	l := d.large
-	if m.native == nil || l.ctx.Err() != nil {
+	if l.ctx.Err() != nil {
 		return
 	}
 	rows = min(largefile.MaxRows, max(1, rows))
@@ -135,9 +143,13 @@ func (m *model) requestLargePage(d *document, rows int) {
 	l.generation++
 	generation := l.generation
 	l.start, l.rows, l.requested, l.loading = int64(d.scroll), rows, true, true
-	start, offset, byteMode, cx := l.start, l.byteOffset, l.byteMode, m.native
-	ctx, stop := context.WithTimeout(l.ctx, 15*time.Second)
-	l.requestCancel = stop
+	start, offset, byteMode := l.start, l.byteOffset, l.byteMode
+	// Navigation cancels both the read and its pending receipt. The read's
+	// deadline remains separate: a timed-out current read must clear loading,
+	// while obsolete page bodies must not accumulate behind a full UI queue.
+	delivery, cancelDelivery := context.WithCancel(l.ctx)
+	ctx, stop := context.WithTimeout(delivery, 15*time.Second)
+	l.requestCancel = cancelDelivery
 	l.workers.Go(func() {
 		defer stop()
 		var page []largefile.Line
@@ -148,13 +160,16 @@ func (m *model) requestLargePage(d *document, rows int) {
 		} else {
 			page, err = l.file.Lines(ctx, start, rows)
 		}
-		cx.Dispatch(func() {
+		if !uidispatch.Retry(delivery, dispatch, func() {
+			defer cancelDelivery()
 			if l.ctx.Err() != nil || generation != l.generation {
 				return
 			}
 			l.loading = false
 			l.page, l.window, l.err = page, window, err
-		})
+		}) {
+			cancelDelivery()
+		}
 	})
 }
 

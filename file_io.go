@@ -14,6 +14,7 @@ import (
 
 	"github.com/neko233-com/gocode/internal/filewatch"
 	"github.com/neko233-com/gocode/internal/languageserver"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
 
@@ -190,7 +191,7 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 			// index without racing a UI callback that has adopted it.
 			var ownership atomic.Uint32
 			receipt := make(chan *document, 1)
-			if !dispatch(func() {
+			if !uidispatch.Retry(ctx, dispatch, func() {
 				if !ownership.CompareAndSwap(0, 1) {
 					return
 				}
@@ -248,7 +249,7 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 			// Duplicate/discarded indexes may be waiting for OS reads. Finish
 			// disposing this result before starting the next worker.
 			closeUnownedDocument(unused)
-			dispatch(func() {
+			uidispatch.Retry(ctx, dispatch, func() {
 				if ctx.Err() != nil {
 					return
 				}

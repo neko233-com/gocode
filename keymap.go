@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -168,35 +169,20 @@ func writeKeymap(path, profile string) error {
 	return os.Rename(f.Name(), path)
 }
 func (m *model) startKeyboardSettings(cx *ui.Context, path string) func() {
-	requests, done := make(chan string, 1), make(chan struct{})
-	m.keyboard.persist = func(value string) {
-		select {
-		case requests <- value:
-		default:
-			select {
-			case <-requests:
-			default:
+	return m.bindKeyboardSettings(context.Background(), cx.Dispatch, path)
+}
+
+func (m *model) bindKeyboardSettings(parent context.Context, dispatch func(func()) bool, path string) func() {
+	persist, stop := startSettingsWriter(parent, dispatch,
+		func(value string) error { return writeKeymap(path, value) },
+		func(value string, err error) {
+			if m.keymapProfile() == value {
+				m.message = "Keyboard shortcuts: " + err.Error()
 			}
-			select {
-			case requests <- value:
-			default:
-			}
-		}
-	}
-	go func() {
-		defer close(done)
-		for value := range requests {
-			if err := writeKeymap(path, value); err != nil {
-				cx.Dispatch(func() { m.message = "Keyboard shortcuts: " + err.Error() })
-			}
-		}
-	}()
+		})
+	m.keyboard.persist = persist
 	return func() {
 		m.keyboard.persist = nil
-		close(requests)
-		select {
-		case <-done:
-		case <-time.After(3 * time.Second):
-		}
+		stop()
 	}
 }

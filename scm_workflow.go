@@ -9,6 +9,7 @@ import (
 	"time"
 
 	gitrepo "github.com/neko233-com/gocode/internal/git"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 )
 
 type scmState struct {
@@ -53,7 +54,7 @@ func (m *model) startSCM(parent context.Context, dispatch func(func()) bool) fun
 			case job := <-queue:
 				result := job.run(job.ctx)
 				job.cancel()
-				if !dispatch(func() {
+				if !uidispatch.Retry(ctx, dispatch, func() {
 					if !closed.Load() && ctx.Err() == nil {
 						job.done(result)
 					}
@@ -167,7 +168,7 @@ func (m *model) startSCM(parent context.Context, dispatch func(func()) bool) fun
 			return
 		}
 		time.AfterFunc(2*time.Second, func() {
-			dispatch(func() {
+			uidispatch.Retry(ctx, dispatch, func() {
 				if ctx.Err() == nil && !closed.Load() {
 					if m.activity == "source-control" && !m.scm.busy {
 						m.scm.refresh()

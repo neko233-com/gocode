@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
@@ -91,7 +92,7 @@ func (m *model) startCopilot(parent context.Context, cx *ui.Context, explicit st
 			err := openCopilotURL(request.URI)
 			return map[string]bool{"success": err == nil}, err
 		})
-		cx.Dispatch(func() {
+		uidispatch.Retry(ctx, cx.Dispatch, func() {
 			m.copilotStatus = "Copilot: sign in required"
 			if authenticated {
 				m.copilotStatus = "Copilot SDK ready"
@@ -216,7 +217,7 @@ func (m *model) startCopilot(parent context.Context, cx *ui.Context, explicit st
 							}
 						})
 					})
-					cx.Dispatch(func() {
+					uidispatch.Retry(ctx, cx.Dispatch, func() {
 						if generation != m.chatGeneration {
 							return
 						}
@@ -275,7 +276,7 @@ func (m *model) startCopilot(parent context.Context, cx *ui.Context, explicit st
 							}
 						}
 					}
-					cx.Dispatch(func() {
+					uidispatch.Retry(ctx, cx.Dispatch, func() {
 						m.chatLoginBusy = false
 						if err != nil {
 							m.copilotStatus = "Copilot chat sign-in failed: " + err.Error()

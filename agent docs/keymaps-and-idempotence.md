@@ -118,7 +118,24 @@ Final-source CI satisfies that gate on Windows 2022 and 2025. Isolated scratch
 tests remove their owned roots and reuse stable evidence names. One earlier
 manual diagnostic used inconsistent drawable/input density and timed out; it is
 not valid product evidence. Its owned directory
-C:/Users/14170/AppData/Local/Temp/gocode-scm-native-4191533845 remains because
+C:/Users/14170/AppData/Local/Temp/gocode-scm-native-4191533845 initially remains because
 automatic approval review rejected checked literal deletion with 'blocked by policy'
 and no further reason. No alternate deletion mechanism was used to bypass it;
 global temporary-directory emptiness is not claimed.
+
+2026-10-08 cleanup is resolved: the same literal owned path is revalidated for
+its Gocode acceptance Git identity, exact two entries and absolute temp boundary,
+then successfully removed under current permissions. The two earlier approval
+review rejections remain historical evidence. Fifteen explicitly named inactive
+fixtures from the failed restricted local tests are also removed from the
+workspace's private Go temp root after path/age/reparse/live-process checks.
+No broad deletion of user temporary directories or live build caches is used.
+
+The v0.23.0 candidate also repairs persistence error delivery under UI overload.
+VS Code/JetBrains selection uses a capacity-one coalescing writer and a separate
+latest-error publisher shared with Auto Save. New selections/stop cancel old
+errors, including accepted but delayed callbacks; shutdown still drains the latest
+configuration within 3s. Three public-core16 strict-cgo/race repeats pass together
+with actual Auto Save/Node VSIX/save-path regressions (app 5.803s). Real malformed
+directory failures, 512 selections, actual latest config with UI rejection,
+shutdown and temporary-file cleanup are tested without user configuration.

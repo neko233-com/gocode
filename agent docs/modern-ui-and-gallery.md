@@ -13,7 +13,7 @@ The user's latest steering requests current VS Code rounding and the official
 extension store. Actual MIT Code-OSS 1.141.0/2a59476c9bfcb90b3ddc372c36762471b7dfad1c
 modernUI sources are inspected: roundedCorners, editorBorder, padding, tabs,
 activityBar, commandCenter, titlebar and shadows CSS. Latest main is now verified
-as 12701a51749f8b57aab5d567c66f7727c88c3eb4. Existing Microsoft MIT/license provenance
+as 9a89cf962f1d34463974058e9ef2b59f2bc33f15 on 2026-10-08. Existing Microsoft MIT/license provenance
 remains in assets/code-oss; these CSS rules are translated into native Go elements.
 
 Windows controls/list rows use 4px radii and native hover fills; menus/Quick Input

@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync/atomic"
 	"time"
+
+	"github.com/neko233-com/gocode/internal/uidispatch"
 )
 
 type historyWork struct {
@@ -54,7 +56,7 @@ func (m *model) startHistory(parent context.Context, dispatch func(func()) bool)
 					err = job.ctx.Err()
 				}
 				job.cancel()
-				if !dispatch(func() {
+				if !uidispatch.Retry(ctx, dispatch, func() {
 					if !closed.Load() && ctx.Err() == nil {
 						job.done(err)
 					}

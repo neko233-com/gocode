@@ -141,6 +141,10 @@ func run() (runErr error) {
 	openSmoke := flag.Bool("open-smoke", false, "Verify native typing/resize/cancel and awaited VSIX opens during delayed disk workers")
 	uiSmoke := flag.Bool("ui-smoke", false, "Verify owned native workbench logo, complete tab captions and tab controls")
 	windowsWorkbenchSmoke := flag.Bool("windows-workbench-smoke", false, "Verify real Windows File menus, shell dialogs, quick input and VSIX management")
+	autoSaveSmoke := flag.Bool("auto-save-smoke", false, "Verify native Auto Save modes, real disk writes, activation, conflicts and Revert File")
+	autoSaveMinimizedSmoke := flag.Bool("auto-save-minimized-smoke", false, "Verify real Auto Save writes and UI receipts while an owned native window stays minimized")
+	flag.String("auto-save", "", "Session Auto Save mode: off, afterDelay, onFocusChange, onWindowChange")
+	flag.Int("auto-save-delay", 0, "Session Auto Save delay in milliseconds (100–600000)")
 	tabsSmoke := flag.Bool("tabs-smoke", false, "Verify native tab overflow, wheel/drag routing, identity and held-Control navigation")
 	searchSmoke := flag.Bool("search-smoke", false, "Verify native workspace search, unsaved/regex/ignore results, stale selection and large-file navigation")
 	searchSmokeMiB := flag.Int("search-smoke-mib", 16, "Native search fixture size in MiB (16–10240)")
@@ -157,6 +161,12 @@ func run() (runErr error) {
 	}
 	if *windowsWorkbenchSmoke {
 		return runWindowsWorkbenchAcceptance()
+	}
+	if *autoSaveSmoke {
+		return runAutoSaveAcceptance()
+	}
+	if *autoSaveMinimizedSmoke {
+		return runMinimizedAutoSaveAcceptance()
 	}
 	if *scmSmoke {
 		return runSCMAcceptance()
@@ -488,6 +498,18 @@ func run() (runErr error) {
 	if *copilotCheck || *copilotSmoke {
 		return checkCopilot(*copilotRoot, m.workspace, *copilotSmoke)
 	}
+	autoSavePath, err := autoSaveConfigPath()
+	if err != nil {
+		return err
+	}
+	m.autoSave.config, err = readAutoSaveConfig(autoSavePath)
+	if err != nil {
+		m.autoSave.config = defaultAutoSaveConfig()
+		m.message = "Auto Save settings: " + err.Error()
+	}
+	if m.autoSave.config, err = autoSaveSessionConfig(m.autoSave.config, flag.CommandLine); err != nil {
+		return err
+	}
 	installed, err := workbenchExtensions(*extensionDir)
 	if err != nil {
 		return err
@@ -589,7 +611,14 @@ func run() (runErr error) {
 	var closeHistory func()
 	var closeSCM func()
 	var closeFileActions, closeExtensionManager, closeExtensionCatalog, closeKeyboard func()
+	var closeAutoSave, closeAutoSaveSettings func()
 	defer func() {
+		if closeAutoSave != nil {
+			closeAutoSave()
+		}
+		if closeAutoSaveSettings != nil {
+			closeAutoSaveSettings()
+		}
 		if closeKeyboard != nil {
 			closeKeyboard()
 		}
@@ -697,6 +726,8 @@ func run() (runErr error) {
 			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
 			closeFileActions = m.startFileActions(hostCtx, viewContext)
 			closeKeyboard = m.startKeyboardSettings(viewContext, keyboardPath)
+			closeAutoSave = m.startAutoSaveActor(hostCtx, viewContext.Dispatch)
+			closeAutoSaveSettings = m.startAutoSaveSettings(hostCtx, viewContext.Dispatch, autoSavePath)
 			closeExtensionManager = m.startExtensionManager(hostCtx, viewContext, *extensionDir)
 			closeExtensionCatalog = m.startExtensionCatalog(hostCtx, viewContext.Dispatch, nil)
 			m.bindWorkbenchRelaunch(hostCtx, viewContext, *extensionDir, *copilotRoot, *lspConfig, *copilotEnabled, *lspEnabled)

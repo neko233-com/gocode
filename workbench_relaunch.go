@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"strconv"
 
 	ui "github.com/neko233-com/godesktop"
 )
@@ -12,6 +13,8 @@ func (m *model) bindWorkbenchRelaunch(parent context.Context, cx *ui.Context, ex
 	m.relaunch = func(workspace string, closeOld bool) {
 		args := []string{"-workspace", workspace, "-extensions-dir", extensionRoot, "-copilot-runtime", copilotRoot, "-lsp-config", lspConfig}
 		args = append(args, "-keymap", m.keymapProfile())
+		autoSave := m.autoSaveConfig()
+		args = append(args, "-auto-save", autoSave.Mode, "-auto-save-delay", strconv.Itoa(autoSave.DelayMS))
 		if m.extensionGallery != "" {
 			args = append(args, "-extension-gallery-url", m.extensionGallery)
 		}

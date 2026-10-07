@@ -34,6 +34,7 @@ type document struct {
 	largeBase                    *largeDocument
 }
 type model struct {
+	autoSave                                           autoSaveState
 	keyboard                                           keyboardState
 	menu                                               workbenchMenu
 	quick                                              quickInputState
@@ -41,6 +42,7 @@ type model struct {
 	extensionGallery                                   string
 	fileActions                                        fileActionState
 	hideSidebar                                        bool
+	settingsScroll                                     float32
 	untitledSequence                                   uint64
 	pendingWindowAction                                func()
 	afterWindowClosed                                  func() error

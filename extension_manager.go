@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 	"github.com/neko233-com/godesktop/extensions"
 )
@@ -168,6 +169,10 @@ func enabledExtensions(installed []extensions.Extension, settings extensionSetti
 	return result
 }
 func (m *model) startExtensionManager(parent context.Context, cx *ui.Context, root string) func() {
+	return m.bindExtensionManager(parent, cx.Dispatch, root)
+}
+
+func (m *model) bindExtensionManager(parent context.Context, dispatch func(func()) bool, root string) func() {
 	ctx, cancel := context.WithCancel(parent)
 	var workers sync.WaitGroup
 	m.extensionsView.manage = func(action, id string) {
@@ -237,7 +242,7 @@ func (m *model) startExtensionManager(parent context.Context, cx *ui.Context, ro
 			if err == nil {
 				installed, err = workbenchExtensions(root)
 			}
-			cx.Dispatch(func() {
+			uidispatch.Retry(ctx, dispatch, func() {
 				m.extensionsView.busy = false
 				if ctx.Err() != nil {
 					return

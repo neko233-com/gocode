@@ -128,6 +128,8 @@ jobs:
             .cache/open-native/*.png
             .cache/workbench-ui/*.png
             .cache/windows-workbench/*.png
+            .cache/auto-save-native/*.png
+            .cache/auto-save-minimized/*.json
             .cache/editor-tabs/*.png
             .cache/editor-tabs/*.json
             .cache/editor-groups/*.png

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -11,6 +12,12 @@ import (
 )
 
 func (m *model) documentEvent(kind string, d *document, change textbuffer.ChangeEvent) {
+	if kind == "close" {
+		delete(m.autoSave.pending, d)
+		m.armAutoSave(time.Now())
+	} else if kind == "change" || kind == "save" {
+		m.autoSaveChanged(d, time.Now())
+	}
 	m.groupDocumentEvent(kind, d, change)
 	m.recordTabEvent(kind, d)
 	if kind == "change" && m.search.query.Text != "" {
@@ -111,6 +118,21 @@ func (m *model) applyDocumentEdits(path string, version int, edits []textbuffer.
 }
 
 func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
+	if e.Kind == ui.WindowFocusChanged {
+		m.autoSaveWindowFocus(e.Focused, time.Now())
+		return false
+	}
+	defer func() { m.observeAutoSaveFocus(time.Now()) }()
+	if !m.closePrompt && m.reloadPrompt == nil && m.history.prompt == nil && e.Kind == ui.Scroll && m.activity == "settings" && cx != nil {
+		if b, ok := cx.ElementBounds("settings-content"); ok && insideBounds(b, e.PointerX, e.PointerY) {
+			contentHeight := float32(538 + 20*min(8, len(wrapChatText(m.updateStatus, 210))))
+			m.settingsScroll = max(0, min(max(0, contentHeight-b.Height), m.settingsScroll-e.Y*24))
+			return true
+		}
+	}
+	if !m.closePrompt && m.reloadPrompt == nil && m.history.prompt == nil && m.autoSaveSettingsInput(e) {
+		return true
+	}
 	if e.Kind == ui.KeyPressed {
 		m.menu.suppressCharacter = 0
 	}
@@ -149,7 +171,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		return true
 	}
 	if m.reloadPrompt != nil && !m.closePrompt {
-		if e.Kind == ui.KeyPressed && !m.reloadBusy && e.Key == 27 {
+		if e.Kind == ui.KeyPressed && e.Key == 27 {
 			m.cancelReload()
 		}
 		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled

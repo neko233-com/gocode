@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/neko233-com/gocode/internal/filewatch"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
@@ -162,6 +163,12 @@ func (r *cancelledTextReader) Read(p []byte) (int, error) {
 	return n, nil
 }
 func (m *model) startFileActions(parent context.Context, cx *ui.Context) func() {
+	return m.bindFileActions(parent, cx.Dispatch, nativeChooseFile)
+}
+
+// Production and headless worker tests share this actor. The dispatcher owns
+// every state receipt; nativeChooseFile remains the ordinary platform chooser.
+func (m *model) bindFileActions(parent context.Context, dispatch func(func()) bool, choose func(context.Context, string, string, string) (string, error)) func() {
 	ctx, cancel := context.WithCancel(parent)
 	var workers sync.WaitGroup
 	m.fileActions.choose = func(kind, initial string, done func(string, error)) {
@@ -172,8 +179,8 @@ func (m *model) startFileActions(parent context.Context, cx *ui.Context) func() 
 		m.fileActions.busy = true
 		workspace := m.workspace
 		workers.Go(func() {
-			path, err := nativeChooseFile(ctx, workspace, kind, initial)
-			cx.Dispatch(func() {
+			path, err := choose(ctx, workspace, kind, initial)
+			uidispatch.Retry(ctx, dispatch, func() {
 				m.fileActions.busy = false
 				if ctx.Err() == nil {
 					done(path, err)
@@ -189,6 +196,10 @@ func (m *model) startFileActions(parent context.Context, cx *ui.Context) func() 
 			if done != nil {
 				done(err)
 			}
+		}
+		if err := errors.Join(ctx.Err(), request.Err()); err != nil {
+			finish(err)
+			return
 		}
 		if m.fileActions.busy || m.saveBusy || d == nil || d.buffer == nil || !m.ownsDocument(d) {
 			finish(errors.New("document is unavailable or saving"))
@@ -212,7 +223,7 @@ func (m *model) startFileActions(parent context.Context, cx *ui.Context) func() 
 			stopRequest := context.AfterFunc(request, stop)
 			defer stopRequest()
 			hash, err := writeSaveAs(c, path, snapshot)
-			cx.Dispatch(func() {
+			uidispatch.Retry(ctx, dispatch, func() {
 				m.fileActions.busy = false
 				if ctx.Err() != nil {
 					return
@@ -232,14 +243,21 @@ func (m *model) startFileActions(parent context.Context, cx *ui.Context) func() 
 					d.instance = ""
 					d.diskConflict = nil
 					m.rememberDocument(path, d)
-					if d.buffer.Version() == snapshot.Version {
+					savedCurrent := d.buffer.Version() == snapshot.Version
+					if savedCurrent {
 						d.buffer.MarkSaved()
 						d.saveID++
 					} else {
 						err = errSaveChanged
 					}
 					m.documentEvent("open", d, textbuffer.ChangeEvent{})
-					m.documentEvent("save", d, textbuffer.ChangeEvent{})
+					if savedCurrent {
+						m.documentEvent("save", d, textbuffer.ChangeEvent{})
+					} else {
+						// The new path owns the already committed older disk version,
+						// while newer edits need their own future automatic save.
+						m.autoSaveChanged(d, time.Now())
+					}
 					if m.current() == d {
 						m.documentEvent("focus", d, textbuffer.ChangeEvent{})
 					}

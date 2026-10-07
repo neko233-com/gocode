@@ -24,7 +24,9 @@ type openAcceptance struct {
 	readEntered                chan struct{}
 	phase                      int
 	frame                      uint64
+	focusBefore, focusAfter    uint64
 	acting, vsixDone, verified bool
+	readBarrierObserved        bool
 	vsixErr                    error
 	failure                    string
 	original                   *document
@@ -170,22 +172,39 @@ func (a *openAcceptance) step(cx *ui.Context, m *model, ctx context.Context, hos
 		a.execute(cx, ctx, host, initialized, m.awaitExtensions)
 		a.phase = 4
 	case 4:
-		select {
-		case <-a.readEntered:
-		default:
-			return
+		if !a.readBarrierObserved {
+			select {
+			case <-a.readEntered:
+				a.readBarrierObserved = true
+				a.frame = cx.RenderedFrames()
+			default:
+				return
+			}
 		}
 		if a.vsixDone || !m.openBusy {
 			a.failure = "VSIX showTextDocument acknowledged before the disk result"
 			return
 		}
-		a.control(cx, m, m.tabKey(a.original), func() { m.focusTab(a.original) }, func() { close(a.readGate); a.phase = 5 })
+		// UIWake may start the hidden read before the next View/layout. Its
+		// Opening toolbar moves grouped tabs down, so the previous frame's tab
+		// bounds would click that toolbar instead. Wait for actual native frames
+		// of the pending state before resolving and replaying the tab bounds.
+		if cx.RenderedFrames() < a.frame+3 {
+			return
+		}
+		a.focusBefore = m.openSequence
+		a.control(cx, m, m.tabKey(a.original), func() { m.focusTab(a.original) }, func() {
+			a.focusAfter = m.openSequence
+			fmt.Printf("Native async-open tab replay before=%d after=%d currentOriginal=%t editing=%t\n", a.focusBefore, a.focusAfter, m.current() == a.original, m.editing)
+			close(a.readGate)
+			a.phase = 5
+		})
 	case 5:
 		if !a.vsixDone || m.openBusy {
 			return
 		}
 		if a.vsixErr == nil || m.current() != a.original || a.original.buffer.Text() != a.local || len(m.docs) != 2 {
-			a.failure = "stale VSIX open stole newer focus or silently succeeded"
+			a.failure = fmt.Sprintf("stale VSIX open stole newer focus or silently succeeded: vsixError=%v currentOriginal=%t originalUnchanged=%t documents=%d sequence=%d replayBefore=%d replayAfter=%d pending=%d", a.vsixErr, m.current() == a.original, a.original.buffer.Text() == a.local, len(m.docs), m.openSequence, a.focusBefore, a.focusAfter, len(m.openJobs))
 			return
 		}
 		if d := m.findDocument("README.md"); d == nil || d.buffer.Text() != openReadmeFixture {

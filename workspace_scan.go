@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/neko233-com/gocode/internal/uidispatch"
 )
 
 const (
@@ -146,7 +148,8 @@ func scanWorkspace(ctx context.Context, root string) (result workspaceScan) {
 // A late startup scan populates Explorer but may not steal newer navigation.
 // Explicit CLI files use the same open actor independently of directory I/O.
 func (m *model) startWorkspace(parent context.Context, dispatch func(func()) bool, paths []string, gotoQuery string, scan func(context.Context, string) workspaceScan, ready func(error)) func() {
-	ctx, cancel := context.WithTimeout(parent, 30*time.Second)
+	lifetime, stopLifetime := context.WithCancel(parent)
+	ctx, cancel := context.WithTimeout(lifetime, 30*time.Second)
 	var stopped atomic.Bool
 	m.cancelWorkspace = cancel
 	m.workspaceBusy = true
@@ -177,7 +180,7 @@ func (m *model) startWorkspace(parent context.Context, dispatch func(func()) boo
 	go func() {
 		defer close(finished)
 		result := scan(ctx, root)
-		dispatch(func() {
+		uidispatch.Retry(lifetime, dispatch, func() {
 			if parent.Err() != nil || stopped.Load() {
 				return
 			}
@@ -209,6 +212,7 @@ func (m *model) startWorkspace(parent context.Context, dispatch func(func()) boo
 	}()
 	return func() {
 		stopped.Store(true)
+		stopLifetime()
 		cancel()
 		select {
 		case <-finished:

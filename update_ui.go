@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	"github.com/neko233-com/gocode/internal/update"
 	ui "github.com/neko233-com/godesktop"
 )
@@ -58,7 +59,7 @@ func (m *model) startUpdates(parent context.Context, cx *ui.Context, root, path 
 	m.configureUpdates = func(config update.Config) {
 		workers.Go(func() {
 			err := update.WriteConfig(path, config)
-			cx.Dispatch(func() {
+			uidispatch.Retry(ctx, cx.Dispatch, func() {
 				if err != nil {
 					m.updateStatus = err.Error()
 					return
@@ -91,7 +92,7 @@ func (m *model) startUpdates(parent context.Context, cx *ui.Context, root, path 
 			defer stop()
 			manager := &update.Manager{Key: key, Config: config}
 			result, err := manager.Apply(c, root, runtime.GOOS+"/"+runtime.GOARCH)
-			cx.Dispatch(func() {
+			uidispatch.Retry(ctx, cx.Dispatch, func() {
 				m.updateBusy = false
 				if err != nil {
 					m.updateStatus = "Update check: " + err.Error()
@@ -114,7 +115,7 @@ func (m *model) startUpdates(parent context.Context, cx *ui.Context, root, path 
 	workers.Go(func() {
 		ticker := time.NewTicker(24 * time.Hour)
 		defer ticker.Stop()
-		cx.Dispatch(func() {
+		uidispatch.Retry(ctx, cx.Dispatch, func() {
 			if m.updatesConfig.Auto {
 				m.requestUpdate()
 			}
@@ -124,7 +125,7 @@ func (m *model) startUpdates(parent context.Context, cx *ui.Context, root, path 
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				cx.Dispatch(func() {
+				uidispatch.Retry(ctx, cx.Dispatch, func() {
 					if m.updatesConfig.Auto {
 						m.requestUpdate()
 					}

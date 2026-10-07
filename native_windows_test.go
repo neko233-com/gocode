@@ -237,7 +237,11 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	// Real native settings clicks and text events persist only this fixture's
 	// per-user config. They must not change the active editor or contact AI.
 	click(24, viewHeight-46)
-	click(120, 346)
+	// The native Auto Save section adds 182 DIP above the original update
+	// controls. Keep real config/source assertions; old coordinates hit a
+	// different setting and cannot count as an update-control click.
+	const autoSaveSection = 182
+	click(120, 346+autoSaveSection)
 	for _, r := range "https://ghfast.top/" {
 		if err := w.Send(0x102, uintptr(r), 0); err != nil {
 			t.Fatal(err)
@@ -251,12 +255,12 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		config, err := update.LoadConfig(configPath)
 		return err == nil && config.Mirror == "https://ghfast.top/"
 	})
-	click(120, 294)
+	click(120, 294+autoSaveSection)
 	until(t, func() bool {
 		config, err := update.LoadConfig(configPath)
 		return err == nil && config.Mode == "mirror"
 	})
-	click(120, 210)
+	click(120, 210+autoSaveSection)
 	until(t, func() bool {
 		config, err := update.LoadConfig(configPath)
 		return err == nil && !config.Auto && config.Mode == "mirror"

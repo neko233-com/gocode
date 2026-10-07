@@ -36,6 +36,10 @@ func historyReplacement(t *testing.T) (*model, chan func(), []string) {
 func TestWorkspaceHistoryAtomicUndoRedoAndRealDiskSafety(t *testing.T) {
 	m, mailbox, before := historyReplacement(t)
 	d := m.current()
+	if d.buffer.Dirty() {
+		raw, diskErr := os.ReadFile(d.path)
+		t.Fatalf("replacement was unsaved before history input: version=%d saveID=%d status=%q message=%q disk=%q diskError=%v", d.buffer.Version(), d.saveID, m.search.replaceStatus, m.message, string(raw), diskErr)
+	}
 	m.search.focus = -2
 	m.editing = true
 	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'Z', Modifiers: ui.ModifierControl})

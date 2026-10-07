@@ -198,3 +198,57 @@ func TestExtensionPathsResolveOnWorkerAndPreserveRPCFields(t *testing.T) {
 		}
 	}
 }
+
+func TestOpenWorkerCancelledReadThenHiddenReceiptRejectsSameTabRefocus(t *testing.T) {
+	m := testModel(t)
+	original := m.current()
+	m.ensureGroups()
+	if err := os.WriteFile(filepath.Join(m.workspace, "README.md"), []byte(openReadmeFixture), 0600); err != nil {
+		t.Fatal(err)
+	}
+	a := newOpenAcceptance()
+	dispatch, mailbox, rejected := rejectingWorkerMailbox()
+	stop := m.startFileOpens(context.Background(), dispatch, a.read)
+	defer stop()
+	m.open("README.md")
+	<-a.readEntered
+	m.replaceSelection(original, "// responsive ")
+	local, version := original.buffer.Text(), original.buffer.Version()
+	m.cancelPendingOpens()
+	drainOpens(t, m, mailbox)
+	if len(m.docs) != 1 || m.current() != original || original.buffer.Text() != local || !original.dirty() {
+		t.Fatal("cancelled real read changed current source")
+	}
+	// VS Code's JS showTextDocument(document) first awaits a hidden resource
+	// and then sends the focus receipt captured before that actual disk read.
+	receipt := m.editorFocusReceipt()
+	var opened *document
+	var failure error
+	m.requestDocumentOpen(context.Background(), "README.md", func(d *document, err error) { opened, failure = d, err })
+	<-a.readEntered
+	m.focusTab(original)
+	if m.openSequence == receipt.Sequence {
+		t.Fatal("same visible tab refocus did not supersede delayed show")
+	}
+	close(a.readGate)
+	transfer := saveAck(t, mailbox)
+	if opened != nil || failure != nil || !m.openBusy || len(m.docs) != 1 {
+		t.Fatal("held hidden transfer acknowledged before actual UI execution")
+	}
+	transfer()
+	drainOpens(t, m, mailbox)
+	if failure != nil || opened == nil || opened.buffer.Text() != openReadmeFixture || len(m.docs) != 2 || m.current() != original {
+		t.Fatal("real hidden resource was lost or stole native focus", failure)
+	}
+	response := false
+	m.showExtensionDocument(context.Background(), editorOpenRequest{Path: opened.path, FocusReceipt: receipt}, func(value any, err error) {
+		response = value != nil
+		failure = err
+	})
+	if response || !errors.Is(failure, errOpenSuperseded) || m.current() != original || original.buffer.Text() != local || original.buffer.Version() != version || !original.dirty() {
+		t.Fatal("stale hidden-open receipt accepted newer same-tab focus", failure)
+	}
+	if rejected.Load() != 4 {
+		t.Fatal("both genuine read completions did not survive both rejected receipts", rejected.Load())
+	}
+}

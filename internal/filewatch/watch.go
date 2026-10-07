@@ -18,6 +18,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 )
 
 const MaxFiles = 128
@@ -314,7 +315,7 @@ func (w *Watcher) run(ctx context.Context, dispatch func(func()) bool, apply fun
 					break
 				}
 				ack := make(chan bool, 1)
-				if !dispatch(func() {
+				if !uidispatch.Retry(ctx, dispatch, func() {
 					if ctx.Err() != nil {
 						ack <- true
 						return

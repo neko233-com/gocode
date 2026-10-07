@@ -1,4 +1,4 @@
-param([ValidateRange(1,20)][int]$Repeat = 3)
+param([ValidateRange(1,20)][int]$Repeat = 3,[switch]$UseLocalFramework)
 $ErrorActionPreference = 'Stop'
 if (-not [Environment]::Is64BitOperatingSystem) { throw 'A 64-bit Windows OS is required.' }
 $taskCompiler = (& gcc -dumpmachine).Trim()
@@ -28,7 +28,7 @@ function Invoke-CheckedGUI {
     } finally { $taskGUI.Dispose() }
 }
 $taskRoot = Split-Path -Parent $PSScriptRoot
-$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','TMP','TEMP','APPDATA','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GOCODE_FILEWATCH_SCREENSHOTS','GOCODE_OPEN_SCREENSHOTS','GOCODE_CONPTY_DIR','GODESKTOP_READBACK','GODESKTOP_TEST_INPUT_ISOLATION')
+$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','TMP','TEMP','APPDATA','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GOCODE_FILEWATCH_SCREENSHOTS','GOCODE_OPEN_SCREENSHOTS','GOCODE_AUTOSAVE_SCREENSHOTS','GOCODE_AUTOSAVE_MINIMIZED_REPORT','GOCODE_CONPTY_DIR','GODESKTOP_READBACK','GODESKTOP_TEST_INPUT_ISOLATION')
 $taskSaved = @{}
 foreach ($taskName in $taskNames) { $taskSaved[$taskName] = [Environment]::GetEnvironmentVariable($taskName, 'Process') }
 Push-Location -LiteralPath $taskRoot
@@ -40,7 +40,12 @@ try {
 	$env:TMP=$taskNativeRoot
 	$env:TEMP=$taskNativeRoot
 	$env:APPDATA=Join-Path $taskNativeRoot 'settings'
-    $env:GOWORK='off'
+    if ($UseLocalFramework) {
+        $env:GOWORK=(Resolve-Path -LiteralPath (Join-Path $taskRoot '../go.work')).Path
+        Write-Output 'Development validation uses the local framework workspace; independent published-module validation is still required before promotion.'
+    } else {
+        $env:GOWORK='off'
+    }
     $env:CGO_ENABLED='1'
     $env:GOARCH='amd64'
     $env:GOAMD64='v1'
@@ -54,6 +59,8 @@ try {
     $env:GOCODE_TERMINAL_SCREENSHOTS=Join-Path $taskRoot '.cache/terminal-native'
     $env:GOCODE_FILEWATCH_SCREENSHOTS=Join-Path $taskRoot '.cache/filewatch-native'
     $env:GOCODE_OPEN_SCREENSHOTS=Join-Path $taskRoot '.cache/open-native'
+    $env:GOCODE_AUTOSAVE_SCREENSHOTS=Join-Path $taskRoot '.cache/auto-save-native'
+    $env:GOCODE_AUTOSAVE_MINIMIZED_REPORT=Join-Path $taskRoot '.cache/auto-save-minimized/current.json'
     Invoke-CheckedGo run ./cmd/gocode-terminaltools -output (Join-Path $taskRoot '.cache/conpty-runtime')
     $env:GOCODE_CONPTY_DIR=Join-Path $taskRoot '.cache/conpty-runtime'
     & (Join-Path $PSScriptRoot 'build-windows-resources.ps1')
@@ -75,6 +82,12 @@ try {
     & ./bin/gocode.exe -windows-workbench-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native File/shell dialog/Quick Input/VSIX management failed.' }
     Invoke-CheckedGUI -windows-workbench-smoke
+    & ./bin/gocode.exe -auto-save-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native Auto Save/window activation/Revert acceptance failed.' }
+    Invoke-CheckedGUI -auto-save-smoke
+    & ./bin/gocode.exe -auto-save-minimized-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native minimized Auto Save/disk/event/GPU-idle acceptance failed.' }
+    Invoke-CheckedGUI -auto-save-minimized-smoke
     & ./bin/gocode.exe -tabs-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native overflow/routing/identity/MRU tab acceptance failed.' }
     Invoke-CheckedGUI -tabs-smoke

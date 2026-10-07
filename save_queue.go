@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
@@ -15,6 +16,7 @@ import (
 const maxSaveJobs = 32
 
 var errSaveChanged = errors.New("newer unsaved edits arrived while saving; review and save again")
+var errSaveFileOperation = errors.New("a file operation is in progress; save again after it finishes")
 
 type savePlan struct {
 	document *document
@@ -42,6 +44,12 @@ func (m *model) ownsDocument(document *document) bool {
 }
 
 func (m *model) savePlans(documents []*document) ([]savePlan, error) {
+	// Save As adopts a new URI only after its immutable disk receipt reaches
+	// the UI. Saving the old URI meanwhile could clean a version that the new
+	// target has never received, regardless of acknowledgement order.
+	if len(documents) != 0 && m.fileActions.busy {
+		return nil, errSaveFileOperation
+	}
 	seen := map[*document]bool{}
 	plans := make([]savePlan, 0, len(documents))
 	for _, d := range documents {
@@ -79,7 +87,7 @@ func (m *model) startSaveActor(parent context.Context, dispatch func(func()) boo
 		m.saveBusy = false
 		for _, result := range saved {
 			d := result.plan.document
-			if !m.ownsDocument(d) {
+			if !m.ownsDocument(d) || d.buffer == nil || pathKey(d.path) != pathKey(result.plan.path) {
 				failure = errors.Join(failure, errSaveChanged)
 				continue
 			}
@@ -116,9 +124,18 @@ func (m *model) startSaveActor(parent context.Context, dispatch func(func()) boo
 			next()
 			return
 		}
+		// A completion callback can begin Save As before next drains older
+		// accepted jobs. Do not start an original-path writer during that action.
+		if len(job.plans) != 0 && m.fileActions.busy {
+			if job.done != nil {
+				job.done(errSaveFileOperation)
+			}
+			next()
+			return
+		}
 		for i := range job.plans {
 			plan := &job.plans[i]
-			if !m.ownsDocument(plan.document) {
+			if !m.ownsDocument(plan.document) || plan.document.buffer == nil || pathKey(plan.document.path) != pathKey(plan.path) {
 				if job.done != nil {
 					job.done(errSaveChanged)
 				}
@@ -149,7 +166,10 @@ func (m *model) startSaveActor(parent context.Context, dispatch func(func()) boo
 				}
 				saved = append(saved, savedPlan{plan, hash})
 			}
-			dispatch(func() { finish(job, saved, failure) })
+			// A full native UI queue rejects Dispatch without closing the window.
+			// Retain this one immutable disk receipt in the existing writer until
+			// the UI accepts it; actor shutdown cancels the bounded retry.
+			uidispatch.Retry(ctx, dispatch, func() { finish(job, saved, failure) })
 		})
 	}
 	m.requestSave = func(request context.Context, documents []*document, done func(error)) {

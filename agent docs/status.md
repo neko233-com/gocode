@@ -1,5 +1,83 @@
 # Milestone ledger
 
+## Native Auto Save and Revert candidate (2026-10-08)
+
+VERSION is now 0.23.0 and independently fetches public core v0.16.0 with
+GOWORK=off/GOPROXY=direct/no replace. Module Origin is exact
+5178f551a179351391af6eaab62f3f5cf150350e; sum
+h1:OKJYTXhzfV1Vr5uVsYdgx9FrOiyYnZGVtHMXOaS73yc= and go mod verify pass.
+All five core jobs in CI 37667772124 pass. Six actual minimized Auto Save runs
+pass three strict-cgo/race repeats (25.572s), with real disk/save events and
+unchanged View/GPU Submitted until restoration. Critical worker receipts now
+retry temporary UI queue rejection with actor lifetimes and explicit shutdown;
+superseded page/debounce bodies are cancelled. Final independent full Windows,
+application source CI/release/installed promotion remain required. Installed
+v0.22.0 remains unchanged. See autosave.md and worker-receipts.md.
+
+The first independent public-core full Windows run passes all three shuffled
+strict-cgo/race package repeats (main 416.109s, model coverage 31.9%), vet/build/PE,
+console/GUI Auto Save and actual-minimized gates, then fails the existing native
+async-open stale-VSIX-focus guard. Rebuilt owned-window replay confirms an actual
+focus failure: vsixError=nil, currentOriginal=false, originalUnchanged=true,
+documents=2, sequence=6, pending=0. The unchanged predicate now reports these
+values; logs are .cache/auto-save-public-windows-first.log and
+.cache/async-open-first-replay.log. This is not a complete regression pass.
+The diagnostic replay then identifies stale fixture geometry: UIWake starts a
+hidden read before layout adds the 32px Opening toolbar, moving the grouped tab.
+The old coordinates hit the toolbar (sequence 4->4, editing=false). Phase 4 now
+waits for three frames of the real pending state before resolving the tab bounds.
+Three native public-module replays pass (4->5, editing=true) with every original
+stale-focus/disk/pixel/timeout assertion intact. The equivalent actual-disk actor
+sequence, including four rejected transfer/final receipts, passes three race/
+strict-cgo repeats (1.514s with the existing delayed editor cases). No production
+file-open focus guard is relaxed.
+
+Review also reproduces an actual Save As/old-path save-receipt overlap in both
+receipt orders (0.100s): an old-path writer could falsely mark the new URI clean.
+The writer now rejects nonempty saves during file actions and checks frozen path
+ownership before starting queued jobs or applying completed writes. Real writer/
+AutoSave/Node VSIX/SaveAs/close tests pass three independent strict-cgo/race/
+shuffle repeats (5.362s). The new path retains newer dirty edits and saves them
+exactly once afterward; original/new disk hashes and temporary-file cleanup are
+checked. Combined final regression/source CI/promotion remain required.
+
+Auto Save and keyboard persistence error receipts now use a separate bounded
+publisher so full UI admission cannot stall the latest config write. New selection/
+stop cancels obsolete errors; fixed two workers and capacity-one queues preserve
+the original 3s shutdown drain. Three public-module strict-cgo/race/shuffle repeats
+pass (app 5.803s, uidispatch 1.251s), including 512 coalesced changes, real malformed
+directory writes, latest disk success under rejected UI admission and admitted
+old callbacks after success/stop. This does not use user settings.
+
+Terminal per-tab cancellation also stops pending UI retry work when a tab closes,
+rather than retaining it until the whole controller stops. Three public-module
+strict-cgo/race/shuffle repeats pass (4.107s) with 16 genuine ConPTY startups,
+eight-slot overflow, Unicode echo, exit code 7, startup failure, admitted-late
+callbacks, worker completion and actual PID termination. The old controller-
+lifetime overlay fails the closed-worker guard (2.088s); actual source is never
+mutated for that negative control. Final source is now frozen for complete
+independent no-cgo/lint/default-three Windows validation and exact source CI.
+
+Frozen candidate independent public-module no-cgo tests pass all packages
+(main 24.813s), followed by full vet, both distribution policy tests and
+actionlint/ShellCheck. The log is .cache/auto-save-public-nocgo-final.log.
+Full default-three Windows and exact-source five-platform CI remain required;
+the candidate source will be pushed for those gates without changing the parent
+gitlink, release tags or the user's installed selection.
+
+File/Auto Save now toggles off/afterDelay with native checked state; Settings
+configures all four VS Code modes and delay. One coalesced timer, 128 dirty records
+and the existing hash-checked frozen writer preserve Unicode/CRLF, newer edits,
+manual queues, conflicts and read-only large files. A new core WindowFocusChanged
+event is required; InputCancelled never substitutes for window deactivation.
+Config idempotence passes three race repeats (1.141s); real-writer scheduler and
+boundary tests pass three workspace-linked race/shuffle repeats (3.300s).
+Revert prioritizes/freeze-checks an explicit target beyond the normal 128 watch
+cap; real worker and existing conflict/save tests pass three strict-cgo/race/
+shuffle repeats (33.309s). Final native/GPU/full regression/independent published
+dependency/source CI/release/install remain pending. Published/installed v0.22.0
+remains unchanged. See autosave.md.
+
 ## Public and installed Windows v0.22.0 (2026-10-08)
 
 Immutable application source 0b5966171e5e183e74a9fecbeccce391cd1cf229 passes
@@ -47,7 +125,12 @@ Full VS Code UI/API/debug/refactoring/official Copilot VSIX parity remains open.
 Microsoft's official Marketplace is not enabled without separate service
 authorization; default Open VSX and authorized native Gallery protocol are
 distinct. The owned failed manual diagnostic directory and automatic cleanup
-rejection recorded below remain unresolved; isolated repeatable tests clean up.
+rejections recorded below are retained as history. On 2026-10-08 the same checked
+literal diagnostic directory is successfully removed under the current permission
+after ownership/path/content revalidation. Fifteen explicitly named inactive
+failed test fixtures in the workspace's private Go temp cache are also removed
+after boundary/age/reparse/live-process checks. Repeated successful native tests
+leave empty scratch roots; no broad user-temp/cache cleanup is performed.
 
 ## Windows workbench, keymaps, rounded UI and Gallery candidate (2026-10-07)
 

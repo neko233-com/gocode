@@ -16,6 +16,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/neko233-com/gocode/internal/uidispatch"
 )
 
 type catalogExtension struct {
@@ -264,7 +266,7 @@ func (m *model) startExtensionCatalog(parent context.Context, dispatch func(func
 			} else {
 				result, err = fetchCatalog(c, client, query)
 			}
-			dispatch(func() {
+			uidispatch.Retry(ctx, dispatch, func() {
 				if ctx.Err() != nil || generation != m.extensionsView.catalog.generation {
 					return
 				}

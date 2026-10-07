@@ -39,9 +39,11 @@ func (m *model) workbenchCommands() []workbenchCommand {
 		return workbenchCommand{ID: id, Title: title, Binding: m.keymapBinding(id, binding), Enabled: enabled, Run: run}
 	}
 	commands := []workbenchCommand{
+		c("autoSave", "Auto Save", "", true, m.toggleAutoSave),
+		c("revertFile", "Revert File", "", d != nil && d.buffer != nil && !d.untitled && m.publishWatches != nil && !m.fileActions.busy && !m.saveBusy && len(m.saveJobs) == 0 && !m.reloadBusy, func() { m.beginReload(d) }),
 		c("keymapVSCode", "Use VS Code Keymap", "", true, func() { m.selectKeymap("vscode") }),
 		c("keymapJetBrains", "Use JetBrains Keymap", "", true, func() { m.selectKeymap("jetbrains") }),
-		c("keyboard", "Keyboard Shortcuts", "", true, func() { m.activity = "settings"; m.hideSidebar = false }),
+		c("keyboard", "Keyboard Shortcuts", "", true, m.openSettings),
 		c("recentFiles", "Recent Files", "", true, func() { m.openQuickInput(false); m.quick.recent = true }),
 		c("newFile", "New Text File", "Ctrl+N", !m.closeBusy, m.newTextFile),
 		c("newWindow", "New Window", "Ctrl+Shift+N", m.relaunch != nil, func() { m.relaunch(m.workspace, false) }),
@@ -111,7 +113,7 @@ func (m *model) workbenchCommands() []workbenchCommand {
 			m.focusTerminal()
 		}),
 		c("killTerminal", "Kill Terminal", "", m.currentTerminal() != nil && m.killTerminal != nil, func() { m.killTerminal(m.currentTerminal()) }),
-		c("settings", "Settings", "Ctrl+,", true, func() { m.hideSidebar = false; m.activity = "settings" }),
+		c("settings", "Settings", "Ctrl+,", true, m.openSettings),
 		c("installVSIX", "Install from VSIX...", "", m.fileActions.choose != nil && m.extensionsView.manage != nil, func() { m.chooseFileAction("vsix", nil, nil) }),
 		c("reload", "Reload Window", "", m.relaunch != nil, func() { m.requestRelaunch(m.workspace) }),
 		c("checkUpdates", "Check for Updates...", "", m.requestUpdate != nil, func() { m.activity = "settings"; m.requestUpdate() }),
@@ -126,6 +128,8 @@ func (m *model) workbenchCommands() []workbenchCommand {
 			commands[i].Checked = !m.hideSidebar
 		case "panel":
 			commands[i].Checked = m.showPanel
+		case "autoSave":
+			commands[i].Checked = m.autoSaveConfig().Mode != "off"
 		}
 	}
 	for _, command := range m.commands {
@@ -158,7 +162,7 @@ func (m *model) menuEntries(name string) []menuEntry {
 		return entries
 	}
 	ids := map[string][]string{
-		"File":          {"newFile", "newWindow", "-", "openFile", "openFolder", "@Open Recent", "-", "save", "saveAs", "saveAll", "-", "?Auto Save", "@Preferences", "-", "?Revert File", "closeEditor", "?Close Folder", "closeWindow", "-", "closeWindow:Exit"},
+		"File":          {"newFile", "newWindow", "-", "openFile", "openFolder", "@Open Recent", "-", "save", "saveAs", "saveAll", "-", "autoSave", "@Preferences", "-", "revertFile", "closeEditor", "?Close Folder", "closeWindow", "-", "closeWindow:Exit"},
 		"Edit":          {"undo", "redo", "-", "cut", "copy", "paste", "-", "?Find", "?Replace", "-", "find", "replace"},
 		"Selection":     {"selectAll", "-", "?Expand Selection", "?Shrink Selection", "-", "?Copy Line Up", "?Copy Line Down", "?Move Line Up", "?Move Line Down", "?Duplicate Selection", "-", "?Add Cursor Above", "?Add Cursor Below", "?Add Cursors to Line Ends", "?Add Next Occurrence", "?Add Previous Occurrence", "?Select All Occurrences", "-", "?Switch to Ctrl+Click for Multi-Cursor"},
 		"View":          {"commands", "-", "explorer", "search", "scm", "debug", "extensions", "-", "@Appearance", "@Editor Layout", "-", "?Problems", "?Output", "?Debug Console", "terminal"},

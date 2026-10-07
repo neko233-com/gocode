@@ -10,17 +10,19 @@ import (
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
 	"github.com/neko233-com/gocode/internal/languageserver"
+	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
 
 // Binding fields are UI-owned; Supervisor/Session own all process state.
 type languageBinding struct {
-	config  languageserver.Config
-	service *languageserver.Supervisor
-	session *languageserver.Session
-	state   string
-	notice  string
+	lifetime context.Context // Immutable actor lifetime for worker receipts.
+	config   languageserver.Config
+	service  *languageserver.Supervisor
+	session  *languageserver.Session
+	state    string
+	notice   string
 }
 
 func (m *model) startLanguages(parent context.Context, cx *ui.Context, configs []languageserver.Config) func() {
@@ -32,7 +34,7 @@ func (m *model) bindLanguages(parent context.Context, dispatch func(func()) bool
 	var workers sync.WaitGroup
 	for _, config := range configs {
 		config.ClientVersion = appVersion()
-		b := &languageBinding{config: config, state: "starting"}
+		b := &languageBinding{lifetime: ctx, config: config, state: "starting"}
 		b.service = languageserver.Supervise(ctx, m.workspace, config)
 		m.languageBindings = append(m.languageBindings, b)
 		workers.Go(func() {
@@ -58,7 +60,7 @@ func (m *model) bindLanguages(parent context.Context, dispatch func(func()) bool
 						event.Diagnostics = &copy
 					}
 					ack := make(chan struct{})
-					if !dispatch(func() {
+					if !uidispatch.Retry(ctx, dispatch, func() {
 						defer close(ack)
 						if ctx.Err() == nil {
 							m.applyLanguageEvent(b, event)
@@ -262,7 +264,7 @@ func (m *model) requestLanguage(b *languageBinding, d *document, method string, 
 	if !session.Request(func(ctx context.Context, client *languageserver.Client) {
 		var raw json.RawMessage
 		err := client.Request(ctx, path, snapshot, position, method, &raw)
-		dispatch(func() {
+		uidispatch.Retry(b.lifetime, dispatch, func() {
 			current := m.findDocument(path)
 			if b.session != session || !session.Valid() || current != d || !current.serviceEligible() || current.buffer.Version() != snapshot.Version {
 				return

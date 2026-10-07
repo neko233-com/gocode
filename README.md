@@ -57,6 +57,7 @@ go.mod 固定依赖公开发布的 godesktop v0.15.0，没有本地 replace，�
 
 ## 编辑与扩展
 
+- v0.23.0 候选版接通原生 File 的 Auto Save / Revert File，Settings 支持四种模式及延迟；真实最小化时仍完成磁盘写入和保存回执，GPU 停止绘制。关闭、恢复和历史确认使用真正的圆角裁剪，关键后台回执支持有界重试。实际验收与限制见 [Auto Save 工程记录](agent%20docs/autosave.md) 和 [后台回执](agent%20docs/worker-receipts.md)。
 - v0.22.0 优先完善 Windows：独立 File/Edit 等弹出菜单、子菜单、悬停/Alt/F10/方向键，原生打开文件/文件夹与另存为，Ctrl+P 文件搜索和 Ctrl+Shift+P 命令搜索。扩展页支持 Open VSX 搜索、真实 VSIX 安装、详情/贡献命令、启用/禁用/卸载和有保存保护的重启；具体实现、原生验收与兼容缺口见 [Windows 工程记录](agent%20docs/windows-workbench.md)。
 
 - 参照最新 Code-OSS Modern UI 源码补齐原生控件、菜单、编辑器的圆角与子元素 GPU 裁剪。`-extension-gallery-url https://授权服务的基础地址` 支持原生 VS Gallery 查询、Windows x64 包选择和 VSIX 安装。微软官方 Marketplace 限制衍生产品访问，需要单独获得服务授权；默认仍使用 Open VSX。实际源码、协议测试与限制见 [圆角与 Gallery 记录](agent%20docs/modern-ui-and-gallery.md)。
