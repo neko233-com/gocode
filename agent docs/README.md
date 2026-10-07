@@ -22,3 +22,6 @@ Titlebar image, measured caption and owned native visual evidence are in [ui](ui
 Workspace search, streaming/ignore/stale-navigation bounds and evidence are in [search](search.md).
 Replacement preview, prepared buffer commits and per-file save/failure contracts
 are in [replace](replace.md).
+
+Workspace grouped undo/redo, confirmation/split and preparation are in
+[history](history.md).

@@ -501,7 +501,11 @@ func run() error {
 	var closeOpens func()
 	var closeWorkspace func()
 	var closeSearch func()
+	var closeHistory func()
 	defer func() {
+		if closeHistory != nil {
+			closeHistory()
+		}
 		if closeSearch != nil {
 			closeSearch()
 		}
@@ -586,6 +590,7 @@ func run() error {
 			}
 			closeOpens = m.startFileOpens(hostCtx, viewContext.Dispatch, read)
 			closeSearch = m.startSearch(hostCtx, viewContext.Dispatch, nil)
+			closeHistory = m.startHistory(hostCtx, viewContext.Dispatch)
 			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
 			closeWatches = m.startDocumentWatch(hostCtx, viewContext.Dispatch)
 			closeTerminals = m.startTerminals(hostCtx, viewContext)

@@ -171,6 +171,9 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	if m.reloadPrompt != nil {
 		return m.reloadOverlay(base)
 	}
+	if m.history.prompt != nil {
+		return m.historyOverlay(base)
+	}
 	return base
 }
 

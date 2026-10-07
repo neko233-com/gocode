@@ -48,6 +48,12 @@ watching, diff/merge and stronger coordination remain required for full parity.
 
 ## UI
 
+Workspace replacement registers bounded metadata-only history groups before
+callbacks. A dedicated worker prepares real undo/redo stack transitions from
+immutable core history snapshots; complete UI preflight precedes all-buffer
+adoption and notifications. Closed/reopened/newer history splits preserve other
+documents. Undo/redo never writes disk. Exact limits and gaps are in history.md.
+
 Workspace search owns one cancellable worker and one latest queued immutable
 request. It streams literals/Go regex across unlimited line lengths and returns
 bounded previews/byte/UTF-16 ranges. Version/instance/focus/generation and worker

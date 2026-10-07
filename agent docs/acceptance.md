@@ -34,6 +34,9 @@
   and Windows console/GUI/actual GiB gates retain evidence; see search.md for scope.
 - Replacement: -replace-smoke uses actual preview typing/pixels, disk-stale
   rejection, real saved unsaved/closed UTF-16/EOL sources and blank-click Undo.
+  It also checks native confirmation Cancel/All/current-file split, grouped redo
+  shortcuts and completed modal GPU text/button pixels. See history.md for held
+  worker receipts, complete-batch callbacks, expiry and external disk safety.
 - Native: Windows amd64 PE/GOAMD64=v1/race/strict-cgo, owned HWND input/GPU pixels,
   drag/resize/restore/DPI; macOS Intel/ARM real AppKit/Metal behavior.
 - Visual: pin VS Code source, snapshot font/theme/viewport/DPI, inspect meaningful

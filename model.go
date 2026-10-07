@@ -36,6 +36,7 @@ type model struct {
 	active                                             int
 	tabs                                               editorTabState
 	search                                             searchState
+	history                                            workspaceHistory
 	activity, panel                                    string
 	showPanel, palette, editing                        bool
 	query, message, status                             string

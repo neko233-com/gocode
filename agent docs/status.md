@@ -1,5 +1,24 @@
 # Milestone ledger
 
+## Workspace history candidate (2026-10-07)
+
+Replacement groups now support native multi-file confirmation, worker-prepared
+all-buffer Undo/Redo and current-file split. Metadata-only bounded groups preserve
+newer edits and reopened identities; whole-batch receipts revalidate every caret,
+version and history stack before callbacks. Three-repeat race models pass real
+replacement/save groups, external disk safety, held receipts, split and shutdown.
+Early candidate used an ignored local core modfile. Complete three-repeat race tests
+and vet pass (model coverage 30.2%, search 81.4%). Both console/GUI strict-cgo native
+replacement/Cancel/grouped Undo/Redo/current-file split pass; actual 150% modal PNG
+was visually reviewed. Source now independently imports public godesktop v0.9.0/
+cb8b077, whose exact all-five CI 37555224866 passed. GOWORK=off/no replace downloads
+the published module. Full local public-module Windows strict-cgo/race/vet and
+console/GUI suites pass, including replacement history and existing VSIX/editor/
+tabs/search/opener/watch/terminal/large-file regression. Cross-platform/released/
+install evidence is pending.
+Installed version remains v0.14.0/core0.8.0.
+See history.md for exact behavior and remaining closed-resource/provider gaps.
+
 ## Native workspace replacement v0.14.0 promotion (2026-10-07)
 
 Immutable application/package source `de2a98fb0a041cd88c0ec5ac658bb2fd41a62f9b`

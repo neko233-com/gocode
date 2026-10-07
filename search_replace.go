@@ -184,6 +184,7 @@ func (m *model) applyReplacement(cx *ui.Context) {
 			changes[i] = change
 			documents[i] = target.document
 		}
+		m.recordWorkspaceHistory("Replace All", documents)
 		m.search.replaceSaving = true
 		m.search.replacePlan = nil
 		for i, d := range documents {

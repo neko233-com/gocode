@@ -43,7 +43,7 @@ go run . -workspace .
 
 macOS 使用 `CGO_ENABLED=1 go run . -workspace .`。Windows GUI 构建：`go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .`。
 
-go.mod 固定依赖已发布的 godesktop v0.8.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
+go.mod 固定依赖已发布的 godesktop v0.9.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
 
@@ -55,6 +55,7 @@ go.mod 固定依赖已发布的 godesktop v0.8.0，没有本地 replace，可以
   保存前检查磁盘内容，检测外部变更时保留原文件和未保存缓冲区。v0.14.0 已发布，
   当前发行版的版本／真实安装验收状态见 agent docs/status.md。
 - Ctrl/Cmd+S 保存；Ctrl/Cmd+Z 撤销；Ctrl/Cmd+Shift+Z 或 Ctrl+Y 重做；Ctrl/Cmd+A/C/X/V；保存保留 LF/CRLF。
+- 工作区替换支持整组撤销/重做；撤销时可选所有文件、当前文件或取消。后台准备期间的新编辑、光标变化和关闭重开会使旧结果失效；文件有后续编辑时拆为当前文件操作，撤销不会自动写回磁盘。源码验证和发行状态见 [工作区历史](agent%20docs/history.md)。
 - Ctrl/Cmd+P 命令列表；Ctrl/Cmd+J 面板；Ctrl+Space 请求 VSIX 补全和 Copilot；Enter 选择补全，Tab 接受 Copilot 建议。
 - Ctrl/Cmd+Shift+F 打开原生全文搜索；支持大小写、Unicode 整词、Go 正则、包含／排除 glob、Git 忽略规则和未保存文档。搜索在单一可取消后台工作器中流式执行，结果点击后核对版本、内容哈希和 UTF-16 位置；超大文件跳到真实字节视图。Enter 搜索，方向键／Enter 或 F4 导航。PCRE2 扩展语法仍需实现，具体边界见 [搜索工程记录](agent%20docs/search.md)。
 - 已安装 VSIX 可以读取未保存的活动文档、执行原生编辑/保存、接收文档事件、注册补全/悬停/定义、发布 Problems 诊断、持久保存 workspaceState/globalState。

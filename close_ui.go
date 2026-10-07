@@ -28,6 +28,7 @@ func (m *model) requestWindowClose(*ui.Context) bool {
 	return true
 }
 func (m *model) beginClose(target *document) {
+	m.history.prompt = nil
 	if m.closeBusy {
 		return
 	}

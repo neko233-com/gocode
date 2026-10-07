@@ -49,8 +49,11 @@ func runReplacementAcceptance() error {
 	m.showPanel = false
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	var stopSearch, stopSave, stopIcon func()
+	var stopSearch, stopSave, stopIcon, stopHistory func()
 	defer func() {
+		if stopHistory != nil {
+			stopHistory()
+		}
 		if stopSearch != nil {
 			stopSearch()
 		}
@@ -74,6 +77,7 @@ func runReplacementAcceptance() error {
 		m.native = cx
 		if stopSearch == nil {
 			stopSearch = m.startSearch(ctx, cx.Dispatch, nil)
+			stopHistory = m.startHistory(ctx, cx.Dispatch)
 			stopSave = m.startSaveActor(ctx, cx.Dispatch)
 			stopIcon = applyAppIcon("gocode — " + filepath.Base(root))
 		}
@@ -133,7 +137,7 @@ func runReplacementAcceptance() error {
 			paintToken = token
 			nextFrame = max(nextFrame, cx.RenderedFrames()+5)
 		}
-		ready := !m.search.busy && m.search.timer == nil && !m.search.replaceBusy && !m.search.replaceSaving
+		ready := !m.search.busy && m.search.timer == nil && !m.search.replaceBusy && !m.search.replaceSaving && !m.history.busy
 		diagnostic.Store(fmt.Sprintf("phase=%d results=%d focus=%d busy=%t status=%q replacement=%q message=%q", phase, len(m.search.report.Matches), m.search.focus, !ready, m.search.status, m.search.replaceStatus, m.message))
 		if phase != paintPhase {
 			paintPhase = phase
@@ -276,12 +280,54 @@ func runReplacementAcceptance() error {
 					})
 				}
 			case 15:
-				if d.buffer.Dirty() && d.buffer.Text() == "unsaved needle "+a {
+				if m.history.prompt != nil {
+					if err := captureReplacementPixels(cx, m, "undo-confirmation", false); err != nil {
+						fail(err)
+						break
+					}
+					waiting = true
+					click("history-cancel", advance)
+				}
+			case 16:
+				if m.history.prompt == nil && !d.buffer.Dirty() && !m.docs[1].buffer.Dirty() {
+					waiting = true
+					key('Z', ui.ModifierControl, advance)
+				}
+			case 17:
+				if m.history.prompt != nil {
+					waiting = true
+					click("history-all", advance)
+				}
+			case 18:
+				if ready && d.buffer.Dirty() && d.buffer.Text() == "unsaved needle "+a && m.docs[1].buffer.Dirty() && m.docs[1].buffer.Text() == b {
 					if err := captureReplacementPixels(cx, m, "undo", false); err != nil {
 						fail(err)
 						break
 					}
-					phase = 16
+					waiting = true
+					key('Z', ui.ModifierControl|ui.ModifierShift, advance)
+				}
+			case 19:
+				if ready && !d.buffer.Dirty() && !m.docs[1].buffer.Dirty() && m.docs[1].buffer.Text() == "eedle-n界 😀\n" {
+					if err := captureReplacementPixels(cx, m, "redo", false); err != nil {
+						fail(err)
+						break
+					}
+					waiting = true
+					key('Z', ui.ModifierControl, advance)
+				}
+			case 20:
+				if m.history.prompt != nil {
+					waiting = true
+					click("history-one", advance)
+				}
+			case 21:
+				if ready && d.buffer.Dirty() && d.buffer.Text() == "unsaved needle "+a && !m.docs[1].buffer.Dirty() && m.docs[1].buffer.Text() == "eedle-n界 😀\n" && len(m.history.groups) == 0 {
+					if err := captureReplacementPixels(cx, m, "undo-one", false); err != nil {
+						fail(err)
+						break
+					}
+					phase = 22
 					cx.Quit()
 				}
 			}
@@ -295,7 +341,7 @@ func runReplacementAcceptance() error {
 	if failure != nil {
 		return failure
 	}
-	if phase != 16 {
+	if phase != 22 {
 		return fmt.Errorf("native replacement incomplete phase=%d status=%s message=%s", phase, m.search.replaceStatus, m.message)
 	}
 	wantA := strings.ReplaceAll(strings.ReplaceAll("unsaved needle "+a, "needle", "eedle-n界"), "NEEDLE", "EEDLE-N界")
@@ -308,7 +354,7 @@ func runReplacementAcceptance() error {
 			return fmt.Errorf("actual replacement bytes/EOL differ in %s: %q", name, data)
 		}
 	}
-	fmt.Println("Native replacement passed: actual unsaved/closed files, regex captures, preview pixels, disk-stale/captured-review rejection, background saves, UTF-16/CRLF and native undo")
+	fmt.Println("Native replacement passed: actual unsaved/closed files, regex captures, preview pixels, disk-stale/captured-review rejection, background saves, UTF-16/CRLF and native grouped undo/cancel/redo/current-file split")
 	return nil
 }
 
@@ -318,6 +364,27 @@ func captureReplacementPixels(cx *ui.Context, m *model, stage string, preview bo
 		return err
 	}
 	red, green := 0, 0
+	if stage == "undo-confirmation" {
+		bounds, ok := cx.ElementBounds("history-all")
+		if !ok {
+			return errors.New("workspace undo confirmation missing")
+		}
+		ink, accentPixels := 0, 0
+		for y := int(float64(bounds.Y) * scale); y < min(pixels.Bounds().Dy(), int(float64(bounds.Y+bounds.Height)*scale)); y++ {
+			for x := int(float64(bounds.X) * scale); x < min(pixels.Bounds().Dx(), int(float64(bounds.X+bounds.Width)*scale)); x++ {
+				p := pixels.RGBAAt(x, y)
+				if p.R > 160 && p.G > 160 && p.B > 160 {
+					ink++
+				}
+				if p.R == uint8(accent>>16) && p.G == uint8((accent>>8)&255) && p.B == uint8(accent&255) {
+					accentPixels++
+				}
+			}
+		}
+		if ink < 24 || accentPixels < 24 {
+			return fmt.Errorf("undo confirmation lacks completed GPU text/button: ink=%d accent=%d", ink, accentPixels)
+		}
+	}
 	if preview {
 		bounds, ok := cx.ElementBounds("search-results")
 		if !ok {

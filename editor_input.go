@@ -124,6 +124,17 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		}
 		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
 	}
+	if m.history.prompt != nil {
+		if e.Kind == ui.KeyPressed {
+			if e.Key == 27 {
+				m.history.prompt = nil
+			}
+			if e.Key == 13 {
+				m.confirmHistory(true)
+			}
+		}
+		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
+	}
 	if m.tabInput(cx, e) {
 		return true
 	}
@@ -403,16 +414,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 			m.documentEvent("selection", d, textbuffer.ChangeEvent{})
 			return true
 		case 'Z', 'Y':
-			var change textbuffer.ChangeEvent
-			var ok bool
-			if e.Key == 'Y' || shift {
-				change, ok = d.buffer.Redo()
-			} else {
-				change, ok = d.buffer.Undo()
-			}
-			if ok {
-				m.changed(d, change, nil)
-			}
+			m.requestHistory(d, e.Key == 'Y' || shift)
 			return true
 		case 'C', 'X':
 			r := d.buffer.Selection().Range()
