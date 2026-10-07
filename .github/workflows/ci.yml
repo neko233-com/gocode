@@ -150,7 +150,9 @@ jobs:
       matrix:
         os: [macos-15, macos-15-intel]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # Intel cold compilation plus full density gates and gopls installation
+    # exceeded 15 minutes; individual acceptance deadlines remain unchanged.
+    timeout-minutes: ${{ matrix.os == 'macos-15-intel' && 20 || 15 }}
     env:
       CGO_ENABLED: '1'
       GOEXPERIMENT: cgocheck2

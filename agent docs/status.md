@@ -18,6 +18,15 @@ actionlint/ShellCheck and diff checks pass. Latest VS Code stable 1.141.0/main
 are pending. Public/installed v0.20.0 below remains authoritative.
 See scm.md for exact limits and remaining merge/history/remote/provider gaps.
 
+Initial source 626ad7097eccc757fe441587f42028a47bcaf3fc in CI 37612073450 passes
+Windows 2022/2025, ARM and Ubuntu. Intel race/Git (80.9%), vet, all native gates
+including SCM normal/1.5/2, and official Copilot protocol pass. Its job is cancelled
+while installing gopls: the annotation explicitly reports the total 15-minute
+job maximum. Packages are not promoted. Actual logs and all three density SCM
+PNGs are retained. Only the Intel total job budget becomes 20 minutes; native
+watchdogs/assertions and other platform budgets remain unchanged. Full exact
+new-source CI is required before release.
+
 ## Native VSIX terminal v0.20.0 promotion (2026-10-07)
 
 Immutable application/package source `05ae59a211ca6649553682ab609d938600c6a86a`
