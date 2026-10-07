@@ -19,21 +19,30 @@ type searchRow struct {
 	result int
 }
 type searchState struct {
-	query                  workspaceSearch.Query
-	report                 workspaceSearch.Report
-	rows                   []searchRow
-	resultRows             []int
-	status                 string
-	busy                   bool
-	generation             uint64
-	navigation             uint64
-	focus, caret, selected int
-	selectAll, initialized bool
-	scroll                 float32
-	timer                  *time.Timer
-	submit                 func()
-	validate               func(func(context.Context) error, func(error))
-	cancel                 func()
+	replacePressed             bool
+	replaceCapture             *workspaceSearch.ReplacementPlan
+	replacePressGeneration     uint64
+	query                      workspaceSearch.Query
+	report                     workspaceSearch.Report
+	rows                       []searchRow
+	resultRows                 []int
+	status                     string
+	busy                       bool
+	generation                 uint64
+	navigation                 uint64
+	focus, caret, selected     int
+	selectAll, initialized     bool
+	scroll                     float32
+	timer                      *time.Timer
+	submit                     func()
+	validate                   func(func(context.Context) error, func(error))
+	cancel                     func()
+	replacement                string
+	replaceShown               bool
+	replacePlan                *workspaceSearch.ReplacementPlan
+	replaceBusy, replaceSaving bool
+	replaceGeneration          uint64
+	replaceStatus              string
 }
 type searchWork struct {
 	ctx    context.Context
@@ -103,6 +112,7 @@ func (m *model) startSearch(parent context.Context, dispatch func(func()) bool, 
 		}
 	}
 	m.search.submit = func() {
+		m.clearReplacement()
 		if m.search.timer != nil {
 			m.search.timer.Stop()
 			m.search.timer = nil
@@ -210,6 +220,7 @@ func searchStatus(r workspaceSearch.Report) string {
 	return status
 }
 func (m *model) searchChanged(cx *ui.Context) {
+	m.clearReplacement()
 	m.search.generation++
 	generation := m.search.generation
 	if m.search.cancel != nil {
@@ -236,6 +247,7 @@ func (m *model) searchChanged(cx *ui.Context) {
 	}
 }
 func (m *model) stopSearch() {
+	m.clearReplacement()
 	m.search.generation++
 	if m.search.timer != nil {
 		m.search.timer.Stop()

@@ -1,5 +1,23 @@
 # Milestone ledger
 
+## Native workspace replacement candidate (2026-10-07)
+
+Source uses independently downloaded public godesktop v0.8.0/source d5d139d,
+whose all-five CI 37549368977 passed. Native replacement field/preview, worker
+complete-set verification, prepared all-buffer commit and existing per-file saves
+are implemented. New/dirty Unicode/CRLF sources, captures, bounded expansion and
+stale query/edit/caret/reopen/disk/open-hook/late-save cases pass three-repeat race
+checks; Node JavaScript supplies the capture oracle. Captured pointer review also
+rejects a different preview appearing before release. Full local public-module
+strict-cgo/race/vet and console/GUI regression passes (search coverage 81.4%).
+Native preview, actual external stale-file rejection, restore/re-preview, two real
+saves, preserved unsaved prefix/EOL and blank-area-focus/native Undo pass; 150%
+1920×1230 preview was visually reviewed. The first fixture forgot active=0; then
+real blank-editor lost focus was found and production input was corrected.
+Mac normal/1.5/2, public package/released bytes and installed promotion are pending
+for v0.14.0. Current published/installed app remains v0.13.0. Exact limits and
+per-file persistence/global-undo/regex compatibility gaps are in replace.md.
+
 ## Native workspace search v0.13.0 promotion (2026-10-07)
 
 Immutable source/package `d4a869e24c9acc2d93cd9aefb17f9303064423b2` passed all

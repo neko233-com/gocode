@@ -54,6 +54,13 @@ bounded previews/byte/UTF-16 ranges. Version/instance/focus/generation and worke
 digest/coordinate verification precede navigation. See search.md for execution,
 traversal/ignore/regex limits, actual GiB evidence and remaining replace/API scope.
 
+Replacement previews re-scan immutable sources on that worker. Public v0.8.0
+Snapshot.Prepare computes text/selection/history off UI; all-buffer identity/
+version/caret and disk preflight precede UI adoption. Open hooks run before the
+final check, change hooks after all commits. Per-file saves follow; late failures
+retain undoable dirty text and visible counts. This is not filesystem-wide
+atomicity. Limits and evidence are in replace.md.
+
 Real terminal processes and VT parsing are worker-owned. Immutable cell snapshots
 reach native views through coalesced dispatches; shell input does not pass through
 document editing. See terminal.md for PTY/ConPTY, bounded queues/history, isolated

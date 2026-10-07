@@ -181,6 +181,16 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 					return true
 				}
 			}
+			// The editor's blank area still owns focus and places the caret at the
+			// closest real line. Otherwise Undo/typing after a blank click is lost.
+			if area, ok := cx.ElementBounds("editor-content"); ok && e.X >= area.X && e.X < area.X+area.Width && e.Y >= area.Y && e.Y < area.Y+area.Height {
+				if first, ok := cx.ElementBounds(fmt.Sprintf("code-line-%d", d.scroll)); ok {
+					line := max(0, min(d.buffer.LineCount()-1, d.scroll+int((e.Y-first.Y)/20)))
+					m.moveCursor(d, line, hitColumn(d.buffer.Line(line), max(0, e.X-first.X-68)), m.pointerShift)
+					m.editing, m.pointerSelecting = true, true
+					return true
+				}
+			}
 		}
 		return false
 	}

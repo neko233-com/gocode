@@ -118,6 +118,8 @@ jobs:
             .cache/search-native/*.json
             .cache/search-gib-native/*.png
             .cache/search-gib-native/*.json
+            .cache/replace-native/*.png
+            .cache/replace-native/*.json
             .cache/copilot-health.json
             dist/*.zip
             dist/*.msi
@@ -160,6 +162,9 @@ jobs:
           ./bin/gocode -search-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-150 ./bin/gocode -search-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-200 ./bin/gocode -search-smoke
+          ./bin/gocode -replace-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_REPLACE_SCREENSHOTS=.cache/replace-native-150 ./bin/gocode -replace-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_REPLACE_SCREENSHOTS=.cache/replace-native-200 ./bin/gocode -replace-smoke
           ./bin/gocode -extensions-dir .cache/extensions -open-smoke
           ./bin/gocode -extensions-dir .cache/extensions -editor-smoke
           for mode in save discard cancel external; do
@@ -201,6 +206,12 @@ jobs:
             .cache/search-native-150/*.json
             .cache/search-native-200/*.png
             .cache/search-native-200/*.json
+            .cache/replace-native/*.png
+            .cache/replace-native/*.json
+            .cache/replace-native-150/*.png
+            .cache/replace-native-150/*.json
+            .cache/replace-native-200/*.png
+            .cache/replace-native-200/*.json
             dist/*.zip
             dist/*.tar.gz
           include-hidden-files: true

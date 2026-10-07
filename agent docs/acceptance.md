@@ -32,6 +32,8 @@
   actual owned native query/control/result input and GPU highlighting, disk-stale
   rejection and long-line byte navigation with unchanged source. Mac normal/1.5/2
   and Windows console/GUI/actual GiB gates retain evidence; see search.md for scope.
+- Replacement: -replace-smoke uses actual preview typing/pixels, disk-stale
+  rejection, real saved unsaved/closed UTF-16/EOL sources and blank-click Undo.
 - Native: Windows amd64 PE/GOAMD64=v1/race/strict-cgo, owned HWND input/GPU pixels,
   drag/resize/restore/DPI; macOS Intel/ARM real AppKit/Metal behavior.
 - Visual: pin VS Code source, snapshot font/theme/viewport/DPI, inspect meaningful

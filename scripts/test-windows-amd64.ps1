@@ -66,6 +66,9 @@ try {
     & ./bin/gocode.exe -search-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native workspace search/UTF-16/stale/large-file navigation failed.' }
     Invoke-CheckedGUI -search-smoke
+    & ./bin/gocode.exe -replace-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native workspace replace preview/stale/save/undo failed.' }
+    Invoke-CheckedGUI -replace-smoke
     & ./bin/gocode.exe -extensions-dir .cache/extensions -open-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native delayed disk/scan and awaited VSIX opening acceptance failed.' }
     Invoke-CheckedGUI -extensions-dir .cache/extensions -open-smoke

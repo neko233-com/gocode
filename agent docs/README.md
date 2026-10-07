@@ -12,7 +12,7 @@ Open editable-file watching/reload/conflict contracts are in [files](files.md).
 The existing docs/vscode-parity.md remains the API/function coverage ledger.
 
 Reference: latest stable VS Code 1.140.0 and current main
-`8ce9c47a85608cc74351a6b0e60ef36979884661` (2026-10-07). Use source measurements,
+`a4a3dff1c3d7b48bf44c5c1ea54447b36a80b053` (2026-10-07). Use source measurements,
 colors/fonts/layout and native screenshots, rather than remembered old UI details.
 
 Production promotion requires real core/editor/process/native/visual/installer
@@ -20,3 +20,5 @@ checks and exact public commits. Future goals must not be described as completed
 
 Titlebar image, measured caption and owned native visual evidence are in [ui](ui.md).
 Workspace search, streaming/ignore/stale-navigation bounds and evidence are in [search](search.md).
+Replacement preview, prepared buffer commits and per-file save/failure contracts
+are in [replace](replace.md).

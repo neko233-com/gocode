@@ -118,6 +118,7 @@ func run() error {
 	editorSmoke := flag.Bool("editor-smoke", false, "Verify native versioned VSIX edits, save, undo/redo and completion in a disposable workspace")
 	closeSmoke := flag.String("close-smoke", "", "Verify native save/discard/cancel/external close protection in a disposable workspace")
 	terminalSmoke := flag.Bool("terminal-smoke", false, "Verify real shell input highlighting, ANSI colors, keyboard, resize, interrupt and exit in a native owned workspace")
+	replaceSmoke := flag.Bool("replace-smoke", false, "Verify native workspace replacement preview, stale disk guards, actual saves and undo in owned files")
 	filewatchSmoke := flag.Bool("filewatch-smoke", false, "Verify real external replacements, dirty conflict, native reload confirmation, VSIX and optional configured LSP in an owned workspace")
 	largeSmoke := flag.Bool("largefile-smoke", false, "Verify file-backed browsing and direct long-line byte navigation in a native window")
 	largeSmokeMiB := flag.Int("largefile-smoke-mib", 16, "Size of the native large-file acceptance fixture (16 to 10240 MiB)")
@@ -141,6 +142,9 @@ func run() error {
 	flag.Parse()
 	if *searchSmoke {
 		return runSearchAcceptance(*searchSmokeMiB)
+	}
+	if *replaceSmoke {
+		return runReplacementAcceptance()
 	}
 	if *tabsSmoke {
 		return runEditorTabsAcceptance()
