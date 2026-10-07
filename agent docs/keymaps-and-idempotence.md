@@ -96,3 +96,12 @@ idempotence/lifecycle repeats pass (151.237s): six full 45-phase native runs lea
 empty private scratch, unchanged settings and a stable evidence count. Previous
 Windows 2025 CI 37646262818 failure is retained in status.md; that source is not
 published. Final-source CI/released/installed-byte checks remain required.
+
+CI 37648319182 passes Windows 2025, both Macs and Ubuntu; Windows 2022 observes
+a correctly owned but hidden (visible=0/enabled=1) shell dialog. Its cause is not
+claimed. Windows package binaries now run with go test -p=1 so native shell/GPU
+acceptance does not compete with parallel GiB/parser/process suites. Default
+race repeat count remains three and native guards/cleanup assertions are unchanged.
+Local independent serial Windows script Repeat=1 passes (app 81.809s), all
+console/GUI native gates, vet and owned scratch cleanup. Final three-repeat
+source CI remains the publication gate.

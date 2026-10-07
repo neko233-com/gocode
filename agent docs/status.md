@@ -2,6 +2,18 @@
 
 ## Windows workbench, keymaps, rounded UI and Gallery candidate (2026-10-07)
 
+2026-10-08: f24758584ceaf8bc64d326a52a1fb3d2f42a8f77 / CI 37648319182 passes
+Windows 2025 (including GiB/services/MSI/packages), both Macs and Ubuntu. Windows
+2022's first idempotence run reports an owned shell HWND with visible=0/enabled=1
+after ten seconds. The new flags provide real evidence of a hidden window;
+the cause of its delayed/absent display remains unconfirmed. No source is published
+from that incomplete run. Windows go test now uses -p=1 to keep native shell/GPU
+fixtures away from concurrent GiB/parser/process package binaries on small runners.
+The default remains three shuffled race repeats; no assertion or individual guard
+is changed. The local independent public-module serial script passes Repeat=1
+(app 81.809s), vet, all console/GUI native regression gates and private-root cleanup.
+Actionlint/ShellCheck and diff checks pass. Final-source default-three CI follows.
+
 Second source e1b8ff2f35959254c07f76081066b3cd2a09bb5e / CI 37646262818 passes
 Windows 2022, Mac Intel/ARM and Ubuntu. Windows 2025's repeated idempotence run
 fails at Open File with an owned filename Edit (1148/ComboBox) that is not ready.

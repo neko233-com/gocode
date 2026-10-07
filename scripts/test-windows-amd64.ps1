@@ -59,7 +59,9 @@ try {
     & (Join-Path $PSScriptRoot 'build-windows-resources.ps1')
     # Added repeatable 45-phase native/lifecycle suites need a larger aggregate
     # package budget. Individual native dialog/window guards are unchanged.
-    Invoke-CheckedGo test -race -shuffle=on "-count=$Repeat" -timeout=8m '-coverprofile=coverage.out' ./...
+    # Keep actual shell/GPU fixtures away from simultaneous GiB/parser/process
+    # package tests on small Windows runners. All package/repeat guards remain.
+    Invoke-CheckedGo test -p=1 -race -shuffle=on "-count=$Repeat" -timeout=8m '-coverprofile=coverage.out' ./...
     Invoke-CheckedGo vet ./...
     New-Item -ItemType Directory -Path bin -Force | Out-Null
     Invoke-CheckedGo build -trimpath '-ldflags=-s -w' -o bin/gocode.exe .
