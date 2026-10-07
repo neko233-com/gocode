@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.12.0.schema.json
 PackageIdentifier: neko233-com.gocode
-PackageVersion: 0.22.0
+PackageVersion: 0.23.0
 PackageLocale: en-US
 Publisher: neko233-com
 PublisherUrl: https://github.com/neko233-com
@@ -16,9 +16,9 @@ Installers:
   - Architecture: x64
     InstallerType: msi
     Scope: user
-    InstallerUrl: https://github.com/neko233-com/gocode/releases/download/v0.22.0/gocode-0.22.0-windows-amd64.msi
-    InstallerSha256: 477CE00EF7970BE447094469F678D6698FD38D4459C2008F0C3DC3043261BDC6
-    ProductCode: '{39A8A480-19A5-271D-33D9-BA3510D06525}'
+    InstallerUrl: https://github.com/neko233-com/gocode/releases/download/v0.23.0/gocode-0.23.0-windows-amd64.msi
+    InstallerSha256: 8ED5CF7F46AF4F939CC4F8F619F4445F89E825B48AB2A1655723B2614F95B3FE
+    ProductCode: '{B035AE50-DC34-85D3-9389-5C26673EB67E}'
     InstallModes: [silent, silentWithProgress]
     UpgradeBehavior: install
 ManifestType: singleton
