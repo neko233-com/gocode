@@ -1,5 +1,30 @@
 # Background acknowledgements under UI queue pressure
 
+## Published behavior and verification (2026-10-08)
+
+The workers described here ship in public/installed v0.23.0, immutable source
+47623823dd88fbb45422d096b545631be7e6b77b, on independently fetched public core
+v0.16.0/source 5178f551a179351391af6eaab62f3f5cf150350e with GOWORK=off/no
+replace. The complete independent default-three Windows script passes (main
+423.075s/33.6%); [exact-source CI 37678679723](https://github.com/neko233-com/gocode/actions/runs/37678679723)
+attempt 1 passes all five platforms. Windows 2022/2025 main results are
+442.628s/512.883s, both 33.7% coverage, without relaxing actor/scenario guards.
+
+[Publication 37682493872](https://github.com/neko233-com/gocode/actions/runs/37682493872)
+reuses the tested packages. The genuine released-byte check and actual installed
+console/GUI gates pass on that exact source: 66-phase Auto Save/Revert plus actual
+minimized onWindowChange and afterDelay disk/save/didSave/clean receipts complete
+while IsIconic=true, View calls 2->2 and GPU Submitted 2->2. SaveIds/didSave are
+1/1 then 2/2, with restoration afterward. Existing real VSIX/terminal/Git/service
+gates and prior-v0.4.0 native GUI/VSIX rollback also pass. Fixed logs, payload
+hashes and both installed current.json reports are recorded in status.md.
+
+Independent extension-detail scrolling and GPU shadows are outside this immutable
+release. The existing headless disk/process tests below verify the shipped
+worker behavior; their earlier negative controls remain preserved.
+
+## Worker contract
+
 The native framework v0.16.0 processes UI dispatches while hidden/minimized and
 bounds its pending queue at 1024 callbacks. A false Dispatch result may mean
 temporary overload as well as shutdown. Product workers must not treat the first

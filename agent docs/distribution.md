@@ -1,6 +1,39 @@
 # Free distribution contract
 
-Latest promotion: v0.22.0/source 0b5966171e5e183e74a9fecbeccce391cd1cf229,
+## Public and installed v0.23.0 (2026-10-08)
+
+Immutable source 47623823dd88fbb45422d096b545631be7e6b77b passes all five
+jobs in [CI 37678679723](https://github.com/neko233-com/gocode/actions/runs/37678679723)
+attempt 1. [Publication 37682493872](https://github.com/neko233-com/gocode/actions/runs/37682493872)
+reuses those tested packages and tags the same source. Seven generated metadata
+files at 05404af95162921c89617d314b7ff6edb7feb60e pass both Python policies;
+published Ed25519 manifest/source/asset digests verify. Windows ZIP is
+19,129,156 bytes, SHA256
+05cff9bb4179f4316c28bfa8cd76f9eb28bd37e5e22cda02a2332ed86e4fe9e3;
+MSI is 16,113,664 bytes, SHA256
+8ed5cf7f46af4f939cc4f8f619f4445f89e825b48ab2a1655723b2614f95b3fe.
+
+.cache/live-release-check/current-v023.log exits 0 after signed automatic direct
+GitHub full ZIP, separate actual manual direct and ghfast.top full bodies, all
+25 ordered console/GUI acceptance gates and real v0.4.0/cfcd351 GUI/VSIX rollback.
+The owned .cache/live-update-050/installed/native-acceptance.json pins exact
+source, executable hashes and ordered native gates. The earlier v0.22.0 direct
+failures below remain history; current success does not erase failed downloads.
+
+The user's original 0.5.1 MSI/stable launcher selects v0.23.0/exact source via
+direct GitHub, GitHubReachable=true. Installed validation exits 0 for all nine
+native fixture modes plus actual console/GUI Auto Save/minimized/version gates,
+real 1,073,741,824-byte shared split/identical source SHA, native UI/Settings/icons,
+keymaps/VSIX/terminal/Git and authenticated official SDK/LSP without a prompt.
+Both installed minimized JSONs prove IsIconic, save/didSave 1/1 then 2/2,
+dirty=false, View/GPU 2->2 before restoration. User update configuration/PATH
+hashes, absent keyboard/autosave settings and both stable shortcut bytes,
+targets/icons/arguments/working directories remain intact. Exact hashes and
+.cache/installed-{update,validation,copilot}-v023.log evidence are in status.md.
+
+## Historical v0.22.0 promotion
+
+v0.22.0/source 0b5966171e5e183e74a9fecbeccce391cd1cf229,
 five-platform source CI 37651719075 and publication 37654475129 reusing tested
 artifacts. Seven metadata files at 787be53d2662c4c8d85417371474636190604b03 pass
 both Python policies. Actual signed automatic/manual gh-proxy.com full ZIP bodies,
@@ -12,6 +45,8 @@ Installed native File/keymaps/groups/real VSIX, actual GiB split, shell/VSIX
 terminals/Git and official SDK/LSP health without a prompt pass. Auto=true/mode=auto,
 settings/PATH hashes and both stable shortcut targets/icons match baseline.
 Exact hashes and source references are in status.md and distribution/SHA256SUMS.
+
+## Distribution contract
 
 Maintained channels: Windows unsigned MSI/portable ZIP and pinned PowerShell install;
 macOS Intel/ARM .app/tar.gz, updater ZIP and shell install; custom winget manifests,

@@ -1,6 +1,97 @@
 # Milestone ledger
 
-## Native Auto Save and Revert candidate (2026-10-08)
+## Public and installed Windows v0.23.0 (2026-10-08)
+
+Immutable application source 47623823dd88fbb45422d096b545631be7e6b77b uses
+public core v0.16.0/source 5178f551a179351391af6eaab62f3f5cf150350e with
+GOWORK=off/GOPROXY=direct/no replace and verified module hashes. The complete
+independent Windows default-three script passes (main 423.075s, model coverage
+33.6%), with strict-cgo/race/shuffle, vet/build/PE and all console/GUI native gates.
+The final source changes only aggregate test/job budgets and engineering records
+from the fully locally tested bd2f48c source; product Go/module/version bytes stay
+identical. Local proof is .cache/auto-save-public-windows-final.log.
+
+[Source CI 37678679723](https://github.com/neko233-com/gocode/actions/runs/37678679723)
+attempt 1 completes successfully on all five platforms:
+
+| Platform | Job | Result / elapsed | Artifact |
+| --- | --- | --- | --- |
+| Ubuntu | 112988746500 | success / 2m48 | none |
+| macOS ARM | 112988746862 | success / 4m54 | 11508522391 |
+| macOS Intel | 112988747142 | success / 15m22 | 11508873053 |
+| Windows 2022 amd64 | 112988747027 | success / 22m20 | 11508469587 |
+| Windows 2025 amd64 | 112988746970 | success / 25m15 | 11509182862 |
+
+Windows 2022 main is 442.628s/coverage 33.7%; Windows 2025 is 512.883s/33.7%.
+The latter exceeds the earlier cumulative 8m alarm while passing every original
+scenario/process/native guard. Default Repeat=3 and strict-cgo/race/shuffle,
+real GiB text/search/split/source hashes, official protocols and complete MSI
+install/upgrade/rollback/uninstall remain intact. Five raw logs, final results
+and exact-source artifact metadata are retained under .cache/ci-v023-37678679723-*.
+The old 37676083407 four-success/package-alarm failure is preserved below.
+
+[Publication 37682493872](https://github.com/neko233-com/gocode/actions/runs/37682493872)
+reuses those tested packages and tags that exact source as
+[v0.23.0](https://github.com/neko233-com/gocode/releases/tag/v0.23.0).
+Seven distribution metadata files at 05404af95162921c89617d314b7ff6edb7feb60e
+pass both Python policies. The published Ed25519 manifest independently verifies;
+all three signed updater asset sizes/digests match release metadata. Windows ZIP
+is 19,129,156 bytes with SHA256
+05cff9bb4179f4316c28bfa8cd76f9eb28bd37e5e22cda02a2332ed86e4fe9e3.
+Release logs/tag/asset/signature proof use .cache/release-v023-37682493872-*.
+
+Actual released-byte acceptance exits 0 in
+.cache/live-release-check/current-v023.log: signed automatic direct GitHub full
+ZIP, separately downloaded manual direct and ghfast.top full bodies all verify
+that exact SHA256. All 25 ordered console/GUI gates pass, including Auto Save,
+actual minimized receipts and existing native/GPU/VSIX/Git/language/file gates.
+The owned root actually rolls back to v0.4.0/source
+cfcd3513aedc4ec50ae19625fbd2f04446039abe and renders its GUI with shared VSIXs.
+Its .cache/live-update-050/installed/native-acceptance.json records exact source,
+ordered gates, console payload SHA256
+7e58a16142100fa7e803f90842ac595e1a8a9dfdabaf4c4b31baad68de3328db and GUI SHA256
+3342a09c3513eca02a03c8d249044070f9cec0226dfb3a57f12f7d7f1535c55b.
+The earlier v0.22.0 direct-body failures remain historical evidence.
+
+The user's original 0.5.1 stable launcher selects v0.23.0/exact 47623823 through
+an actual direct GitHub update (GitHubReachable=true); the current.json source
+matches the immutable release. .cache/installed-update-v023.log and
+.cache/installed-validation-v023.log exit 0, preserving all nine existing/new
+native fixture modes and extra console/GUI Auto Save/minimized/version checks.
+Actual native UI/Settings/icons, both keymaps, real VSIX/terminal/Git and the
+1,073,741,824-byte shared split with identical source SHA256 pass. Installed
+150% File/Settings/rounded Revert/extension-detail GPU pixels were inspected.
+
+Both .cache/installed-auto-save-minimized/current.json and
+.cache/installed-auto-save-minimized-gui/current.json prove actual IsIconic=true:
+onWindowChange saveId/didSave=1/1 and afterDelay=2/2, dirty=false in both phases,
+View calls 2->2 and GPU Submitted 2->2. Restoration happens after both saves.
+updates.json SHA256 remains
+d8a85199a0018d88355ab5786881c778dc63596858a58bbe64fde8f799c9ed5f;
+user keyboard.json/autosave.json remain absent. User PATH hash remains
+aec04bdd1653d4c8c70dc2b50aec868029787ecf0cc34cbd1f4a9f7df3d30aa3.
+Both stable Desktop and Programs/gocode/gocode.lnk shortcut bytes, targets,
+icons, arguments and working directories are preserved. Installed official
+Copilot health in .cache/installed-copilot-v023.log reports authenticated,
+sdkConnected and lspInitialized=true, networkPromptSent=false.
+
+The [official Marketplace FAQ](https://code.visualstudio.com/docs/supporting/FAQ#extensions)
+is rechecked on 2026-10-08: alternative products including Code-OSS forks are
+not permitted to access the service; separate authorization is absent here.
+Implemented scope is native authorized Gallery protocol and default live Open
+VSX. The actual installed -extension-catalog-check golang exits 0 and resolves
+win32-x64 metadata for tooltitudeteam.tooltitude 1.56.5, toga4.go-tdt-outline
+0.0.2 and ZencoderAI.zencoder 3.85.9007; installed=false. Its fixed report is
+.cache/installed-catalog-v023-golang.json. The earlier golang.go query exits 1
+with "no actual Windows x64/universal extension versions resolved" in
+.cache/installed-catalog-v023.json. This records a query-specific search/resolution
+limit; no package failure or network outage is established, and no catalog VSIX
+is installed or executed by either check. Full VS Code UI/API/debug/tasks/
+refactoring and official Copilot VSIX parity remain unfinished. Native GPU
+shadows and independent extension-detail scrolling are outside this immutable
+release. See autosave.md, worker-receipts.md and distribution.md.
+
+## Auto Save and Revert development before promotion (2026-10-08)
 
 VERSION is now 0.23.0 and independently fetches public core v0.16.0 with
 GOWORK=off/GOPROXY=direct/no replace. Module Origin is exact

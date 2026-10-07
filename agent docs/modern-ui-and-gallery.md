@@ -1,6 +1,19 @@
 # Modern Windows UI and native VS Gallery protocol
 
-Final native rounded UI is public and installed in v0.22.0/source
+Current public/installed v0.23.0 is immutable source
+47623823dd88fbb45422d096b545631be7e6b77b on public core v0.16.0. Five platforms
+pass attempt 1 in [CI 37678679723](https://github.com/neko233-com/gocode/actions/runs/37678679723),
+and [publication 37682493872](https://github.com/neko233-com/gocode/actions/runs/37682493872)
+reuses those tested packages. Actual released and installed console/GUI Auto Save,
+minimized receipts and rounded Revert pass; installed 150% File/Settings/Revert/
+extension-detail GPU captures were inspected. The v0.22.0 native File menus,
+VS Code/JetBrains keymaps, radii and descendant clipping remain shipped behavior.
+Full pixel/API parity is unfinished. Native GPU shadows and independent extension
+detail scrolling are outside this release. Exact evidence is in status.md.
+
+## Historical v0.22.0 rounding evidence
+
+Native rounded UI was first public and installed in v0.22.0/source
 0b5966171e5e183e74a9fecbeccce391cd1cf229 on public core v0.15.0. All five source
 jobs 37651719075 and tested-package publication 37654475129 pass. Actual final
 Windows 2025 File menu and Windows 2022 JetBrains Search Everywhere CI captures
@@ -45,9 +58,9 @@ are still required before promoting the local user installation.
 
 ## Native store protocol and actual service limit
 
-Microsoft's official FAQ explicitly says alternative products cannot directly
-access Visual Studio Marketplace:
-https://code.visualstudio.com/docs/supporting/faq#can-i-use-the-visual-studio-marketplace-with-other-products
+Microsoft's [official FAQ](https://code.visualstudio.com/docs/supporting/FAQ#extensions),
+rechecked on 2026-10-08, says alternative products including Code-OSS forks are
+not permitted to access Visual Studio Marketplace.
 This is distinct from MIT Code-OSS source/API compatibility. No authorization
 from Microsoft is present in this task. Official Marketplace access/compatibility
 is not claimed. The default public catalog remains Open VSX with local VSIX import.
@@ -77,9 +90,22 @@ Different selected version and foreign/credential URLs are rejected without
 changing the installed fixture. This is actual protocol/process evidence for the
 fixture, not proof of live official Marketplace access or arbitrary extension APIs.
 
-The installed v0.22.0 official Copilot SDK/LSP health check reports authentication,
-LSP initialization and SDK connection true, networkPromptSent=false. Microsoft's
+The installed v0.23.0 official Copilot SDK/LSP health check in
+.cache/installed-copilot-v023.log reports authentication, LSP initialization and
+SDK connection true, networkPromptSent=false. This verifies the accepted SDK/LSP
+path; full official Copilot VSIX compatibility remains unfinished. Microsoft's
 FAQ was rechecked on 2026-10-08: alternative products, including Code-OSS forks,
 are not permitted to access the official Marketplace. Separate service
 authorization is absent here; the native authorized Gallery implementation and
 default live Open VSX remain the implemented scope.
+
+The actual installed v0.23.0 -extension-catalog-check golang exits 0 and records
+target=win32-x64, installed=false in .cache/installed-catalog-v023-golang.json.
+It resolves real Open VSX versions tooltitudeteam.tooltitude 1.56.5,
+toga4.go-tdt-outline 0.0.2 and ZencoderAI.zencoder 3.85.9007 with platform-specific
+package/SHA256 URLs. The original golang.go query exits 1 immediately with
+"no actual Windows x64/universal extension versions resolved"; raw failure stays
+in .cache/installed-catalog-v023.json. This is a query-specific search/resolution
+limit, not evidence of a broken extension or network failure. These checks only
+read live Open VSX metadata; they install no catalog VSIX, prove no arbitrary
+extension activation, and do not access Microsoft's official Marketplace.

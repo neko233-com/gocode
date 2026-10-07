@@ -6,6 +6,8 @@ Go 1.27 的原生编辑器，以 [godesktop](https://github.com/neko233-com/gode
 
 目标是覆盖 VS Code 工作台、编辑器和扩展能力。目前已贯通版本化编辑、VSIX 编辑/语言提供者和官方 Copilot 接入，完整覆盖情况见 [功能矩阵](docs/vscode-parity.md)。Dark Modern 布局是实现参考，尚未通过和 VS Code 的逐像素对照验收。
 
+当前公开并已完成本机安装验收的是 [v0.23.0](https://github.com/neko233-com/gocode/releases/tag/v0.23.0)，源码 `47623823dd88fbb45422d096b545631be7e6b77b`，使用公开 godesktop v0.16.0。五平台精确源码 CI、真实发布包更新/回滚及 Windows 安装后的 Auto Save、Revert、两种快捷键、原生终端/VSIX/Git 和实际 GiB 分屏均已通过。具体源码、日志和范围见 [工程记录](agent%20docs/status.md)。
+
 ## 安装与更新
 
 发布包位于 [Releases](https://github.com/neko233-com/gocode/releases)：Windows x64
@@ -53,14 +55,14 @@ JetBrains 支持 Ctrl+Shift+A 查找动作、Ctrl+Shift+N 打开文件、Ctrl+E 
 Ctrl+B 跳转定义、Alt+F12 终端和 Ctrl+Alt+S 设置。尚未实现完整重构/调试快捷键。
 验收在独立临时目录重复运行并检查清理，详见 [快捷键与幂等测试](agent%20docs/keymaps-and-idempotence.md)。
 
-go.mod 固定依赖公开发布的 godesktop v0.15.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
+go.mod 固定依赖公开发布的 godesktop v0.16.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
 
-- v0.23.0 候选版接通原生 File 的 Auto Save / Revert File，Settings 支持四种模式及延迟；真实最小化时仍完成磁盘写入和保存回执，GPU 停止绘制。关闭、恢复和历史确认使用真正的圆角裁剪，关键后台回执支持有界重试。实际验收与限制见 [Auto Save 工程记录](agent%20docs/autosave.md) 和 [后台回执](agent%20docs/worker-receipts.md)。
+- v0.23.0 已发布并安装验收：原生 File 的 Auto Save / Revert File 可用，Settings 支持四种模式及延迟；真实最小化时仍完成磁盘写入和保存回执，View/GPU 提交保持空闲。关闭、恢复和历史确认使用真正的圆角裁剪，关键后台回执支持有界重试。发布与安装后的控制台/GUI 验收均通过，现有用户配置和快捷方式保持。实际验收与限制见 [Auto Save 工程记录](agent%20docs/autosave.md) 和 [后台回执](agent%20docs/worker-receipts.md)。
 - v0.22.0 优先完善 Windows：独立 File/Edit 等弹出菜单、子菜单、悬停/Alt/F10/方向键，原生打开文件/文件夹与另存为，Ctrl+P 文件搜索和 Ctrl+Shift+P 命令搜索。扩展页支持 Open VSX 搜索、真实 VSIX 安装、详情/贡献命令、启用/禁用/卸载和有保存保护的重启；具体实现、原生验收与兼容缺口见 [Windows 工程记录](agent%20docs/windows-workbench.md)。
 
-- 参照最新 Code-OSS Modern UI 源码补齐原生控件、菜单、编辑器的圆角与子元素 GPU 裁剪。`-extension-gallery-url https://授权服务的基础地址` 支持原生 VS Gallery 查询、Windows x64 包选择和 VSIX 安装。微软官方 Marketplace 限制衍生产品访问，需要单独获得服务授权；默认仍使用 Open VSX。实际源码、协议测试与限制见 [圆角与 Gallery 记录](agent%20docs/modern-ui-and-gallery.md)。
+- 参照最新 Code-OSS Modern UI 源码补齐原生控件、菜单、编辑器的圆角与子元素 GPU 裁剪。`-extension-gallery-url https://授权服务的基础地址` 支持原生 VS Gallery 查询、Windows x64 包选择和 VSIX 安装。2026-10-08 复核的 [微软官方 FAQ](https://code.visualstudio.com/docs/supporting/FAQ#extensions) 限制衍生产品访问 Marketplace；本项目未获得单独授权，默认使用真实 Open VSX 服务。实际源码、协议测试与限制见 [圆角与 Gallery 记录](agent%20docs/modern-ui-and-gallery.md)。
 
 - v0.21.0 增加真实 Git 工作台：Ctrl/Cmd+Shift+G、初始化、暂存/取消暂存、提交与原生左右差异视图，保留未暂存内容和未保存文档。已通过五平台、发行字节/回滚和本机实际安装验收；需要已安装 Git，具体范围见 [Git 工程记录](agent%20docs/scm.md)。
 - UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。
@@ -75,7 +77,7 @@ go.mod 固定依赖公开发布的 godesktop v0.15.0，没有本地 replace，�
   当前发行版的版本／真实安装验收状态见 agent docs/status.md。
 - Ctrl/Cmd+S 保存；Ctrl/Cmd+Z 撤销；Ctrl/Cmd+Shift+Z 或 Ctrl+Y 重做；Ctrl/Cmd+A/C/X/V；保存保留 LF/CRLF。
 - 工作区替换支持整组撤销/重做；撤销时可选所有文件、当前文件或取消。后台准备期间的新编辑、光标变化和关闭重开会使旧结果失效；文件有后续编辑时拆为当前文件操作，撤销不会自动写回磁盘。源码验证和发行状态见 [工作区历史](agent%20docs/history.md)。
-- Ctrl/Cmd+P 命令列表；Ctrl/Cmd+J 面板；Ctrl+Space 请求 VSIX 补全和 Copilot；Enter 选择补全，Tab 接受 Copilot 建议。
+- Ctrl/Cmd+P 快速打开文件；Ctrl/Cmd+Shift+P 命令列表；Ctrl/Cmd+J 面板；Ctrl+Space 请求 VSIX 补全和 Copilot；Enter 选择补全，Tab 接受 Copilot 建议。
 - Ctrl/Cmd+Shift+F 打开原生全文搜索；支持大小写、Unicode 整词、Go 正则、包含／排除 glob、Git 忽略规则和未保存文档。搜索在单一可取消后台工作器中流式执行，结果点击后核对版本、内容哈希和 UTF-16 位置；超大文件跳到真实字节视图。Enter 搜索，方向键／Enter 或 F4 导航。PCRE2 扩展语法仍需实现，具体边界见 [搜索工程记录](agent%20docs/search.md)。
 - 已安装 VSIX 可以读取未保存的活动文档、执行原生编辑/保存、接收文档事件、注册补全/悬停/定义、发布 Problems 诊断、持久保存 workspaceState/globalState。
 - Ctrl/Cmd+Shift+H 展开工作区替换。Preview 在后台核验并显示替换前后；Replace all 提交完整文档批次，再使用后台保存队列。正则支持捕获组与转义，未保存内容和撤销历史保留；源文档变化会拒绝旧预览，保存冲突保留脏文档和错误。单文件 8 MiB、整批源加输出 64 MiB／128 文件；大文件仍只读，磁盘持久化按文件完成。源码／发行验证及兼容缺口见 [替换契约](agent%20docs/replace.md)。
@@ -126,6 +128,8 @@ Ctrl/Cmd+I 打开原生聊天面板，Enter 发送，Cancel/Esc 取消。语言�
 powershell -ExecutionPolicy Bypass -File scripts/test-windows-amd64.ps1
 go run . -editor-smoke -extensions-dir .cache/acceptance-extensions
 go run . -tabs-smoke
+go run . -auto-save-smoke
+go run . -auto-save-minimized-smoke
 go run . -scm-smoke
 go run . -search-smoke -search-smoke-mib 1024
 go run . -largefile-smoke -largefile-smoke-mib 1024
@@ -141,4 +145,4 @@ CI 覆盖 windows-2022/windows-2025 amd64、macos-15 arm64、macos-15-intel amd6
 
 MIT License。VS Code 界面/API 作为参考，项目与 Microsoft 无隶属关系。官方 Copilot 运行时按其上游许可通过 npm 单独安装。
 
-工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到 2026-10-07 main `9fcc9a1`（stable 1.141.0）；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，资源固定版本与 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。
+工程记录维护在 [agent docs/](agent%20docs/README.md)。VS Code 参考固定到 2026-10-08 main `9a89cf962f1d34463974058e9ef2b59f2bc33f15`（stable 1.141.0）；窗口/程序/安装资源使用该仓库的 Code-OSS 图标，资源固定版本与 MIT 通知见 [assets/code-oss](assets/code-oss/PROVENANCE.md)。浮层阴影和扩展详情独立滚动尚未发布。
