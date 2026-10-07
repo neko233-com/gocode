@@ -15,6 +15,7 @@ import (
 )
 
 type document struct {
+	untitled                     bool
 	path                         string
 	instance                     string
 	buffer                       *textbuffer.Buffer
@@ -33,6 +34,17 @@ type document struct {
 	largeBase                    *largeDocument
 }
 type model struct {
+	keyboard                                           keyboardState
+	menu                                               workbenchMenu
+	quick                                              quickInputState
+	extensionsView                                     extensionViewState
+	extensionGallery                                   string
+	fileActions                                        fileActionState
+	hideSidebar                                        bool
+	untitledSequence                                   uint64
+	pendingWindowAction                                func()
+	afterWindowClosed                                  func() error
+	relaunch                                           func(string, bool)
 	logo                                               *ui.Bitmap
 	workspace                                          string
 	files                                              []string

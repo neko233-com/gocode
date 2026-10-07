@@ -55,7 +55,12 @@ func tabsNativeKey(cx *ui.Context, workspace string, key, mods int, pressed bool
 		if pressed {
 			message = 0x100
 		}
-		err = w.Send(message, uintptr(key), 0)
+		parameter := uintptr(0)
+		if mods&ui.ModifierAlt != 0 {
+			message += 4
+			parameter = 1 << 29
+		}
+		err = w.Send(message, uintptr(key), parameter)
 		ok, _, restoreErr := user.NewProc("SetKeyboardState").Call(uintptr(unsafe.Pointer(&saved[0])))
 		if ok == 0 && err == nil {
 			err = restoreErr

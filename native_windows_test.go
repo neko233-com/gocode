@@ -194,21 +194,20 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		t.Fatal(err)
 	}
 	click(54, 16)
-	// The native group tree is now initialized before service startup, so the
-	// workspace-wide command palette precedes the group tabs and breadcrumb.
-	// Click its actual first action rather than the old single-editor location.
-	// Use the blank left side: the centered caption crosses x=700 on the
-	// runner's 1024-DIP window, so that pixel is glyph ink rather than backdrop.
-	until(t, func() bool { color, err := w.Pixel(430, 90); return err == nil && color == 0x252526 })
-	click(430, 90)
+	// File now has a source-ordered popup. Save is row 7 after two separators;
+	// preserve the real pointer action and exact saved Unicode-byte assertion.
+	until(t, func() bool { color, err := w.Pixel(40, 90); return err == nil && color == 0x1f1f1f })
+	click(130, 191)
 	until(t, func() bool {
 		data, _ := os.ReadFile(filepath.Join(workspace, "main.go"))
 		return strings.HasPrefix(string(data), "界😀package main")
 	})
-	// Close the save notification, then execute an installed VSIX from its UI.
-	click(viewWidth-15, 50)
+	// Successful saves are silent. Open the real installed VSIX's detail editor,
+	// its Feature Contributions tab and the first actual manifest command.
 	click(24, 250)
-	click(130, 215)
+	click(130, 170)
+	click(440, 290)
+	click(430, 386)
 	until(t, func() bool { color, err := w.Pixel(700, 50); return err == nil && color == 0x252526 })
 	if name := os.Getenv("GOCODE_SCREENSHOT"); name != "" {
 		image, err := w.Capture()
@@ -238,7 +237,7 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	// Real native settings clicks and text events persist only this fixture's
 	// per-user config. They must not change the active editor or contact AI.
 	click(24, viewHeight-46)
-	click(120, 262)
+	click(120, 346)
 	for _, r := range "https://ghfast.top/" {
 		if err := w.Send(0x102, uintptr(r), 0); err != nil {
 			t.Fatal(err)
@@ -252,12 +251,12 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		config, err := update.LoadConfig(configPath)
 		return err == nil && config.Mirror == "https://ghfast.top/"
 	})
-	click(120, 210)
+	click(120, 294)
 	until(t, func() bool {
 		config, err := update.LoadConfig(configPath)
 		return err == nil && config.Mode == "mirror"
 	})
-	click(120, 126)
+	click(120, 210)
 	until(t, func() bool {
 		config, err := update.LoadConfig(configPath)
 		return err == nil && !config.Auto && config.Mode == "mirror"

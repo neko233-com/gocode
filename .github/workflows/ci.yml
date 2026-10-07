@@ -19,7 +19,9 @@ jobs:
       matrix:
         os: [windows-2022, windows-2025]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # Three-repeat native workbench/lifecycle gates add real process/dialog work.
+    # Keep their per-test deadlines; allow existing GiB/services/MSI gates to run.
+    timeout-minutes: 20
     env:
       CGO_ENABLED: '1'
       GOARCH: amd64
@@ -125,6 +127,7 @@ jobs:
             .cache/filewatch-native-lsp/*.png
             .cache/open-native/*.png
             .cache/workbench-ui/*.png
+            .cache/windows-workbench/*.png
             .cache/editor-tabs/*.png
             .cache/editor-tabs/*.json
             .cache/editor-groups/*.png

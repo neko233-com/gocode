@@ -28,11 +28,18 @@ function Invoke-CheckedGUI {
     } finally { $taskGUI.Dispose() }
 }
 $taskRoot = Split-Path -Parent $PSScriptRoot
-$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GOCODE_FILEWATCH_SCREENSHOTS','GOCODE_OPEN_SCREENSHOTS','GOCODE_CONPTY_DIR','GODESKTOP_READBACK')
+$taskNames = @('GOWORK','CGO_ENABLED','GOARCH','GOAMD64','GOEXPERIMENT','CC','CXX','TMP','TEMP','APPDATA','GOCODE_SCREENSHOT','GOCODE_LARGEFILE_SCREENSHOT','GOCODE_TERMINAL_SCREENSHOTS','GOCODE_FILEWATCH_SCREENSHOTS','GOCODE_OPEN_SCREENSHOTS','GOCODE_CONPTY_DIR','GODESKTOP_READBACK','GODESKTOP_TEST_INPUT_ISOLATION')
 $taskSaved = @{}
 foreach ($taskName in $taskNames) { $taskSaved[$taskName] = [Environment]::GetEnvironmentVariable($taskName, 'Process') }
 Push-Location -LiteralPath $taskRoot
+$taskTempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')
+$taskNativeRoot = Join-Path $taskTempParent ('gocode-validation-' + [guid]::NewGuid().ToString('N'))
+$taskExtensions = Join-Path $taskNativeRoot 'extensions'
 try {
+	New-Item -ItemType Directory -Path $taskNativeRoot -Force | Out-Null
+	$env:TMP=$taskNativeRoot
+	$env:TEMP=$taskNativeRoot
+	$env:APPDATA=Join-Path $taskNativeRoot 'settings'
     $env:GOWORK='off'
     $env:CGO_ENABLED='1'
     $env:GOARCH='amd64'
@@ -41,6 +48,7 @@ try {
     $env:CC='gcc'
     $env:CXX='g++'
     $env:GODESKTOP_READBACK='1'
+    $env:GODESKTOP_TEST_INPUT_ISOLATION='1'
     $env:GOCODE_SCREENSHOT=Join-Path $taskRoot '.cache/workbench-windows.png'
     $env:GOCODE_LARGEFILE_SCREENSHOT=Join-Path $taskRoot '.cache/largefile-native-acceptance.png'
     $env:GOCODE_TERMINAL_SCREENSHOTS=Join-Path $taskRoot '.cache/terminal-native'
@@ -49,17 +57,22 @@ try {
     Invoke-CheckedGo run ./cmd/gocode-terminaltools -output (Join-Path $taskRoot '.cache/conpty-runtime')
     $env:GOCODE_CONPTY_DIR=Join-Path $taskRoot '.cache/conpty-runtime'
     & (Join-Path $PSScriptRoot 'build-windows-resources.ps1')
-    Invoke-CheckedGo test -race -shuffle=on "-count=$Repeat" -timeout=5m '-coverprofile=coverage.out' ./...
+    # Added repeatable 45-phase native/lifecycle suites need a larger aggregate
+    # package budget. Individual native dialog/window guards are unchanged.
+    Invoke-CheckedGo test -race -shuffle=on "-count=$Repeat" -timeout=8m '-coverprofile=coverage.out' ./...
     Invoke-CheckedGo vet ./...
     New-Item -ItemType Directory -Path bin -Force | Out-Null
     Invoke-CheckedGo build -trimpath '-ldflags=-s -w' -o bin/gocode.exe .
     Invoke-CheckedGo build -trimpath '-ldflags=-s -w -H=windowsgui' -o bin/gocode-gui.exe .
-    & ./bin/gocode.exe -workspace . -extensions-dir .cache/extensions -smoke
+    & ./bin/gocode.exe -workspace . -extensions-dir $taskExtensions -smoke
     if ($LASTEXITCODE -ne 0) { throw 'Workbench smoke failed.' }
-    Invoke-CheckedGUI -workspace . -extensions-dir .cache/extensions -smoke
+    Invoke-CheckedGUI -workspace . -extensions-dir $taskExtensions -smoke
     & ./bin/gocode.exe -ui-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native workbench logo/caption/tab GPU acceptance failed.' }
     Invoke-CheckedGUI -ui-smoke
+    & ./bin/gocode.exe -windows-workbench-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native File/shell dialog/Quick Input/VSIX management failed.' }
+    Invoke-CheckedGUI -windows-workbench-smoke
     & ./bin/gocode.exe -tabs-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native overflow/routing/identity/MRU tab acceptance failed.' }
     Invoke-CheckedGUI -tabs-smoke
@@ -78,29 +91,33 @@ try {
     & ./bin/gocode.exe -replace-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native workspace replace preview/stale/save/undo failed.' }
     Invoke-CheckedGUI -replace-smoke
-    & ./bin/gocode.exe -extensions-dir .cache/extensions -open-smoke
+    & ./bin/gocode.exe -extensions-dir $taskExtensions -open-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native delayed disk/scan and awaited VSIX opening acceptance failed.' }
-    Invoke-CheckedGUI -extensions-dir .cache/extensions -open-smoke
-    & ./bin/gocode.exe -extensions-dir .cache/extensions -editor-smoke
+    Invoke-CheckedGUI -extensions-dir $taskExtensions -open-smoke
+    & ./bin/gocode.exe -extensions-dir $taskExtensions -editor-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Versioned native editor acceptance failed.' }
     foreach ($taskCloseMode in @('save','discard','cancel','external')) {
-        & ./bin/gocode.exe -extensions-dir .cache/extensions -close-smoke $taskCloseMode
+        & ./bin/gocode.exe -extensions-dir $taskExtensions -close-smoke $taskCloseMode
         if ($LASTEXITCODE -ne 0) { throw "Native close acceptance failed: $taskCloseMode" }
     }
-    & ./bin/gocode.exe -extensions-dir .cache/extensions -largefile-smoke
+    & ./bin/gocode.exe -extensions-dir $taskExtensions -largefile-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native large-file browsing acceptance failed.' }
-    & ./bin/gocode.exe -extensions-dir .cache/extensions -terminal-smoke
+    & ./bin/gocode.exe -extensions-dir $taskExtensions -terminal-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native real terminal highlighting/resize/interrupt acceptance failed.' }
-    Invoke-CheckedGUI -extensions-dir .cache/extensions -terminal-smoke
+    Invoke-CheckedGUI -extensions-dir $taskExtensions -terminal-smoke
     & ./bin/gocode.exe -terminal-vsix-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native VSIX terminal PID/cwd/env/input/events/process cleanup failed.' }
     Invoke-CheckedGUI -terminal-vsix-smoke
     & ./bin/gocode.exe -scm-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native real Git index/HEAD/diff/stage/unstage/commit failed.' }
     Invoke-CheckedGUI -scm-smoke
-    & ./bin/gocode.exe -extensions-dir .cache/extensions -filewatch-smoke -lsp=false
+    & ./bin/gocode.exe -extensions-dir $taskExtensions -filewatch-smoke -lsp=false
     if ($LASTEXITCODE -ne 0) { throw 'Native external file watch/VSIX acceptance failed.' }
 } finally {
     foreach ($taskName in $taskNames) { [Environment]::SetEnvironmentVariable($taskName,$taskSaved[$taskName],'Process') }
     Pop-Location
+	$taskResolved = [IO.Path]::GetFullPath($taskNativeRoot)
+	if ([IO.Path]::GetDirectoryName($taskResolved).TrimEnd('\') -ne $taskTempParent -or [IO.Path]::GetFileName($taskResolved) -notmatch '^gocode-validation-[0-9a-f]{32}$') { throw 'Refusing cleanup outside the owned validation root.' }
+	if (Test-Path -LiteralPath $taskResolved) { Remove-Item -LiteralPath $taskResolved -Recurse -Force }
+	if (Test-Path -LiteralPath $taskResolved) { throw 'Validation left its owned temporary directory.' }
 }

@@ -51,6 +51,7 @@ func (m *model) cancelClose() {
 		return
 	}
 	m.closePrompt = false
+	m.pendingWindowAction = nil
 	m.closeTarget = nil
 	m.closeGroupID = 0
 	m.closeError = ""
@@ -82,6 +83,12 @@ func (m *model) finishClose(cx *ui.Context) {
 		return
 	}
 	if target == nil {
+		if m.pendingWindowAction != nil {
+			action := m.pendingWindowAction
+			m.pendingWindowAction = nil
+			action()
+			return
+		}
 		cx.Quit()
 		return
 	}

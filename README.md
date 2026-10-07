@@ -45,9 +45,21 @@ macOS 使用 `CGO_ENABLED=1 go run . -workspace .`。Windows GUI 构建：`go bu
 
 `-window-width 1024 -window-height 728` 可指定启动窗口的 DIP 尺寸，默认 1280×820；原生标题栏仍可拖动、缩放和最大化。
 
-go.mod 固定依赖公开发布的 godesktop v0.13.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
+Windows 内置 VS Code（默认）和 JetBrains 两套快捷键。在设置页的 Keyboard
+Shortcuts 选择，或通过命令面板执行 Use VS Code/JetBrains Keymap；选择会保存，
+菜单提示同步切换。`-keymap vscode` / `-keymap jetbrains` 可覆盖本次启动。
+JetBrains 支持 Ctrl+Shift+A 查找动作、Ctrl+Shift+N 打开文件、Ctrl+E 当前窗口
+最近文件、双击 Shift 搜索、Ctrl+S 全部保存、Ctrl+F4 关闭、Ctrl+Alt+L 格式化、
+Ctrl+B 跳转定义、Alt+F12 终端和 Ctrl+Alt+S 设置。尚未实现完整重构/调试快捷键。
+验收在独立临时目录重复运行并检查清理，详见 [快捷键与幂等测试](agent%20docs/keymaps-and-idempotence.md)。
+
+go.mod 固定依赖公开发布的 godesktop v0.15.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
+
+- v0.22.0 优先完善 Windows：独立 File/Edit 等弹出菜单、子菜单、悬停/Alt/F10/方向键，原生打开文件/文件夹与另存为，Ctrl+P 文件搜索和 Ctrl+Shift+P 命令搜索。扩展页支持 Open VSX 搜索、真实 VSIX 安装、详情/贡献命令、启用/禁用/卸载和有保存保护的重启；具体实现、原生验收与兼容缺口见 [Windows 工程记录](agent%20docs/windows-workbench.md)。
+
+- 参照最新 Code-OSS Modern UI 源码补齐原生控件、菜单、编辑器的圆角与子元素 GPU 裁剪。`-extension-gallery-url https://授权服务的基础地址` 支持原生 VS Gallery 查询、Windows x64 包选择和 VSIX 安装。微软官方 Marketplace 限制衍生产品访问，需要单独获得服务授权；默认仍使用 Open VSX。实际源码、协议测试与限制见 [圆角与 Gallery 记录](agent%20docs/modern-ui-and-gallery.md)。
 
 - v0.21.0 增加真实 Git 工作台：Ctrl/Cmd+Shift+G、初始化、暂存/取消暂存、提交与原生左右差异视图，保留未暂存内容和未保存文档。已通过五平台、发行字节/回滚和本机实际安装验收；需要已安装 Git，具体范围见 [Git 工程记录](agent%20docs/scm.md)。
 - UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。

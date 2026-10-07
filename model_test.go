@@ -101,11 +101,11 @@ func TestTabsAndFileValidation(t *testing.T) {
 }
 func TestCommandsAndSearchInput(t *testing.T) {
 	m := testModel(t)
-	if !m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'P', Modifiers: ui.ModifierControl}) || !m.palette {
+	if !m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'P', Modifiers: ui.ModifierControl | ui.ModifierShift}) || !m.palette {
 		t.Fatal("command palette shortcut")
 	}
 	text(m, "native")
-	if m.query != "native" {
+	if m.query != ">native" {
 		t.Fatal("palette input")
 	}
 	key(m, 8)

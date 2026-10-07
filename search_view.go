@@ -44,7 +44,7 @@ func (m *model) searchInput(cx *ui.Context, e ui.InputEvent) bool {
 		m.search.replaceCapture = nil
 	}
 	command := e.Modifiers&(ui.ModifierControl|ui.ModifierCommand) != 0
-	if e.Kind == ui.KeyPressed && command && e.Modifiers&ui.ModifierShift != 0 && e.Key == 'H' {
+	if m.keymapProfile() == "vscode" && e.Kind == ui.KeyPressed && command && e.Modifiers&ui.ModifierShift != 0 && e.Key == 'H' {
 		m.showSearch(cx)
 		m.search.replaceShown, m.search.focus = true, 3
 		m.search.caret = utf8.RuneCountInString(m.search.replacement)

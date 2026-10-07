@@ -27,7 +27,7 @@ func TestTerminalFocusAndCloseCancelPreserveEditor(t *testing.T) {
 	if !m.terminalFocused || m.editing {
 		t.Fatal("close cancel lost terminal focus")
 	}
-	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'P', Modifiers: ui.ModifierControl})
+	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'P', Modifiers: ui.ModifierControl | ui.ModifierShift})
 	if !m.palette {
 		t.Fatal("terminal swallowed workbench palette shortcut")
 	}

@@ -24,10 +24,14 @@ func label(s string) *ui.Element { return ui.Text(s).FontSize(13).Foreground(ui.
 func spacer() *ui.Element        { return ui.Column().Flex(1) }
 func rule() *ui.Element          { return ui.Column().Height(1).Background(ui.RGB(border)) }
 func button(text, key string, click func(*ui.Context)) *ui.Element {
-	return ui.Button(text, click).Key(key).FontSize(13).PaddingXY(8, 0).Radius(0).Background(ui.Color{}).Foreground(ui.RGB(foreground))
+	fg := uint32(foreground)
+	if click == nil {
+		fg = 0x6e6e6e
+	}
+	return ui.Button(text, click).Key(key).FontSize(13).PaddingXY(8, 0).Radius(4).HoverBackground(ui.RGB(0x333333)).Background(ui.Color{}).Foreground(ui.RGB(fg)).FocusRing(false)
 }
 func icon(name, key string, click func(*ui.Context)) *ui.Element {
-	return ui.Icon(name).Width(30).Height(30).Key(key).Foreground(ui.RGB(foreground)).OnClick(click)
+	return ui.Icon(name).Width(30).Height(30).Radius(4).HoverBackground(ui.RGB(0x333333)).Key(key).Foreground(ui.RGB(foreground)).OnClick(click)
 }
 func codeFont() string {
 	if runtime.GOOS == "darwin" {
@@ -50,14 +54,17 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		indicator := ui.Color{}
 		if m.activity == name {
 			color = foreground
-			indicator = ui.RGB(foreground)
+			indicator = ui.RGB(0x333333)
 		}
-		activities = append(activities, ui.Row(ui.Column().Width(2).Background(indicator), ui.Icon(name).Width(46).Height(48).Foreground(ui.RGB(color))).Height(48).Key("activity-"+name).OnClick(func(c *ui.Context) {
+		activities = append(activities, ui.Column(ui.Icon(name).Width(44).Height(44).Foreground(ui.RGB(color))).Padding(2).Height(48).Radius(4).Background(indicator).HoverBackground(ui.RGB(0x2b2b2b)).Key("activity-"+name).OnClick(func(c *ui.Context) {
 			if name == "search" {
 				m.showSearch(c)
 			} else if name == "source-control" {
 				m.showSCM()
+			} else if name == "extensions" {
+				m.showExtensions()
 			} else {
+				m.hideSidebar = false
 				m.activity = name
 				m.palette = false
 				m.query = ""
@@ -75,7 +82,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		crumb = strings.ReplaceAll(filepath.ToSlash(rel), "/", "  ›  ")
 	}
 	parts := []*ui.Element{}
-	if m.groups.root == nil {
+	if m.groups.root == nil && m.extensionsView.detail == "" {
 		parts = append(parts, m.tabsView(cx), ui.Row(label(crumb).PaddingXY(10, 0), spacer()).Height(24))
 	}
 	if m.openBusy || len(m.openJobs) > 0 {
@@ -98,50 +105,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		}
 		parts = append(parts, ui.Column(items...).Background(ui.RGB(0x252526)))
 	}
-	if m.palette {
-		items := []*ui.Element{label("> " + m.query + "▏").Height(32).Padding(8).Background(ui.RGB(0x313131))}
-		items = append(items, button("File: Save active document", "palette-save", func(*ui.Context) {
-			m.saveActive()
-			m.palette = false
-		}).Height(28), button("View: Toggle panel", "palette-panel", func(*ui.Context) { m.togglePanel(); m.palette = false }).Height(28))
-		items = append(items, button("Copilot: Open Chat (Ctrl/Cmd+I)", "palette-copilot-chat", func(*ui.Context) {
-			m.panel = "COPILOT"
-			m.showPanel = true
-			m.chatFocused = true
-			m.palette = false
-			m.editing = false
-		}).Height(28), button("Copilot: Sign in for completion", "palette-copilot-sign-in", func(*ui.Context) {
-			if m.signInCopilot != nil {
-				m.signInCopilot()
-			}
-			m.palette = false
-		}).Height(28))
-		items = append(items, button("Copilot: Sign in for chat", "palette-copilot-chat-sign-in", func(*ui.Context) {
-			if m.signInChat != nil {
-				m.signInChat()
-			}
-			m.palette = false
-		}).Height(28))
-		for _, action := range []struct{ title, method string }{{"Format Document (Shift+Alt+F)", "textDocument/formatting"}, {"Go to Definition (F12)", "textDocument/definition"}, {"Show Hover (Ctrl/Cmd+K)", "textDocument/hover"}} {
-			items = append(items, button(action.title, "palette-"+action.method, func(*ui.Context) {
-				if m.requestLSP != nil {
-					m.requestLSP(m.current(), action.method)
-				}
-				m.palette = false
-			}).Height(28))
-		}
-		if m.restartLanguages != nil {
-			items = append(items, button("Restart Language Servers", "palette-lsp-restart", func(*ui.Context) { m.restartLanguages(); m.palette = false }).Height(28))
-		}
-		for _, command := range m.commands {
-			if strings.Contains(strings.ToLower(command.Title), strings.ToLower(m.query)) {
-				items = append(items, button(command.Title, "palette-"+command.ID, func(*ui.Context) { m.execute(command.ID); m.palette = false }).Height(28))
-			}
-		}
-		items = append(items, button("Close command palette  (Esc)", "palette-close", func(*ui.Context) { m.palette = false }).Height(28))
-		parts = append(parts, ui.Column(items...).Padding(6).Background(ui.RGB(0x252526)))
-	}
-	if m.message != "" {
+	if m.message != "" && !strings.HasPrefix(m.message, "Saved ") {
 		parts = append(parts, ui.Row(label(m.message).Padding(8).Flex(1), icon("close", "dismiss", func(*ui.Context) { m.message = "" })).Height(32).Background(ui.RGB(0x252526)))
 	}
 	panelHeight := float32(0)
@@ -158,17 +122,16 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	if m.openBusy || len(m.openJobs) > 0 {
 		visible = max(1, visible-2)
 	}
-	if m.message != "" {
+	if m.message != "" && !strings.HasPrefix(m.message, "Saved ") {
 		visible = max(1, visible-2)
-	}
-	if m.palette {
-		visible = max(1, visible-10)
 	}
 	visible = max(1, visible-len(m.completions)*24/20)
 	if d := m.current(); d != nil && d.diskConflict != nil {
 		visible = max(1, visible-2)
 	}
-	if m.scm.diff != nil {
+	if m.extensionsView.detail != "" {
+		parts = append(parts, m.extensionDetailView())
+	} else if m.scm.diff != nil {
 		parts = append(parts, m.scmDiffView(cx, visible).Flex(1))
 	} else if m.groups.root == nil {
 		parts = append(parts, m.codeView(visible).Flex(1).Key("editor-content"))
@@ -176,12 +139,19 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		width, _ := cx.WindowSize()
 		parts = append(parts, m.editorGroupsView(cx, max(1, width-290), max(1, float32(visible*20)+59)).Flex(1))
 	}
+	editorCard := ui.Column(ui.Column(parts...).Flex(1).ClipRounded(7).Background(ui.RGB(editor))).Padding(1).ClipRounded(8).Background(ui.RGB(border)).Flex(1).Key("workbench-editor-card")
+	parts = []*ui.Element{editorCard}
 	if m.showPanel {
 		width, _ := cx.WindowSize()
 		parts = append(parts, m.panelView(max(120, width-290)))
 	}
-	center := ui.Column(parts...).Flex(1).Background(ui.RGB(editor))
-	body := ui.Row(activity, ui.Column().Width(1).Background(ui.RGB(border)), m.sidebar(cx).Width(240), ui.Column().Width(1).Background(ui.RGB(border)), center).Flex(1)
+	center := ui.Column(parts...).Flex(1).Background(ui.RGB(outer))
+	bodyItems := []*ui.Element{activity, ui.Column().Width(1).Background(ui.RGB(border))}
+	if !m.hideSidebar {
+		bodyItems = append(bodyItems, m.sidebar(cx).Width(240), ui.Column().Width(1).Background(ui.RGB(border)))
+	}
+	bodyItems = append(bodyItems, center)
+	body := ui.Row(bodyItems...).Flex(1)
 	base := ui.Column(bar, body, m.statusbar()).Background(ui.RGB(outer))
 	if m.closePrompt {
 		return m.closeOverlay(cx, base)
@@ -192,29 +162,79 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	if m.history.prompt != nil {
 		return m.historyOverlay(base)
 	}
+	if m.menu.name != "" {
+		return m.menuOverlay(cx, base)
+	}
+	if m.palette {
+		return m.quickOverlay(cx, base)
+	}
 	return base
 }
 
 func (m *model) titlebar(cx *ui.Context) *ui.Element {
+	width, _ := cx.WindowSize()
+	searchWidth := min(float32(400), max(160, width*.35))
+	searchX := (width - searchWidth) / 2
+	leftWidth := float32(35)
+	if runtime.GOOS == "darwin" {
+		leftWidth = 80
+	}
+	menuWidths := make([]float32, len(workbenchMenuNames))
+	total := leftWidth
+	for i, name := range workbenchMenuNames {
+		w, _ := ui.MeasureText(name, 13, "")
+		menuWidths[i] = w + 16
+		total += menuWidths[i]
+	}
+	m.menu.visible = nil
+	m.menu.overflow = nil
+	for i, name := range workbenchMenuNames {
+		if total > searchX-8 && leftWidth+menuWidths[i] > searchX-42 {
+			m.menu.overflow = append(m.menu.overflow, workbenchMenuNames[i:]...)
+			break
+		}
+		m.menu.visible = append(m.menu.visible, name)
+		leftWidth += menuWidths[i]
+	}
+	if len(m.menu.overflow) > 0 {
+		m.menu.visible = append(m.menu.visible, "More")
+	}
 	left := []*ui.Element{ui.Image(m.logo).Width(35).Height(35).Padding(9.5)}
 	if runtime.GOOS == "darwin" {
 		left = []*ui.Element{ui.Column().Width(80)}
 	}
-	for _, menu := range []string{"File", "Edit", "Selection", "View", "Go", "Run", "…"} {
-		left = append(left, button(menu, "menu-"+menu, func(*ui.Context) { m.palette = true; m.query = "" }).Padding(6))
+	for _, menu := range m.menu.visible {
+		bg := ui.Color{}
+		if m.menu.name == menu {
+			bg = ui.RGB(0x333333)
+		}
+		title := menu
+		if menu == "More" {
+			title = "…"
+		}
+		left = append(left, button(title, "menu-"+menu, func(c *ui.Context) {
+			if m.menu.name == menu {
+				m.closeMenu()
+			} else {
+				m.openMenu(c, menu)
+			}
+		}).PaddingXY(8, 0).Height(35).Background(bg))
 	}
-	search := ui.Row(ui.Icon("search").Width(24).Height(24).Foreground(ui.RGB(muted)), label(filepath.Base(m.workspace)).Flex(1)).Padding(4).Width(400).Height(28).Background(ui.RGB(0x242424)).Radius(5).Key("command-center").OnClick(func(*ui.Context) { m.palette = !m.palette; m.query = "" })
+	search := ui.Row(ui.Icon("search").Width(24).Height(20).Foreground(ui.RGB(muted)), label(filepath.Base(m.workspace)).Flex(1)).PaddingXY(4, 0).Width(searchWidth).Height(28).Background(ui.RGB(0x242424)).Radius(5).Key("command-center").OnClick(func(*ui.Context) { m.openQuickInput(false) })
 	controls := ui.Row(icon("minus", "window-minimize", func(*ui.Context) { cx.Minimize() }).Width(46), icon("maximize", "window-maximize", func(*ui.Context) { cx.ToggleMaximize() }).Width(46), icon("close", "window-close", func(*ui.Context) { cx.RequestClose() }).Width(46))
 	if runtime.GOOS == "darwin" {
 		controls = ui.Row().Width(30)
 	}
-	return ui.Column(ui.Row(ui.Row(left...), spacer().Draggable(), search, spacer().Draggable(), controls).Height(35), rule()).Height(36).Background(ui.RGB(outer))
+	base := ui.Row(ui.Row(left...), spacer().Draggable(), controls).Height(35)
+	center := ui.Row(ui.Column().Width(searchX), ui.Column(ui.Column().Height(3.5), search).Height(35), spacer()).Height(35)
+	return ui.Column(ui.Stack(base, center).Height(35), rule()).Height(36).Background(ui.RGB(outer))
 }
 func (m *model) sidebar(cx *ui.Context) *ui.Element {
 	title := map[string]string{"files": "EXPLORER", "search": "SEARCH", "source-control": "SOURCE CONTROL", "debug": "RUN AND DEBUG", "extensions": "EXTENSIONS", "settings": "SETTINGS"}[m.activity]
 	children := []*ui.Element{ui.Row(label(title).FontSize(11).PaddingXY(18, 0).Flex(1), label("…").Width(28)).Height(35)}
 	switch m.activity {
 	case "settings":
+		children = append(children, m.keyboardSidebar())
 		children = append(children, m.updatesSidebar().Flex(1))
 	case "files":
 		children = append(children, ui.Row(ui.Icon("chevron-down").Width(22).Height(22), label(strings.ToUpper(filepath.Base(m.workspace))).FontSize(11)).Height(24))
@@ -260,20 +280,13 @@ func (m *model) sidebar(cx *ui.Context) *ui.Element {
 	case "search":
 		children = append(children, m.searchSidebar(cx))
 	case "extensions":
-		children = append(children, label("INSTALLED").PaddingXY(12, 0).Height(28))
-		for _, e := range m.installed {
-			children = append(children, ui.Row(ui.Icon("extensions").Width(42).Height(48), ui.Column(label(e.Name).FontSize(14), label(e.Description).Foreground(ui.RGB(muted)), label(e.ID+"  "+e.Version).FontSize(11).Foreground(ui.RGB(muted))).Gap(3).Flex(1)).Height(72).Padding(6))
-		}
-		children = append(children, rule(), label("EXTENSION COMMANDS").PaddingXY(12, 0).Height(28))
-		for _, c := range m.commands {
-			children = append(children, button(c.Title, "extension-"+c.ID, func(*ui.Context) { m.execute(c.ID) }).Height(32))
-		}
+		children = append(children, m.extensionsSidebar(cx).Key("extensions-sidebar"))
 	case "source-control":
 		children = append(children, m.scmSidebar(cx))
 	case "debug":
 		children = append(children, label("No debug adapter configured.").PaddingXY(12, 0).Height(32), button("Open command palette", "debug-palette", func(*ui.Context) { m.palette = true }).Height(32))
 	}
-	if m.activity != "search" && m.activity != "source-control" {
+	if m.activity != "search" && m.activity != "source-control" && m.activity != "extensions" {
 		children = append(children, spacer())
 	}
 	if m.activity == "files" {

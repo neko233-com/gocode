@@ -8,8 +8,6 @@ import (
 	"os"
 	"syscall"
 	"unsafe"
-
-	"github.com/neko233-com/godesktop/testing/winprobe"
 )
 
 //go:embed assets/code-oss/code.ico
@@ -18,7 +16,7 @@ var appIconData []byte
 // applyAppIcon sets both taskbar and window icons on this process's HWND. The
 // source-run fallback uses the same upstream ICO as the executable/MSI resource.
 func applyAppIcon(title string) func() {
-	w, err := winprobe.Find(title, uint32(os.Getpid()))
+	w, err := ownedWorkbenchWindow(title, uint32(os.Getpid()))
 	if err != nil {
 		return func() {}
 	}

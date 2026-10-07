@@ -19,7 +19,7 @@ func (m *model) startDocumentWatch(parent context.Context, dispatch func(func())
 	m.publishWatches = func() {
 		entries := make([]filewatch.Entry, 0, min(len(m.docs), filewatch.MaxFiles))
 		for _, d := range m.docs {
-			if d.buffer == nil {
+			if d.buffer == nil || d.untitled {
 				continue
 			}
 			if len(entries) == filewatch.MaxFiles {

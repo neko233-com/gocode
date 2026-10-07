@@ -135,6 +135,7 @@ func (m *model) startSCM(parent context.Context, dispatch func(func()) bool) fun
 				m.scm.message = ""
 			}
 			if result.diff != nil && m.openSequence == focusSequence {
+				m.extensionsView.detail = ""
 				m.scm.diff = result.diff
 				m.scm.diffRows = result.rows
 				m.scm.diffScroll = 0

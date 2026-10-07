@@ -11,7 +11,7 @@ import (
 )
 
 func (d *document) serviceEligible() bool {
-	if d == nil || d.buffer == nil {
+	if d == nil || d.buffer == nil || d.untitled {
 		return false
 	}
 	if d.serviceVersion != d.buffer.Version() {

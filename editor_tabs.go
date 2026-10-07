@@ -183,7 +183,7 @@ func (m *model) tabsViewFor(g *editorGroup, documents []*document, state *editor
 				m.closeDocumentTab(d)
 			}
 		}).Width(26)).Padding(5).Height(34)
-		tab := ui.Column(ui.Column().Height(1).Background(top), row).Width(d.tabWidth).Background(ui.RGB(bg)).Key(groupKey(g, m.tabKey(d))).OnClick(func(*ui.Context) {
+		tab := ui.Column(ui.Column().Height(1).Background(top), row).Width(d.tabWidth).ClipRounded(4).HoverBackground(ui.RGB(0x2a2d2e)).Background(ui.RGB(bg)).Key(groupKey(g, m.tabKey(d))).OnClick(func(*ui.Context) {
 			if activate() {
 				m.focusTab(d)
 			}
@@ -312,7 +312,7 @@ func (m *model) tabInput(cx *ui.Context, e ui.InputEvent) bool {
 		}
 		return true
 	}
-	if command && e.Key == 'W' && !m.terminalFocused {
+	if m.keymapProfile() == "vscode" && command && e.Key == 'W' && !m.terminalFocused {
 		m.closeDocumentTab(m.current())
 		return true
 	}

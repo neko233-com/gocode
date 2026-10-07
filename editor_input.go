@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"unicode"
 	"unicode/utf8"
 
 	ui "github.com/neko233-com/godesktop"
@@ -16,6 +17,7 @@ func (m *model) documentEvent(kind string, d *document, change textbuffer.Change
 		m.searchChanged(m.native)
 	}
 	if kind == "focus" {
+		m.extensionsView.detail = ""
 		m.dismissSCMDiff()
 		m.openSequence++
 	}
@@ -109,6 +111,30 @@ func (m *model) applyDocumentEdits(path string, version int, edits []textbuffer.
 }
 
 func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
+	if e.Kind == ui.KeyPressed {
+		m.menu.suppressCharacter = 0
+	}
+	if e.Kind == ui.Character && m.menu.suppressCharacter != 0 {
+		key := m.menu.suppressCharacter
+		m.menu.suppressCharacter = 0
+		if int(unicode.ToUpper(rune(e.Key))) == key {
+			return true
+		}
+	}
+	if !m.closePrompt && m.reloadPrompt == nil && m.history.prompt == nil {
+		if handled, consumed := m.menuInput(cx, e); handled {
+			return consumed
+		}
+		if handled, consumed := m.quickInput(e); handled {
+			return consumed
+		}
+		if m.workbenchShortcut(cx, e) {
+			return true
+		}
+		if m.extensionInput(cx, e) {
+			return true
+		}
+	}
 	if e.Kind == ui.PointerPressed || e.Kind == ui.PointerMoved || e.Kind == ui.PointerReleased {
 		m.editorSelectionKind = 2
 	} else if e.Kind == ui.KeyPressed || e.Kind == ui.Character {
@@ -235,7 +261,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 	}
 	command := e.Modifiers&(ui.ModifierControl|ui.ModifierCommand) != 0
 	shift := e.Modifiers&ui.ModifierShift != 0
-	if e.Kind == ui.KeyPressed && !m.terminalFocused && m.requestLSP != nil && m.current() != nil {
+	if m.keymapProfile() == "vscode" && e.Kind == ui.KeyPressed && !m.terminalFocused && m.requestLSP != nil && m.current() != nil {
 		method := ""
 		if e.Key == 123 {
 			method = "textDocument/definition"
@@ -249,7 +275,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 			return true
 		}
 	}
-	if e.Kind == ui.KeyPressed && command {
+	if m.keymapProfile() == "vscode" && e.Kind == ui.KeyPressed && command {
 		switch e.Key {
 		case 192, '`':
 			if m.currentTerminal() == nil && m.newTerminal != nil {
@@ -262,10 +288,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 			m.saveActive()
 			return true
 		case 'P':
-			m.navigation = false
-			m.chatFocused = false
-			m.palette = !m.palette
-			m.query = ""
+			m.openQuickInput(shift)
 			return true
 		case 'J':
 			m.togglePanel()

@@ -1,5 +1,73 @@
 # Milestone ledger
 
+## Windows workbench, keymaps, rounded UI and Gallery candidate (2026-10-07)
+
+Public core v0.14.0/08c8e355110b8e7241411e36781c2a1919d81eb5 passes all five
+exact source jobs in CI 37624236198. Independent GOWORK=off/no-replace fetch and
+module hashes pass. New rounded clipping/hover requires the parent v0.15 candidate;
+the final public-module dependency update/console/GUI regression follows its CI.
+
+Core v0.15.0/4d62ed73a5513d8cbc281e05fe9ea43a74fd61ea now passes all five jobs
+in CI 37642213032. Independent GOWORK=off/GOPROXY=direct public fetch/no replace
+and module hashes pass; go.mod pins v0.15.0. Final workspace-linked full three-
+repeat race/strict-cgo suite passes (app 247.071s, 30.3%); no-cgo/vet and two
+distribution Python policies pass. The exact Gallery header/body test is tightened
+and passes three repeats (2.180s).
+
+Final independent GOWORK=off Windows script now passes three shuffled race/
+strict-cgo repeats (app 242.704s, 30.3%), vet, console/GUI workbench/45-phase
+menus/shell/keymaps, tabs/groups/genuine VSIX/shared large pages, search/replace,
+all close modes, editor, highlighted terminal/VSIX terminal, native Git and
+external file-watch gates. The private temporary settings/extensions root is
+removed in finally. Public no-cgo tests, actionlint/ShellCheck, both distribution
+Python policies and diff checks pass. Final File popup and JetBrains selected
+Settings captures are inspected. Exact source CI/publication/install remain pending.
+
+Workspace-linked three-repeat full race checks pass (app 98.933s); native Save
+and bundled VSIX regression was updated to the real menu/detail controls with
+unchanged byte/result guards. Vet and actual race/strict-cgo COM dialogs pass
+after typed vtables and forwarding pointer lifetime annotations. F10/arrows,
+real WM_SYSKEYDOWN Alt+F and unpressed hover now have native acceptance. Actual
+Go Open VSX search resolves three win32-x64 versions; no third-party extension
+is installed/executed by that read-only check. Source/release/install remain pending.
+
+User prioritizes Windows fidelity and functional menus/extensions; Mac and
+unpublished IME work are deferred. Separate source-based popup/submenus,
+centered command center/Quick Input, distinct Ctrl+P/Ctrl+Shift+P, real untitled
+buffers, owned Windows shell Open/Save As/cancel, Unicode snapshot writes and
+VSIX search/details/persistent enable/disable/deferred uninstall are implemented.
+Real Open VSX requests resolve Windows x64/universal before downloads and check
+metadata/manifest identity plus available SHA256. Actual owned native clicks,
+shell dialog filename/acceptance/cancel and Chinese/emoji disk bytes pass.
+Actual detail/menu/Quick Input screenshots were inspected and clipping fixed.
+Three-repeat race model/TLS/real Node activation/deactivation/removal checks pass.
+The new public core fixes normal mouse-release cancellation, unpressed hover
+and Alt system-key delivery. Actual new/replacement windows, persisted disabled
+VSIX, deferred removal after shutdown and OS Open Folder pass three race repeats
+(30.994s). Built-in VS Code/JetBrains presets share the dispatcher/menu labels;
+native pointers and real modifiers/double Shift pass the expanded 45-phase gate.
+Two complete race-executable runs in the same isolated scratch/settings/evidence
+directories pass (44.27s), followed by three repeats of the expanded isolated
+45-phase gate (121.712s, two full runs per repeat), leaving no temporary fixtures or changed user settings
+and no accumulating screenshot copies. Preset config repeats leave only one file
+and skip identical writes. The full Windows script now isolates and removes its
+owned temporary extension/settings root. Exact final source CI/release/install
+remain pending. Public/installed v0.21.0 remains unchanged. See windows-workbench.md
+for exact limits and remaining disabled/rich-extension/full-API/UI parity scope.
+See keymaps-and-idempotence.md for supported shortcuts and actual cleanup bounds.
+
+Current stable Code-OSS 1.141.0/2a59476c9bfcb90b3ddc372c36762471b7dfad1c
+Modern UI CSS is translated into native 4px controls, clipped 8px menus/Quick Input
+and a 1px rounded editor frame. Latest main is verified as 12701a5. Actual completed
+GPU captures show the saved Chinese tab/content and extension detail; asynchronous
+captures wait three completed submissions after model acknowledgements. Native VS
+Gallery supports authorized HTTPS compatible endpoints, exact source query headers/
+flags, Windows x64 selection and bounded VSIX download/install. Three race TLS/real
+VSIX/real Node command checks pass (2.137s); live official Marketplace access is not
+claimed because Microsoft disallows alternative products without separate service
+authorization. Default is Open VSX. See modern-ui-and-gallery.md. Full VS Code
+layout/API/official Copilot VSIX parity remains unfinished.
+
 ## Native Git v0.21.0 promotion (2026-10-07)
 
 Actual Windows HWND pointer stage/unstage/restage/commit passes and checks real

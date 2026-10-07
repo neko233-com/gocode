@@ -100,7 +100,9 @@ func main() {
 		os.Exit(1)
 	}
 }
-func run() error {
+func run() (runErr error) {
+	extensionGalleryURL := flag.String("extension-gallery-url", "", "Authorized VS Gallery base URL (Microsoft Marketplace requires separate service authorization)")
+	keymapPreset := flag.String("keymap", "", "Built-in keyboard preset: vscode or jetbrains (session override)")
 	showVersion := flag.Bool("version", false, "Print application version, platform and source commit")
 	terminalRuntimeCheck := flag.Bool("terminal-runtime-check", false, "Verify the exact official ConPTY binaries embedded in this Windows executable")
 	installTerminalTools := flag.Bool("install-terminal-tools", false, "Extract/install the pinned free official ConPTY runtime in gocode's owned Windows cache")
@@ -116,6 +118,7 @@ func run() error {
 	windowHeight := flag.Int("window-height", 820, "Initial native window height in DIP")
 	extensionDir := flag.String("extensions-dir", "", "Local VSIX installation directory")
 	install := flag.String("install-extension", "", "Install a trusted local VSIX and exit")
+	catalogCheck := flag.String("extension-catalog-check", "", "Verify actual Open VSX search and Windows x64/universal version metadata without installing")
 	smoke := flag.Bool("smoke", false, "Verify a native frame and a real extension command, then exit")
 	editorSmoke := flag.Bool("editor-smoke", false, "Verify native versioned VSIX edits, save, undo/redo and completion in a disposable workspace")
 	closeSmoke := flag.String("close-smoke", "", "Verify native save/discard/cancel/external close protection in a disposable workspace")
@@ -137,6 +140,7 @@ func run() error {
 	lspSmoke := flag.Bool("lsp-smoke", false, "Verify real LSP formatting/hover/definition/completion/diagnostics in a native disposable workspace")
 	openSmoke := flag.Bool("open-smoke", false, "Verify native typing/resize/cancel and awaited VSIX opens during delayed disk workers")
 	uiSmoke := flag.Bool("ui-smoke", false, "Verify owned native workbench logo, complete tab captions and tab controls")
+	windowsWorkbenchSmoke := flag.Bool("windows-workbench-smoke", false, "Verify real Windows File menus, shell dialogs, quick input and VSIX management")
 	tabsSmoke := flag.Bool("tabs-smoke", false, "Verify native tab overflow, wheel/drag routing, identity and held-Control navigation")
 	searchSmoke := flag.Bool("search-smoke", false, "Verify native workspace search, unsaved/regex/ignore results, stale selection and large-file navigation")
 	searchSmokeMiB := flag.Int("search-smoke-mib", 16, "Native search fixture size in MiB (16–10240)")
@@ -148,6 +152,12 @@ func run() error {
 	copilotUISmoke := flag.Bool("copilot-ui-smoke", false, "Verify rendered Copilot suggestion, native Tab acceptance and chat in a disposable workspace")
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
+	if *catalogCheck != "" {
+		return checkLiveExtensionCatalog(*catalogCheck)
+	}
+	if *windowsWorkbenchSmoke {
+		return runWindowsWorkbenchAcceptance()
+	}
 	if *scmSmoke {
 		return runSCMAcceptance()
 	}
@@ -453,12 +463,52 @@ func run() error {
 		return errors.New("native file watch LSP acceptance requires installed gopls; use -lsp=false for VSIX-only acceptance")
 	}
 	m.readClipboard, m.writeClipboard = ui.ReadClipboard, ui.WriteClipboard
+	if *extensionGalleryURL != "" {
+		if _, err = galleryURL(*extensionGalleryURL); err != nil {
+			return err
+		}
+		m.extensionGallery = *extensionGalleryURL
+	}
+	keyboardPath, err := keyboardConfigPath()
+	if err != nil {
+		return err
+	}
+	if *keymapPreset != "" {
+		if !validKeymap(*keymapPreset) {
+			return errors.New("-keymap must be vscode or jetbrains")
+		}
+		m.keyboard.profile = *keymapPreset
+	} else {
+		var keyboardErr error
+		m.keyboard.profile, keyboardErr = readKeymap(keyboardPath)
+		if keyboardErr != nil {
+			m.message = "Keyboard shortcuts: " + keyboardErr.Error()
+		}
+	}
 	if *copilotCheck || *copilotSmoke {
 		return checkCopilot(*copilotRoot, m.workspace, *copilotSmoke)
 	}
 	installed, err := workbenchExtensions(*extensionDir)
 	if err != nil {
 		return err
+	}
+	extensionState, err := readExtensionSettings(*extensionDir)
+	if err != nil {
+		return err
+	}
+	if err = removePendingExtensions(*extensionDir, &extensionState); err != nil {
+		return err
+	}
+	installed, err = workbenchExtensions(*extensionDir)
+	if err != nil {
+		return err
+	}
+	m.extensionsView.settings = extensionState
+	m.extensionsView.contributions = extensionContributions(installed)
+	m.extensionsView.running = map[string]bool{}
+	activeExtensions := enabledExtensions(installed, extensionState)
+	for _, e := range activeExtensions {
+		m.extensionsView.running[strings.ToLower(e.ID())] = true
 	}
 	commandIDs := map[string]bool{}
 	for _, e := range installed {
@@ -467,6 +517,9 @@ func run() error {
 			name = e.ID()
 		}
 		m.installed = append(m.installed, extensionInfo{name, e.ID(), e.Manifest.Description, e.Manifest.Version})
+		if !m.extensionsView.running[strings.ToLower(e.ID())] {
+			continue
+		}
 		for _, c := range e.Manifest.Contributes.Commands {
 			if c.Command == "" || commandIDs[c.Command] {
 				continue
@@ -481,7 +534,13 @@ func run() error {
 	}
 	hostCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	host, hostErr := extensions.Start(hostCtx, m.workspace, installed)
+	defer func() {
+		if m.afterWindowClosed != nil {
+			m.closeDocuments()
+			runErr = errors.Join(runErr, m.afterWindowClosed())
+		}
+	}()
+	host, hostErr := extensions.Start(hostCtx, m.workspace, activeExtensions)
 	if hostErr != nil {
 		m.message = hostErr.Error()
 		if *smoke {
@@ -529,7 +588,20 @@ func run() error {
 	var closeSearch func()
 	var closeHistory func()
 	var closeSCM func()
+	var closeFileActions, closeExtensionManager, closeExtensionCatalog, closeKeyboard func()
 	defer func() {
+		if closeKeyboard != nil {
+			closeKeyboard()
+		}
+		if closeExtensionCatalog != nil {
+			closeExtensionCatalog()
+		}
+		if closeFileActions != nil {
+			closeFileActions()
+		}
+		if closeExtensionManager != nil {
+			closeExtensionManager()
+		}
 		if closeSCM != nil {
 			closeSCM()
 		}
@@ -623,6 +695,11 @@ func run() error {
 			closeSCM = m.startSCM(hostCtx, viewContext.Dispatch)
 			closeHistory = m.startHistory(hostCtx, viewContext.Dispatch)
 			closeSaves = m.startDocumentSaves(hostCtx, viewContext)
+			closeFileActions = m.startFileActions(hostCtx, viewContext)
+			closeKeyboard = m.startKeyboardSettings(viewContext, keyboardPath)
+			closeExtensionManager = m.startExtensionManager(hostCtx, viewContext, *extensionDir)
+			closeExtensionCatalog = m.startExtensionCatalog(hostCtx, viewContext.Dispatch, nil)
+			m.bindWorkbenchRelaunch(hostCtx, viewContext, *extensionDir, *copilotRoot, *lspConfig, *copilotEnabled, *lspEnabled)
 			closeWatches = m.startDocumentWatch(hostCtx, viewContext.Dispatch)
 			closeTerminals = m.startTerminals(hostCtx, viewContext)
 			closeIcon = applyAppIcon("gocode — " + filepath.Base(m.workspace))

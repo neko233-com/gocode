@@ -6,6 +6,13 @@ channels, local deployment and visual validation. The workbench stays native.
 
 Read [status](status.md), [architecture](architecture.md), [acceptance](acceptance.md)
 and [distribution](distribution.md). Update their evidence/limitations as work lands.
+
+Current Windows-only menu/extension correction, exact upstream provenance and
+real native click/dialog evidence are in [Windows workbench](windows-workbench.md).
+Built-in VS Code/JetBrains presets and repeatable isolated acceptance are in
+[keymaps and idempotence](keymaps-and-idempotence.md).
+Current rounded surfaces, framework dependency and authorized Gallery protocol
+are in [Modern UI and Gallery](modern-ui-and-gallery.md).
 Real PTY/shell/native lifecycle and syntax-highlighting contracts are in
 [terminal](terminal.md).
 Intrinsic emoji and actual cross-platform terminal GPU acceptance are in
@@ -14,7 +21,7 @@ Open editable-file watching/reload/conflict contracts are in [files](files.md).
 The existing docs/vscode-parity.md remains the API/function coverage ledger.
 
 Reference: latest stable VS Code 1.141.0 and current main
-`9fcc9a12e1c6bd8bfcf4c77b3cdd4a854cc43c12` (2026-10-07). Use source measurements,
+`12701a51749f8b57aab5d567c66f7727c88c3eb4` (2026-10-07). Use source measurements,
 colors/fonts/layout and native screenshots, rather than remembered old UI details.
 
 Production promotion requires real core/editor/process/native/visual/installer
