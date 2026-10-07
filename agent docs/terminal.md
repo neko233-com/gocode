@@ -49,6 +49,11 @@ drains output and owns job cleanup. Loader holds one DLL for process lifetime.
   further supervision; don't claim the same containment guarantee as Windows jobs.
 - Default Windows shell is installed pwsh then Windows PowerShell. Per-session
   PSReadLine colors support PowerShell 7/5.1; existing profiles remain intact.
+  The owned session sets Console input/output and PowerShell native-pipe
+  OutputEncoding to UTF-8 after loading profiles. This prevents Console.WriteLine
+Chinese/emoji from becoming question marks under an inherited OEM code page;
+  it does not change the system locale or user profile files. Explicit legacy
+  console applications may still require their own code-page selection.
 - Default Mac shell honors SHELL, falling back to /bin/zsh. For zsh, an owned
   temporary ZDOTDIR sources the user's startup files before embedded upstream
   zsh-syntax-highlighting 0.8.0. Source/license/hash is under terminal/assets.
@@ -79,6 +84,17 @@ Natural exit drains final output before publishing the exit code; cancellation
 unblocks VT reply writers and kills the owned process. Shutdown wait is 3 seconds.
 
 ## Evidence and gaps
+
+CI 37589544875 at b69e9cf correctly rejects both Windows runners: real ANSI
+output contains `NATIVE_TRUECOLOR ??`, despite intact Unicode command input.
+No release is promoted from that source. The correction adds real PowerShell
+7/5.1 processes starting with OEM 437/ASCII, then executes the product startup
+and requires actual colored `UNICODE_OUTPUT 世界 😀` cells. Three-repeat full
+terminal race/vet and console/GUI native terminal gates pass locally with unchanged
+output/pixel/resize/interrupt/exit/source guards. Exact-source/release promotion
+is pending.
+Encoding contracts follow [Console.OutputEncoding](https://learn.microsoft.com/en-us/dotnet/api/system.console.outputencoding)
+and [PowerShell OutputEncoding](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables#outputencoding).
 
 Local Windows amd64 strict-cgo/race tests passed real PTY Unicode, truecolor,
 alternate/primary screen, input/resize, exact final output/exit, cancellation,

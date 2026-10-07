@@ -4,4 +4,6 @@ Windows and Mac native split gates require actual yellow emoji pixels in both ed
 
 Publication requires successful exact-source five-platform CI and reuses its tested MSI/ZIP and Mac bundles. Signed automatic/manual updates retain direct/mirror routing, rollback and settings/PATH preservation. Copilot continues through the accepted official SDK/Language Server route while VSIX compatibility expands.
 
+Windows PowerShell sessions explicitly select UTF-8 for Console input/output and native pipelines after loading user profiles. This fixes real Console.WriteLine Chinese/emoji output becoming question marks with inherited OEM code pages. Actual PowerShell 7 and 5.1 regression processes start with OEM 437/ASCII and require decoded ANSI-colored Unicode output; profile files and the system locale remain untouched.
+
 Dedicated third-party SVG/bitmap/currentColor font fixtures, Mac terminal native window-width resize, complete tabGroups/preview/pin/docking/persistence, editor options/decorations/snippets/undo merging, multi-window, IME/grapheme/bidi/multicursor/accessibility, SCM/DAP/tasks/remote/webviews and full VS Code/GPUI/official Copilot VSIX parity remain active work. Exact source, package, release and installed evidence belongs in agent docs/status.md and color-glyphs.md.

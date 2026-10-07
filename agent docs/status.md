@@ -1,5 +1,18 @@
 # Milestone ledger
 
+## Windows shell encoding correction candidate (2026-10-07)
+
+Source b69e9cff47e712fa31a98c5111b33898c9423a36 in CI 37589544875 passes
+Linux and Mac ARM; both Windows fail the new real terminal gate at phase 5.
+Decoded output is `NATIVE_TRUECOLOR ??` while the command echo contains emoji.
+The source is not promoted. Owned PowerShell sessions now explicitly use UTF-8
+for Console input/output and native-pipe OutputEncoding after user profiles load.
+Real PowerShell 7/5.1 tests begin with OEM 437/ASCII and require decoded colored
+Chinese/emoji output. Three-repeat full terminal race/vet and console/GUI native
+terminal gates pass locally, retaining decoded output/pixels/resize/interrupt/
+exit/source guards. Exact-source cross-platform/package/release/install validation
+is pending.
+
 ## Windows color public-module candidate v0.19.0 (2026-10-07)
 
 Public core v0.12.0/c42b4b43f0a27452937850871681f26746e39d7f passes all five

@@ -34,8 +34,11 @@ func Shell(directory string, isolated bool) (Config, error) {
 			return config, fmt.Errorf("PowerShell is unavailable: %w", err)
 		}
 		config.Name = "PowerShell"
+		// ConPTY uses UTF-8, while Console.WriteLine and native pipes can retain
+		// the inherited OEM code page. Configure only this owned shell session.
+		encoding := `[Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [Text.UTF8Encoding]::new($false); `
 		// char 27 also works with Windows PowerShell 5.1, which lacks `e.
-		script := `try { Import-Module PSReadLine -ErrorAction Stop; $e=[char]27; Set-PSReadLineOption -EditMode Windows -Colors @{ Command="$e[38;2;220;220;170m"; String="$e[38;2;206;145;120m"; Number="$e[38;2;181;206;168m"; Keyword="$e[38;2;197;134;192m"; Variable="$e[38;2;156;220;254m"; Parameter="$e[38;2;156;220;254m"; Operator="$e[38;2;204;204;204m"; Comment="$e[38;2;106;153;85m"; Default="$e[38;2;204;204;204m"; Error="$e[38;2;244;71;71m" }; } catch { Write-Warning ('gocode shell highlighting: ' + $_.Exception.Message) }`
+		script := encoding + `try { Import-Module PSReadLine -ErrorAction Stop; $e=[char]27; Set-PSReadLineOption -EditMode Windows -Colors @{ Command="$e[38;2;220;220;170m"; String="$e[38;2;206;145;120m"; Number="$e[38;2;181;206;168m"; Keyword="$e[38;2;197;134;192m"; Variable="$e[38;2;156;220;254m"; Parameter="$e[38;2;156;220;254m"; Operator="$e[38;2;204;204;204m"; Comment="$e[38;2;106;153;85m"; Default="$e[38;2;204;204;204m"; Error="$e[38;2;244;71;71m" }; } catch { Write-Warning ('gocode shell highlighting: ' + $_.Exception.Message) }`
 		config.Command = []string{path, "-NoLogo", "-NoExit", "-Command", script}
 		if isolated {
 			config.Command = append([]string{path, "-NoProfile"}, config.Command[1:]...)
