@@ -20,9 +20,9 @@ native diagnostic. The real Mac PTY command outputs 😀; its intrinsic yellow
 pixels must survive the surrounding ANSI foreground color. Both Mac jobs run
 normal/1.5/2 density terminal checks and retain their actual artifacts.
 
-Windows keeps the existing real ConPTY command, output, owned window resize,
-interrupt, exit and native color thresholds. Windows native color fonts remain
-a separate framework gap. Mac currently checks terminal grid height changes;
+At v0.18.0 Windows keeps real ConPTY command/output/window resize/interrupt/exit
+and native color thresholds; its core still uses monochrome color-font coverage.
+The candidate below adds Windows intrinsic color. Mac checks grid height changes;
 its terminal diagnostic still lacks an independent native window-width resize.
 The fixture does not establish full shell integration, terminal links/styles,
 IME/grapheme/bidi, accessibility or complete VS Code parity.
@@ -50,3 +50,40 @@ terminal report has 717 intrinsic yellow emoji pixels; independent split counts
 are ARM 5125/5200 and Intel 7482/7448 at 150%. Exact release hashes, signed
 direct/mirror bodies, rollback, installed actual GiB/GUI/Settings/ConPTY and
 unchanged config/PATH evidence are recorded in status.md. Full parity stays open.
+
+## Windows candidate
+
+Public core v0.12.0 now pins c42b4b43f0a27452937850871681f26746e39d7f and
+passes all five jobs in CI 37587610645. Both Windows normal/150/200% reference
+RGB and masks match 100%; actual 2022 normal and 2025 200% PNGs were inspected.
+Shader indexing/cgo tracking and baseline-phase/direct-layer rendering fixes
+preserve original deadlines/assertions. Mac ARM's first 150% viewport timeout
+passes on same-source retry; no physical-driver cause is claimed.
+VERSION 0.19.0 now imports public v0.12.0 without replace. Independent full
+GOWORK=off strict-cgo/three-repeat race/vet and console/GUI native regression pass
+locally. Public-module terminal count is 166 and split counts are 2922/3062;
+both actual PNGs were inspected, and real Node/editor/terminal gates pass.
+Workflow lint/diff checks pass. Exact-source CI/package/release/install promotion
+is pending. The older development record below is historical and is superseded
+by this public-core state.
+
+Parent source 03ed1c7186b0a95071db3a034317729f1c28ca3e retains native Windows
+COLR/COLRv1 RGBA and ordinary R8 in a bounded mixed D3D12 batch. Exact parent
+CI 37581933475 is running; immutable public-module promotion is pending.
+Local explicit go.work development verifies actual Windows editor split and
+ConPTY output emoji, while the public dependency remains v0.11.0 until promotion.
+
+Both Windows and Mac split gates require intrinsic yellow 😀 pixels in each
+initial shared viewport. The Windows real ConPTY command now emits 😀 inside
+the ANSI truecolor run, and the decoded frame must contain the full
+`NATIVE_TRUECOLOR 😀` sequence with that foreground. Completed terminal GPU
+pixels must retain intrinsic emoji color in addition to command/string/ANSI ink.
+All existing native input/resize/interruption/exit and shared-source assertions
+remain required. The native Windows 150% candidate terminal and split PNGs were
+inspected: terminal color count is 92; split counts are 1774/1898. Real Node VSIX
+shared view/UTF-16/CRLF/save acceptance passes. Independent published-module,
+full source/package/release and installed upgrade gates remain pending.
+
+Dedicated SVG/bitmap/currentColor third-party fonts remain unverified in the
+parent. Existing grapheme/bidi/IME, physical display migration, Mac native terminal
+window-width resize and full VS Code/official Copilot VSIX limits remain open.

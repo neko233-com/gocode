@@ -1,5 +1,35 @@
 # Milestone ledger
 
+## Windows color public-module candidate v0.19.0 (2026-10-07)
+
+Public core v0.12.0/c42b4b43f0a27452937850871681f26746e39d7f passes all five
+jobs in CI 37587610645 and validation/readback WARP diagnosis 37585540569.
+All six actual Windows reference RGB/mask reports match 100%; 2022 normal and
+2025 200% PNGs were inspected. Core retained original guards, added physical
+baseline-phase/direct layer drawing, explicit nonuniform sampling and cgo-tracked
+DXIL. Mac ARM 150% viewport passes same-source retry after one timeout.
+VERSION 0.19.0 imports public v0.12.0, no replace. Development owned editor/
+real VSIX/ConPTY gates pass; final terminal count 166, split counts 2922/3062.
+Independent GOWORK=off strict-cgo/three-repeat race/vet and full console/GUI
+native regression pass locally. Public-module terminal and shared split reports
+retain 166 and 2922/3062 intrinsic color pixels; both actual PNGs were inspected.
+Workflow actionlint/ShellCheck and diff checks pass. Model coverage remains 31.3%,
+search 81.4%; pixel gates provide separate native evidence. Exact-source five-job
+CI/packages/release/install remain pending; public/installed v0.18.0 stays the
+baseline. Full VS Code/official Copilot VSIX remains open.
+
+## Windows intrinsic color candidate (2026-10-07)
+
+Local explicit go.work source imports candidate parent 03ed1c7 for development;
+independent public-module promotion is pending parent CI 37581933475.
+Actual owned Windows editor split, real Node VSIX views and highlighted ConPTY
+with decoded `NATIVE_TRUECOLOR 😀` ANSI output pass. Terminal 150% color count
+is 92; initial shared split counts are 1774/1898. Both PNGs were inspected.
+Windows and Mac now require these intrinsic editor/terminal pixels; existing
+native edit/selection/resize/interruption/exit/source preservation gates stay.
+Public/installed v0.18.0/10bebad remains the verified baseline until exact source
+CI/package/release/installed promotion completes. color-glyphs.md records scope.
+
 ## Native color and terminal pixels v0.18.0 promotion (2026-10-07)
 
 Immutable source/package `10bebade1495f234d8bf52cba72491ad598421c9` passes all five

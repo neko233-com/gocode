@@ -9,7 +9,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	ui "github.com/neko233-com/godesktop"
@@ -44,8 +43,8 @@ func captureTerminalAcceptance(cx *ui.Context, workspace, file string, bounds ui
 		if colors[0xe5c07b] < 5 {
 			return fmt.Errorf("%w: native ANSI truecolor missing", errTerminalPixelsPending)
 		}
-		if runtime.GOOS == "darwin" && intrinsic < 8 {
-			return fmt.Errorf("%w: native PTY emoji color missing: %d pixels", errTerminalPixelsPending, intrinsic)
+		if intrinsic < 8 {
+			return fmt.Errorf("%w: native terminal emoji color missing: %d pixels", errTerminalPixelsPending, intrinsic)
 		}
 	}
 	if err := os.MkdirAll(filepath.Dir(file), 0755); err != nil {

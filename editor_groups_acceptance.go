@@ -8,7 +8,6 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -358,7 +357,7 @@ func captureGroupsPixels(cx *ui.Context, m *model, stage string) error {
 		if ink < 16 {
 			return fmt.Errorf("group %d lacks completed syntax GPU ink: %d", i, ink)
 		}
-		if runtime.GOOS == "darwin" && stage == "shared" && colorGlyphPixels[i] < 12 {
+		if stage == "shared" && colorGlyphPixels[i] < 12 {
 			return fmt.Errorf("group %d lacks intrinsic emoji GPU color: %d pixels", i, colorGlyphPixels[i])
 		}
 	}

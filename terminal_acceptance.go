@@ -152,13 +152,13 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 			if shellPromptReady(f) && strings.Count(f.Text(), "NATIVE_INPUT_HIGHLIGHT") >= 2 {
 				command := `printf '\033[38;2;229;192;123mNATIVE_TRUECOLOR 😀\033[0m\n'`
 				if runtime.GOOS == "windows" {
-					command = `[Console]::WriteLine("$([char]27)[38;2;229;192;123mNATIVE_TRUECOLOR$([char]27)[0m")`
+					command = `[Console]::WriteLine("$([char]27)[38;2;229;192;123mNATIVE_TRUECOLOR 😀$([char]27)[0m")`
 				}
 				send(command)
 				a.phase = 5
 			}
 		case 5:
-			if shellPromptReady(f) && terminalHasColor(f, "NATIVE_TRUECOLOR", 0xe5c07b) {
+			if shellPromptReady(f) && terminalHasColor(f, "NATIVE_TRUECOLOR 😀", 0xe5c07b) {
 				m.terminalHeight = 360
 				width, err := resizeTerminalAcceptance(m.workspace)
 				if err != nil {
