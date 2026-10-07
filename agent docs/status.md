@@ -30,6 +30,14 @@ strict-cgo/race rerun and the subsequent complete three-repeat/console/GUI run p
 Published and installed app remains v0.16.0/source 38f7d15. Full tabGroups/preview/
 docking/options/undo merging/IME/accessibility and official Copilot VSIX remain gaps.
 
+First exact-source app CI 37568560220 at 9fb9f2d did not pass: both Windows runners
+fail the native palette Save assertion, while Mac ARM's existing 200% replacement
+gate times out awaiting a second grouped Undo prompt. New VSIX gates pass on ARM
+normal/1.5/2. Promotion is stopped. Native failure snapshots/DPI and Mac key/history
+diagnostics are retained; local owned 96-DPI full-window race passes after matching
+probe/child virtualization. Failed gates remain required; further CI diagnosis is
+pending, and no application release/install success is claimed.
+
 ## Native editor groups v0.16.0 promotion (2026-10-07)
 
 Immutable application/package source `38f7d15533361ffc0b7a6e0c9b74d0dc21839962`

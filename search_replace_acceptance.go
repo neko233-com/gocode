@@ -73,7 +73,16 @@ func runReplacementAcceptance() error {
 	paintToken := ""
 	paintPhase := -1
 	var heldX, heldY float32
-	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(root), Width: 1280, Height: 820, Background: ui.RGB(editor), CustomTitlebar: true, Input: m.input}, func(cx *ui.Context) *ui.Element {
+	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(root), Width: 1280, Height: 820, Background: ui.RGB(editor), CustomTitlebar: true, Input: func(cx *ui.Context, e ui.InputEvent) bool {
+		if phase >= 19 && e.Kind == ui.KeyPressed {
+			fmt.Printf("Native replacement key phase=%d key=%d mods=%d editing=%t current=%t groups=%d undo=%d redo=%d\n", phase, e.Key, e.Modifiers, m.editing, m.current() == d, len(m.history.groups), d.buffer.HistorySnapshot().UndoRevision(), d.buffer.HistorySnapshot().RedoRevision())
+		}
+		handled := m.input(cx, e)
+		if phase >= 19 && e.Kind == ui.KeyPressed {
+			fmt.Printf("Native replacement key result handled=%t prompt=%t busy=%t message=%q\n", handled, m.history.prompt != nil, m.history.busy, m.message)
+		}
+		return handled
+	}}, func(cx *ui.Context) *ui.Element {
 		m.native = cx
 		if stopSearch == nil {
 			stopSearch = m.startSearch(ctx, cx.Dispatch, nil)
@@ -138,7 +147,7 @@ func runReplacementAcceptance() error {
 			nextFrame = max(nextFrame, cx.RenderedFrames()+5)
 		}
 		ready := !m.search.busy && m.search.timer == nil && !m.search.replaceBusy && !m.search.replaceSaving && !m.history.busy
-		diagnostic.Store(fmt.Sprintf("phase=%d results=%d focus=%d busy=%t status=%q replacement=%q message=%q", phase, len(m.search.report.Matches), m.search.focus, !ready, m.search.status, m.search.replaceStatus, m.message))
+		diagnostic.Store(fmt.Sprintf("phase=%d results=%d focus=%d busy=%t editing=%t current=%t groups=%d undo=%d redo=%d status=%q replacement=%q message=%q", phase, len(m.search.report.Matches), m.search.focus, !ready, m.editing, m.current() == d, len(m.history.groups), d.buffer.HistorySnapshot().UndoRevision(), d.buffer.HistorySnapshot().RedoRevision(), m.search.status, m.search.replaceStatus, m.message))
 		if phase != paintPhase {
 			paintPhase = phase
 			fmt.Println("Native replacement", diagnostic.Load())

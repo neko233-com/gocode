@@ -109,7 +109,7 @@ jobs:
           path: |
             bin/*.exe
             coverage.out
-            .cache/workbench-windows.png
+            .cache/workbench-windows*.png
             .cache/largefile-native-acceptance.png
             .cache/largefile-gib-native.png
             .cache/gopls-native-acceptance.png
@@ -206,6 +206,7 @@ jobs:
       - name: Package and verify free macOS bundle and updater archive
         run: sh scripts/build-macos-package.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
         with:
           name: gocode-${{ runner.os }}-${{ runner.arch }}
           path: |

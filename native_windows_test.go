@@ -49,6 +49,13 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	defer runtime.UnlockOSThread()
 	restore := winprobe.Awareness()
 	defer restore()
+	if os.Getenv("GOCODE_TEST_DPIUNAWARE") == "1" {
+		// Match the child's virtualized client coordinates to its owned 96-DPI
+		// GPU surface; per-monitor probe coordinates would observe DWM scaling.
+		fn := syscall.NewLazyDLL("user32.dll").NewProc("SetThreadDpiAwarenessContext")
+		old, _, _ := fn.Call(^uintptr(0))
+		defer fn.Call(old)
+	}
 	exe := filepath.Join(t.TempDir(), "gocode.exe")
 	build := exec.Command("go", "build", "-race", "-o", exe, ".")
 	if output, err := build.CombinedOutput(); err != nil {
@@ -63,6 +70,10 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	configRoot := t.TempDir()
 	cmd := exec.Command(exe, "-workspace", workspace, "-extensions-dir", t.TempDir(), "-copilot=false", "-lsp=false")
 	cmd.Env = append(os.Environ(), "GODESKTOP_READBACK=1", "APPDATA="+configRoot)
+	if os.Getenv("GOCODE_TEST_DPIUNAWARE") == "1" {
+		// Force only the owned child to 96 DPI; keep the probing thread aware.
+		cmd.Env = append(cmd.Env, "__COMPAT_LAYER=DPIUNAWARE")
+	}
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	if err := cmd.Start(); err != nil {
@@ -72,6 +83,9 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	var w winprobe.Window
 	t.Cleanup(func() {
 		if t.Failed() {
+			width, height, _ := w.ClientSize()
+			color, pixelErr := w.Pixel(600, 105)
+			t.Logf("owned window dpi=%d client=%dx%d first row=%06x (%v)", w.DPI(), width, height, color, pixelErr)
 			data, err := os.ReadFile(filepath.Join(workspace, "main.go"))
 			t.Logf("owned source after failure: %q (%v); native output: %s", data, err, output.String())
 			if name := os.Getenv("GOCODE_SCREENSHOT"); name != "" && w != 0 {
