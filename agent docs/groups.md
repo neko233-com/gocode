@@ -1,12 +1,13 @@
 # Native editor groups
 
-Candidate v0.17.0 extends the tree to nine groups and Ctrl/Cmd+1..9, matching
+Released v0.17.0 extends the tree to nine groups and Ctrl/Cmd+1..9, matching
 ViewColumn.One–Nine. Real VSIX view identity/visibility/column/range/selection,
 hidden worker opens and guarded show/selection/reveal are implemented; status.md
-records candidate validation and pending independent public-module promotion.
-Published v0.16.0 below retains its earlier eight-group/native-only contract.
+records exact all-five CI, immutable publication and installed evidence. It uses
+public core v0.10.0 with GOWORK=off/no replace. Historical v0.16.0 below retains
+its earlier eight-group/native-only contract.
 
-The v0.17 candidate uses one TextDocument per native canonical resource and one
+The v0.17 bridge uses one TextDocument per native canonical resource and one
 TextEditor per actually visible eligible view. Hidden tabs are excluded, identities
 survive column renumbering, and closed views/reopened document instances reject
 stale edits/save/selection/reveal. Snapshot generations and complete coordinate

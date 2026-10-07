@@ -1,14 +1,14 @@
 # Free distribution contract
 
-Latest promotion: v0.16.0/source 38f7d15, five-platform source CI 37561829837 and
-publication 37562709833 reusing tested artifacts. Seven generated metadata files
-at 5664fde passed local policy tests and real signed automatic/direct/manual ZIP
+Latest promotion: v0.17.0/source aa9d838, five-platform source CI 37570381921 and
+publication 37571358158 reusing tested artifacts. Seven generated metadata files
+at eb0de72 passed local policy tests and real signed automatic/direct/manual ZIP
 body checks. Released native gates and actual v0.4.0 GUI rollback passed. User
-selected payload is 0.16.0; stable MSI/launcher baseline remains 0.5.1. Actual
+selected payload is 0.17.0; stable MSI/launcher baseline remains 0.5.1. Actual
 installed native/visual/SDK-LSP-without-prompt gates passed with Auto=true/mode=auto.
-Installed native groups and actual GiB split pass; settings/PATH hashes and both
-stable shortcut targets match before/after. Automatic owned routing chose
-gh-proxy.com, manual route used ghfast.top, and actual user update used direct GitHub.
+Installed native groups/real VSIX and actual GiB split pass; settings/PATH hashes
+and both stable shortcut targets match before/after. Automatic owned routing and
+actual user update chose direct GitHub; manual route used ghfast.top.
 Exact hashes and source references are in status.md and distribution/SHA256SUMS.
 
 Maintained channels: Windows unsigned MSI/portable ZIP and pinned PowerShell install;

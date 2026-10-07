@@ -1,5 +1,52 @@
 # Milestone ledger
 
+## Native VSIX editor views v0.17.0 promotion (2026-10-07)
+
+Immutable source/package `aa9d838b8b59bd82d0ce0fe52ffb2225213708c9` passes all five
+jobs in [CI 37570381921](https://github.com/neko233-com/gocode/actions/runs/37570381921):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. GOWORK=off/no replace imports
+public core v0.10.0/8da1ad6, whose exact all-five CI 37567374583 passed. Full local
+strict-cgo/three-repeat race/vet and normal console/GUI regressions pass, including
+the owned 1024×728/96-DPI window fixture (model 31.3%, search 81.4%).
+
+Real VSIX views share canonical documents while retaining visible identity,
+column/selection/ranges and independent reveal; native focus/close, renumbering,
+disposed/reopened receipts, ordered UTF-16 edits and acknowledged CRLF save pass.
+Hidden opens and causal receipts preserve newer focus. All nine columns, real GiB
+service rejection, runtime >32 KiB configuration/cleanup and long-line allocation
+bounds are verified. Exact limits and unfinished APIs remain in groups.md.
+
+Mac Intel/ARM pass normal/1.5/2 native gates. Windows CI 100% 1024×728, ARM 200%
+2048×1368, Intel 150% 1920×1230, local/installed 150% VSIX/survivor/GiB/Settings
+PNG frames were visually inspected. Mac emoji still appears as a solid monochrome
+fallback. Early Windows failures were pixel waits sampling centered caption ink;
+blank-side sampling fixes the gate and preserves its exact-byte assertion. The
+first ARM 200% replacement Undo timeout did not recur in either later exact-source
+run; its unchanged gate and native key/history traces remain required and retained.
+Windows 2025 and installed GUI verify an actual 1,073,741,824-byte independent split,
+survival after original-view close and identical whole-file SHA256.
+
+[Publication 37571358158](https://github.com/neko233-com/gocode/actions/runs/37571358158)
+reuses tested artifacts and tags v0.17.0 at aa9d838. Metadata
+`eb0de72dfffc1bc06f1235a28cdb5de1c1499431` changes exactly seven channel files;
+two Python policy tests pass. Windows ZIP SHA256 is
+`858bb5d30893312b796693e766198334deb2c9ec1d1da72e45e8aa146138f5b6`; MSI is
+`3ce2d76c302ade8c198258fa0e6e890ad47760bd0c35b08c85eaa5fa41d17a64`.
+Real signed automatic/direct GitHub and manual ghfast.top archive bodies pass
+integrity. All released native gates, including the new VSIX view gate, pass.
+The owned install then actually renders prior v0.4.0/cfcd3513 after rollback.
+
+User v0.16→v0.17 updates through the existing stable launcher via direct GitHub.
+Selected GUI is versions/0.17.0/gocode-app.exe/source aa9d838; MSI/launcher baseline
+stays 0.5.1. Installed GUI/both icon handles/Settings/source, native groups/VSIX,
+actual GiB split and highlighted terminal pass. ConPTY 1.25.260930003 is verified.
+Settings shows Up to date (0.17.0), automatic route/updates and gopls ready. Exact
+update-config and user-PATH hashes match before/after; desktop/nested Start Menu
+still target gocode-launch.exe. Copilot authenticated/LSP/SDK=true with
+networkPromptSent=false. Full VS Code/GPUI/official Copilot VSIX, tabGroups/options/
+decorations/snippets/undo merging/persistence/docking/multi-window, IME/grapheme/
+bidi/multicursor/accessibility and SCM/DAP/remote/webview parity remain active.
+
 ## Native VSIX editor views v0.17.0 candidate (2026-10-07)
 
 The real Node bridge now models visible native views separately from canonical
