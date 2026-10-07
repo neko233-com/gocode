@@ -1,6 +1,6 @@
 # Native editor groups
 
-Candidate v0.16.0 uses public godesktop v0.9.0 with GOWORK=off and no replace.
+Released v0.16.0 uses public godesktop v0.9.0 with GOWORK=off and no replace.
 Released/installed versions and immutable CI evidence remain in status.md.
 
 Visual thesis: Dark Modern planar editor groups use restrained borders and native
@@ -58,9 +58,14 @@ GUI gates passed at local 150% and forced process 100% DPI.
 
 -groups-large-smoke streams actual files, independently renders first/tail pages,
 closes the original view and reads again from the survivor, then verifies the
-whole file SHA256. Local 32 MiB and actual 1,073,741,824-byte runs passed. CI adds
-the actual GiB split on Windows 2025 and both gates at normal/1.5/2 Mac densities.
-Cross-platform, published-byte and installed evidence is pending promotion.
+whole file SHA256. Local 32 MiB and actual 1,073,741,824-byte runs passed. Exact
+source 38f7d15 passes all five jobs in CI 37561829837, including actual GiB splits
+on Windows 2025 and both gates at normal/1.5/2 on both Mac architectures.
+Publication 37562709833 reuses those packages. Released group/native/route/rollback
+and installed GUI/actual GiB split/Settings gates pass. Exact hashes and source
+evidence are in status.md. Windows 100%, ARM 200%, Intel 150% and installed 150%
+PNG frames were visually reviewed. Mac emoji appears as a solid monochrome fallback
+in these captures; correct emoji glyph/color rendering remains a framework gap.
 
 Full group persistence/restoration, tab move/drop/docking, configurable layouts,
 multi-window and VSIX visibleTextEditors/viewColumn integration remain gaps.

@@ -1,5 +1,47 @@
 # Milestone ledger
 
+## Native editor groups v0.16.0 promotion (2026-10-07)
+
+Immutable application/package source `38f7d15533361ffc0b7a6e0c9b74d0dc21839962`
+passed all five jobs in [CI 37561829837](https://github.com/neko233-com/gocode/actions/runs/37561829837):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. GOWORK=off/no replace uses
+public core v0.9.0/cb8b077. Full local strict-cgo/three-repeat race/vet and all
+console/GUI regressions pass (model 30.7%, search 81.4%). Native right/down groups
+share text/history/service identity and retain independent caret/scroll/tabs/pages;
+close scope, held toolbar review, origin/closed-group receipts and large-reader
+lifetime are verified. Exact bounds and remaining scope are in groups.md.
+
+Both Mac architectures pass normal/1.5/2 owned input/completed Metal pixel gates.
+Windows CI 100% 1024×728, Mac ARM 200% 2048×1368, Intel 150% 1920×1230 nested
+group PNGs and ARM large-page PNGs were visually inspected. Mac emoji currently
+renders as a solid monochrome fallback in those captures; correct emoji appearance
+remains a framework rendering gap. Windows 2025 actual 1,073,741,824-byte split
+passes independent first/tail pixels, original-view close, survivor read and
+identical whole-file SHA256. The separate actual GiB single-line race search
+reports 16.7425142 s / 811,864 new Go allocation bytes / 2,147,492,044 I/O bytes in
+this scoped run. Existing native VSIX/recovered-gopls/watch/opener/history/search/
+tabs/highlighted terminal/MSI and package checks remain green.
+
+[Publication 37562709833](https://github.com/neko233-com/gocode/actions/runs/37562709833)
+reuses tested packages and tags v0.16.0 at 38f7d15. Metadata
+`5664fdeb45f1ae7f02fe5c03bc77cd5d58948946` changes exactly seven channel files;
+two Python policy tests pass. Windows ZIP SHA256 is
+`64bba0eb0bbfebf7b9a512affdf3c386c6a48eb237969bda6d6c80fb031b12e9`; MSI is
+`34f706718178c8206aae14f56f97fc3af59fa11b3e6cdb6e9024ee4400052e8a`.
+Real signed automatic gh-proxy.com, separate direct GitHub and manual ghfast.top
+archive bodies pass integrity. All released native gates, including both group
+gates, pass; the owned root then actually renders prior v0.4.0/cfcd3513 after rollback.
+
+The user's actual v0.15.0 updater selects v0.16.0/source 38f7d15 via direct GitHub.
+Stable MSI/launcher baseline stays 0.5.1. Installed GUI/both icon handles/Settings/
+owned source, native groups, actual 1 GiB split and highlighted terminal pass;
+ConPTY 1.25.260930003 is verified. Installed 150% GiB split and Settings PNGs were
+visually inspected: Up to date (0.16.0), automatic route and gopls ready. Exact
+update-config and user-PATH hashes match before/after; both mirrors and stable
+desktop/nested Start Menu targets remain. Copilot authenticated/LSP/SDK=true,
+networkPromptSent=false. Full group API/persistence/docking/multi-window,
+production/GPUI/VS Code and official Copilot VSIX parity remain active.
+
 ## Native editor groups v0.16.0 candidate (2026-10-07)
 
 Right/down native splits share canonical editable documents and undo/save history
