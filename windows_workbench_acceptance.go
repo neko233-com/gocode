@@ -526,10 +526,12 @@ func chooseOwnedWindowsDialogFor(workspace, path string, cancel bool, expectedPI
 		owner, _, _ := user.NewProc("GetWindow").Call(hwnd, 4)
 		var class [32]uint16
 		user.NewProc("GetClassNameW").Call(hwnd, uintptr(unsafe.Pointer(&class[0])), 32)
+		visible, _, _ := user.NewProc("IsWindowVisible").Call(hwnd)
+		enabled, _, _ := user.NewProc("IsWindowEnabled").Call(hwnd)
 		if pid == expectedPID && windows.UTF16ToString(class[:]) == "#32770" {
-			ownedDialogs = append(ownedDialogs, fmt.Sprintf("hwnd=%x owner=%x expected=%x", hwnd, owner, uintptr(w)))
+			ownedDialogs = append(ownedDialogs, fmt.Sprintf("hwnd=%x owner=%x expected=%x visible=%d enabled=%d", hwnd, owner, uintptr(w), visible, enabled))
 		}
-		if pid == expectedPID && owner == uintptr(w) && windows.UTF16ToString(class[:]) == "#32770" {
+		if pid == expectedPID && owner == uintptr(w) && windows.UTF16ToString(class[:]) == "#32770" && visible != 0 && enabled != 0 {
 			dialog = hwnd
 			return 0
 		}
@@ -563,9 +565,9 @@ func chooseOwnedWindowsDialogFor(workspace, path string, cancel bool, expectedPI
 		var parentClass [64]uint16
 		user.NewProc("GetClassNameW").Call(parent, uintptr(unsafe.Pointer(&parentClass[0])), 64)
 		if name == "Edit" {
-			controls = append(controls, fmt.Sprintf("Edit id=%d parent=%d/%s", id, parentID, windows.UTF16ToString(parentClass[:])))
 			visible, _, _ := user.NewProc("IsWindowVisible").Call(hwnd)
 			enabled, _, _ := user.NewProc("IsWindowEnabled").Call(hwnd)
+			controls = append(controls, fmt.Sprintf("Edit id=%d parent=%d/%s visible=%d enabled=%d dialog=%x", id, parentID, windows.UTF16ToString(parentClass[:]), visible, enabled, dialog))
 			filename := parentID == 1148 || id == 1148 || id == 1001 && windows.UTF16ToString(parentClass[:]) == "ComboBox"
 			folder := id == 1152 && parent == dialog && windows.UTF16ToString(parentClass[:]) == "#32770"
 			if (filename || folder) && visible != 0 && enabled != 0 {

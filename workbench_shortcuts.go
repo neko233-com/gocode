@@ -11,7 +11,7 @@ func (m *model) workbenchShortcut(cx *ui.Context, e ui.InputEvent) bool {
 		m.keyboard.shiftDown, m.keyboard.shiftUsed, m.keyboard.lastShift = false, false, time.Time{}
 	}
 	if m.keymapProfile() == "jetbrains" {
-		if e.Key == 16 && e.Kind == ui.KeyPressed && !e.Repeat {
+		if e.Key == 16 && e.Kind == ui.KeyPressed && !e.Repeat && e.Modifiers&(ui.ModifierControl|ui.ModifierCommand|ui.ModifierAlt) == 0 {
 			m.keyboard.shiftDown, m.keyboard.shiftUsed = true, false
 			return true
 		}

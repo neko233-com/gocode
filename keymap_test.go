@@ -101,6 +101,13 @@ func TestJetBrainsDoubleShiftAndCancellation(t *testing.T) {
 		m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 16})
 		m.input(nil, ui.InputEvent{Kind: ui.KeyReleased, Key: 16})
 	}
+	for range 2 {
+		m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 16, Modifiers: ui.ModifierControl | ui.ModifierShift})
+		m.input(nil, ui.InputEvent{Kind: ui.KeyReleased, Key: 16, Modifiers: ui.ModifierControl})
+	}
+	if m.palette {
+		t.Fatal("modified Shift opened Search Everywhere")
+	}
 	tap()
 	m.input(nil, ui.InputEvent{Kind: ui.InputCancelled})
 	tap()

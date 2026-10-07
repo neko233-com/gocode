@@ -27,7 +27,7 @@ type menuEntry struct {
 
 func (m *model) workbenchCommands() []workbenchCommand {
 	d := m.current()
-	if m.extensionsView.detail != "" {
+	if m.extensionsView.detail != "" || m.scm.diff != nil {
 		d = nil
 	}
 	editable := d != nil && d.buffer != nil && !m.saveBusy && !m.fileActions.busy
@@ -64,9 +64,12 @@ func (m *model) workbenchCommands() []workbenchCommand {
 				})
 			}
 		}),
-		c("closeEditor", "Close Editor", "Ctrl+W", d != nil || m.extensionsView.detail != "", func() {
+		c("closeEditor", "Close Editor", "Ctrl+W", d != nil || m.extensionsView.detail != "" || m.scm.diff != nil, func() {
 			if m.extensionsView.detail != "" {
 				m.closeExtensionDetails()
+			} else if m.scm.diff != nil {
+				m.dismissSCMDiff()
+				m.focusTab(m.current())
 			} else {
 				m.closeTab(m.active)
 			}

@@ -122,6 +122,14 @@ checking completed HEAD/index state, retains the 60-second guard and all source/
 index assertions, and logs exact status/generation on failure. Actual Windows Git
 and 45-phase menus/keymaps pass. Superseded source is not published.
 
+CI 37646262818 passes four platforms; Windows 2025 reports a repeated Open File
+dialog with an unavailable filename edit. Owned shell selection now requires
+visible/enabled top-level HWNDs before scanning its controls and logs those states.
+Three actual idempotence/lifecycle repeats pass (151.237s) without changing guards.
+Read-only Git diff commands no longer save/format/close its backing source editor.
+SCM acceptance waits for real non-refresh requests, excluding background polling
+from native action acknowledgement. Final exact-source CI is required.
+
 Full VS Code parity is not complete. Disabled editing/debug/task/appearance
 commands, Auto Save, persistent Recent/workspace history, rich README/changelog/
 icon/rating detail rendering and complete extension API compatibility remain.

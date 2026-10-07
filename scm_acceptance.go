@@ -90,6 +90,7 @@ func runSCMAcceptance() error {
 	awaitedControl := ""
 	var awaitingAction bool
 	var actionGeneration uint64
+	var actionReceipts uint64
 	var failure error
 	var diagnostic atomic.Value
 	diagnostic.Store("starting")
@@ -100,6 +101,14 @@ func runSCMAcceptance() error {
 		m.native = cx
 		if stop == nil {
 			stop = m.startSCM(ctx, cx.Dispatch)
+			request := m.scm.request
+			m.scm.request = func(operation string, paths []string, staged bool) {
+				before := m.scm.generation
+				request(operation, paths, staged)
+				if operation != "refresh" && m.scm.generation > before {
+					actionReceipts++
+				}
+			}
 			stopIcon = applyAppIcon("gocode — " + filepath.Base(root))
 			m.showSCM()
 			m.hidePanel()
@@ -129,7 +138,7 @@ func runSCMAcceptance() error {
 			// Posting a native pointer event does not acknowledge its callback.
 			// Require the real Git worker request before checking its result.
 			awaitingAction = key != "scm-message"
-			actionGeneration = m.scm.generation
+			actionGeneration = actionReceipts
 			x, y := bounds.X+bounds.Width/2, bounds.Y+bounds.Height/2
 			tabsNativePointer(cx, root, x, y, true, func(err error) {
 				if err != nil {
@@ -139,10 +148,10 @@ func runSCMAcceptance() error {
 				tabsNativePointer(cx, root, x, y, false, advance)
 			})
 		}
-		if awaitingAction && m.scm.generation > actionGeneration {
+		if awaitingAction && actionReceipts > actionGeneration {
 			awaitingAction = false
 		}
-		diagnostic.Store(fmt.Sprintf("phase=%d waiting=%t awaiting-action=%t generation=%d/%d busy=%t status=%s entries=%d diff=%t control=%s", phase, waiting, awaitingAction, m.scm.generation, actionGeneration, m.scm.busy, m.scm.status, len(m.scm.snapshot.Entries), m.scm.diff != nil, awaitedControl))
+		diagnostic.Store(fmt.Sprintf("phase=%d waiting=%t awaiting-action=%t generation=%d action-receipts=%d/%d busy=%t status=%s entries=%d diff=%t control=%s", phase, waiting, awaitingAction, m.scm.generation, actionReceipts, actionGeneration, m.scm.busy, m.scm.status, len(m.scm.snapshot.Entries), m.scm.diff != nil, awaitedControl))
 		if !waiting && !awaitingAction && !m.scm.busy && cx.RenderedFrames() >= nextFrame && failure == nil {
 			switch phase {
 			case 0:
@@ -210,7 +219,7 @@ func runSCMAcceptance() error {
 				click("scm-commit")
 			case 8:
 				if m.scm.snapshot.Head == initialHead || len(m.scm.snapshot.Entries) != 0 || m.scm.message != "" {
-					fail(fmt.Errorf("native commit did not update actual HEAD/index: generation=%d/%d status=%q head-changed=%t entries=%d message=%q", m.scm.generation, actionGeneration, m.scm.status, m.scm.snapshot.Head != initialHead, len(m.scm.snapshot.Entries), m.scm.message))
+					fail(fmt.Errorf("native commit did not update actual HEAD/index: generation=%d action-receipts=%d/%d status=%q head-changed=%t entries=%d message=%q", m.scm.generation, actionReceipts, actionGeneration, m.scm.status, m.scm.snapshot.Head != initialHead, len(m.scm.snapshot.Entries), m.scm.message))
 					break
 				}
 				if m.current().buffer.Dirty() || m.current().buffer.Text() != after {

@@ -2,6 +2,28 @@
 
 ## Windows workbench, keymaps, rounded UI and Gallery candidate (2026-10-07)
 
+Second source e1b8ff2f35959254c07f76081066b3cd2a09bb5e / CI 37646262818 passes
+Windows 2022, Mac Intel/ARM and Ubuntu. Windows 2025's repeated idempotence run
+fails at Open File with an owned filename Edit (1148/ComboBox) that is not ready.
+The old selector accepted the first owned shell HWND without checking its visible/
+enabled state. It now requires those states and logs dialog/edit visibility and
+enablement; exact cause of the old failure is not established from its limited
+diagnostic. Three actual idempotence/lifecycle race repeats pass (151.237s), each
+repeating the full 45-phase gate twice, plus real reload/uninstall/folder/new-window
+checks. Deadlines and ownership/disk/cleanup assertions remain unchanged.
+
+Read-only SCM diff commands now preserve the source editor: Save/Format/Undo are
+disabled and Close Editor closes only the virtual diff. Three full input-dispatch
+checks pass, including modified-Shift cancellation for JetBrains. SCM pointer
+acceptance counts actual non-refresh worker requests, so automatic polling cannot
+acknowledge a click. Windows actual Git/real gopls/GPU/45-phase gates pass. Final
+source CI/release/install remains required. A separate local diagnostic incorrectly
+overrode drawable density while replaying HWND coordinates at the real system DPI;
+its timeout is not valid product evidence. The generated owned temporary fixture
+at C:/Users/14170/AppData/Local/Temp/gocode-scm-native-4191533845 remains because
+automatic approval review rejected verified literal cleanup with 'blocked by policy'
+and provided no further reason. Future acceptance uses the isolated cleanup roots.
+
 Initial application source 589362bd6ba15ae1bbfa292d4039306b5f709f75 in CI
 37644269599 passes Ubuntu and both Macs' race/vet, but ARM real gopls stops at
 format phase 1: Alt menu handling incorrectly accepts Shift+Alt+F. A new full

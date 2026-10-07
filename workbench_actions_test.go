@@ -16,10 +16,32 @@ import (
 	"testing"
 	"time"
 
+	gitrepo "github.com/neko233-com/gocode/internal/git"
+
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 	"github.com/neko233-com/godesktop/extensions"
 )
+
+func TestVirtualDiffCommandsPreserveSourceEditor(t *testing.T) {
+	m, err := newModel(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer m.closeDocuments()
+	m.newTextFile()
+	d := m.current()
+	m.scm.diff = &gitrepo.Diff{}
+	for _, c := range m.workbenchCommands() {
+		if (c.ID == "save" || c.ID == "saveAs" || c.ID == "format" || c.ID == "definition" || c.ID == "undo") && c.Enabled {
+			t.Fatal("source command enabled in read-only diff", c.ID)
+		}
+	}
+	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'W', Modifiers: ui.ModifierControl})
+	if m.scm.diff != nil || m.current() != d || len(m.docs) != 1 || m.closePrompt {
+		t.Fatal("closing virtual diff closed or prompted the source document")
+	}
+}
 
 func TestSaveAsImmutableUnicodeAndExclusiveNewTarget(t *testing.T) {
 	root := t.TempDir()

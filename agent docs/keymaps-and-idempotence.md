@@ -86,3 +86,13 @@ strict-cgo repeats pass (2.027s). The native LSP fixture now sends the actual
 Ctrl+K Ctrl+I chord, preserving the rule that Ctrl+K alone does not issue hover.
 Real Windows formatting/hover/definition/completion/diagnostics/crash recovery/
 final pixels, the 45-phase gate and actual Git commit pass after the correction.
+
+Final targeted input routing passes three strict-cgo/race repeats (1.960s),
+including Ctrl+W preserving the source behind a read-only Git diff and excluding
+Control/Alt/Command-modified Shift taps from Search Everywhere. The native shell
+selector now requires visible/enabled owned dialog windows, excluding stale cached
+HWNDs; diagnostics include edit/window visibility and enablement. Three actual
+idempotence/lifecycle repeats pass (151.237s): six full 45-phase native runs leave
+empty private scratch, unchanged settings and a stable evidence count. Previous
+Windows 2025 CI 37646262818 failure is retained in status.md; that source is not
+published. Final-source CI/released/installed-byte checks remain required.
