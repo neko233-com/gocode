@@ -1,5 +1,13 @@
 # Acceptance contract
 
+- Groups: -groups-smoke uses owned native Unicode editing/focus/horizontal sash,
+  nested right/down geometry, captured-review rejection and scoped Cancel/Save.
+  Each viewport needs completed syntax glyph pixels. -groups-large-smoke renders
+  independent actual first/tail pages, closes the original view, reads its survivor
+  and verifies unchanged SHA256; Windows 2025 adds an actual GiB file. Race tests
+  hold real open receipts and verify origin/closed-group and shared-reader lifetime.
+  See groups.md for bounds and pending vertical-drag/VSIX/layout scope.
+
 - Editable text: UTF-16/CRLF/selection/undo/save, immutable snapshots, rejected
   overlapping/stale edits, extension/provider version agreement.
   External changes require actual parent-directory/atomic-replace/delete watches,

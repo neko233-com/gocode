@@ -205,7 +205,7 @@ func (m *model) startDocumentSaves(parent context.Context, cx *ui.Context) func(
 		}
 		documents := []*document{}
 		for _, d := range m.docs {
-			if d.dirty() && (m.closeTarget == nil || m.closeTarget == d) {
+			if d.dirty() && m.closeScope(d) {
 				documents = append(documents, d)
 			}
 		}

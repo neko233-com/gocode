@@ -119,6 +119,9 @@ func run() error {
 	closeSmoke := flag.String("close-smoke", "", "Verify native save/discard/cancel/external close protection in a disposable workspace")
 	terminalSmoke := flag.Bool("terminal-smoke", false, "Verify real shell input highlighting, ANSI colors, keyboard, resize, interrupt and exit in a native owned workspace")
 	replaceSmoke := flag.Bool("replace-smoke", false, "Verify native workspace replacement preview, stale disk guards, actual saves and undo in owned files")
+	groupsSmoke := flag.Bool("groups-smoke", false, "Verify owned native editor splits, shared edits, independent caret/scroll, sash drag and scoped group saves")
+	groupsLargeSmoke := flag.Bool("groups-large-smoke", false, "Verify independent file-backed split pages and shared index lifetime")
+	groupsLargeMiB := flag.Int("groups-large-mib", 32, "Native large split fixture size, 16–10240 MiB")
 	filewatchSmoke := flag.Bool("filewatch-smoke", false, "Verify real external replacements, dirty conflict, native reload confirmation, VSIX and optional configured LSP in an owned workspace")
 	largeSmoke := flag.Bool("largefile-smoke", false, "Verify file-backed browsing and direct long-line byte navigation in a native window")
 	largeSmokeMiB := flag.Int("largefile-smoke-mib", 16, "Size of the native large-file acceptance fixture (16 to 10240 MiB)")
@@ -140,6 +143,12 @@ func run() error {
 	copilotUISmoke := flag.Bool("copilot-ui-smoke", false, "Verify rendered Copilot suggestion, native Tab acceptance and chat in a disposable workspace")
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
+	if *groupsLargeSmoke {
+		return runLargeGroupsAcceptance(*groupsLargeMiB)
+	}
+	if *groupsSmoke {
+		return runEditorGroupsAcceptance()
+	}
 	if *searchSmoke {
 		return runSearchAcceptance(*searchSmokeMiB)
 	}

@@ -29,7 +29,8 @@ index changes and rejecting a reopened instance of the same path. Ctrl+Tab
 freezes MRU order until Control release/focus cancellation; Ctrl+Shift+Tab
 reverses, Ctrl/Cmd+PageUp/Down use tab order, Ctrl/Cmd+W retains dirty-close guards
 and the terminal's word-delete chord. Width policy, pinned/wrapped/preview tabs,
-MRU switcher overlay, tab reorder/drop, split groups and full menus remain gaps.
+MRU switcher overlay, tab reorder/drop and full menus remain gaps. Candidate
+native right/down editor groups and exact ownership/acceptance scope are in groups.md.
 
 `-tabs-smoke` opens 40 real files, captures completed GPU viewport,
 selected indicator and scrollbar pixels, exercises native ordered/MRU keys,

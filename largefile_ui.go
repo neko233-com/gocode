@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/mattn/go-runewidth"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,6 +24,7 @@ type largeDocument struct {
 	cancel                                context.CancelFunc
 	workers                               sync.WaitGroup
 	closeOnce                             sync.Once
+	shared                                bool
 	started, loading, requested, byteMode bool
 	start, byteOffset                     int64
 	rows                                  int
@@ -45,13 +47,42 @@ func openLargeDocument(path string) (*document, error) {
 }
 func (d *document) dirty() bool { return d.buffer != nil && d.buffer.Dirty() }
 func (l *largeDocument) close() {
-	l.closeOnce.Do(func() { l.cancel(); l.workers.Wait(); l.file.Close() })
+	l.closeOnce.Do(func() {
+		l.cancel()
+		l.workers.Wait()
+		if !l.shared {
+			l.file.Close()
+		}
+	})
+}
+func (m *model) disposeLargeDocument(d *document, wait bool) {
+	base := d.largeBase
+	if base == nil {
+		base = d.large
+	}
+	if base == nil {
+		return
+	}
+	for _, g := range m.allGroups() {
+		if v := g.views[d]; v != nil && v.large != nil && v.large != base {
+			v.large.cancel()
+			if wait {
+				v.large.close()
+			} else {
+				go v.large.close()
+			}
+		}
+	}
+	base.cancel()
+	if wait {
+		base.close()
+	} else {
+		go base.close()
+	}
 }
 func (m *model) closeDocuments() {
 	for _, d := range m.docs {
-		if d.large != nil {
-			d.large.close()
-		}
+		m.disposeLargeDocument(d, true)
 	}
 }
 func (m *model) startLargeDocument(d *document) {
@@ -167,7 +198,7 @@ func (m *model) goTo(query string) {
 func (m *model) largeInput(cx *ui.Context, d *document, e ui.InputEvent) bool {
 	l := d.large
 	if e.Kind == ui.PointerPressed && cx != nil {
-		if b, ok := cx.ElementBounds("large-scrollbar"); ok && e.X >= b.X && e.X < b.X+b.Width && e.Y >= b.Y && e.Y < b.Y+b.Height {
+		if b, ok := cx.ElementBounds(m.editorKey("large-scrollbar")); ok && e.X >= b.X && e.X < b.X+b.Width && e.Y >= b.Y && e.Y < b.Y+b.Height {
 			m.largeScrollbar = true
 			m.scrollLargePointer(d, b, e.Y)
 			return true
@@ -175,7 +206,7 @@ func (m *model) largeInput(cx *ui.Context, d *document, e ui.InputEvent) bool {
 		m.editing = true
 	}
 	if e.Kind == ui.PointerMoved && m.largeScrollbar && cx != nil {
-		if b, ok := cx.ElementBounds("large-scrollbar"); ok {
+		if b, ok := cx.ElementBounds(m.editorKey("large-scrollbar")); ok {
 			m.scrollLargePointer(d, b, e.Y)
 		}
 		return true
@@ -263,6 +294,14 @@ func (m *model) scrollLargePointer(d *document, b ui.Bounds, y float32) {
 }
 
 func (m *model) largeCodeView(d *document, visible int) *ui.Element {
+	width := float32(900)
+	if m.native != nil {
+		w, _ := m.native.WindowSize()
+		width = max(1, w-290)
+	}
+	return m.largeCodeViewFor(d, visible, width, func(key string) string { return key }, func(line, offset int64, bytes bool) { m.navigateLarge(d, line, offset, bytes) }, func() { m.navigation = true; m.query = "" })
+}
+func (m *model) largeCodeViewFor(d *document, visible int, width float32, key func(string) string, navigate func(int64, int64, bool), goTo func()) *ui.Element {
 	l := d.large
 	m.startLargeDocument(d)
 	m.requestLargePage(d, visible-2)
@@ -272,7 +311,7 @@ func (m *model) largeCodeView(d *document, visible int) *ui.Element {
 		mode = fmt.Sprintf("Byte %d", l.window.Offset)
 	}
 	info := fmt.Sprintf("Read-only · %.2f GiB · %s · index %.0f%% · Ctrl/Cmd+G: line or :byte", float64(l.stats.Size)/(1<<30), mode, percent)
-	rows := []*ui.Element{label(info).Height(24).PaddingXY(10, 0).Foreground(ui.RGB(muted)), ui.Row(button("Line view", "large-line-view", func(*ui.Context) { m.navigateLarge(d, int64(d.scroll), 0, false) }), button("Byte view", "large-byte-view", func(*ui.Context) { m.navigateLarge(d, 0, l.byteOffset, true) }), button("Go to…", "large-goto", func(*ui.Context) { m.navigation = true; m.query = "" })).Height(24)}
+	rows := []*ui.Element{label(info).Height(24).PaddingXY(10, 0).Foreground(ui.RGB(muted)), ui.Row(button("Line view", key("large-line-view"), func(*ui.Context) { navigate(int64(d.scroll), 0, false) }), button("Byte view", key("large-byte-view"), func(*ui.Context) { navigate(0, l.byteOffset, true) }), button("Go to…", key("large-goto"), func(*ui.Context) { goTo() })).Height(24)}
 	err := l.err
 	if l.stats.Err != nil {
 		err = l.stats.Err
@@ -284,11 +323,20 @@ func (m *model) largeCodeView(d *document, visible int) *ui.Element {
 		rows = append(rows, label("Reading page…").Height(20).PaddingXY(10, 0))
 	} else if l.byteMode {
 		// Wrap only a bounded byte window, so a single long line is fully navigable.
+		columns := max(1, int(max(1, width-34)/max(1, ui.TextAdvance("M", 14, codeFont()))))
 		lines := strings.Split(strings.ReplaceAll(l.window.Text, "\r\n", "\n"), "\n")
 		for _, line := range lines {
 			runes := []rune(line)
 			for len(runes) > 0 && len(rows) < visible {
-				n := min(110, len(runes))
+				n, cells := 0, 0
+				for n < len(runes) {
+					next := max(0, runewidth.RuneWidth(runes[n]))
+					if cells+next > columns && n > 0 {
+						break
+					}
+					cells += next
+					n++
+				}
 				rows = append(rows, ui.Text(string(runes[:n])).FontFamily(codeFont()).FontSize(14).Height(20).PaddingXY(10, 0).Foreground(ui.RGB(foreground)))
 				runes = runes[n:]
 			}
@@ -306,5 +354,5 @@ func (m *model) largeCodeView(d *document, visible int) *ui.Element {
 		}
 	}
 	rows = append(rows, spacer())
-	return ui.Row(ui.Column(rows...).Flex(1), ui.Column().Width(14).Background(ui.RGB(0x333333)).Key("large-scrollbar").OnClick(func(*ui.Context) {}))
+	return ui.Row(ui.Column(rows...).Flex(1), ui.Column().Width(14).Background(ui.RGB(0x333333)).Key(key("large-scrollbar")).OnClick(func(*ui.Context) {}))
 }

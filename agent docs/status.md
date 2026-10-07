@@ -1,5 +1,21 @@
 # Milestone ledger
 
+## Native editor groups v0.16.0 candidate (2026-10-07)
+
+Right/down native splits share canonical editable documents and undo/save history
+while retaining independent UTF-16 caret/selection, scroll, tabs and large-file
+pages. Scoped group close protects shared dirty resources; asynchronous opens
+retain their originating group and captured toolbar clicks reject changed review.
+See groups.md for exact ownership, eight-group limit and unfinished API/layout scope.
+
+Full local GOWORK=off public-core v0.9.0 strict-cgo/three-repeat race/vet and all
+console/GUI native regressions passed (model 30.7%, search 81.4%). New actual native
+group focus/sash/nested split/Unicode/scoped Cancel/Save and shared-index split
+gates pass at local 150% and forced process 100% DPI. Actual 1,073,741,824-byte
+split passes independent first/tail GPU pages, original-view close, survivor read
+and whole-file SHA256. Cross-platform exact source/publication/install evidence
+is pending; released and installed version remains v0.15.0/source 9ba8908.
+
 ## Workspace history v0.15.0 promotion (2026-10-07)
 
 Immutable application/package source `9ba89081f8aea463853c58a6c0955a9a91c950af`

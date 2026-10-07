@@ -27,6 +27,8 @@ type document struct {
 	diskConflict                 *diskConflict
 	tabID                        uint64
 	tabWidth                     float32
+	selectionOwner               uint64
+	largeBase                    *largeDocument
 }
 type model struct {
 	logo                                               *ui.Bitmap
@@ -35,6 +37,7 @@ type model struct {
 	docs                                               []*document
 	active                                             int
 	tabs                                               editorTabState
+	groups                                             editorGroups
 	search                                             searchState
 	history                                            workspaceHistory
 	activity, panel                                    string
@@ -85,6 +88,7 @@ type model struct {
 	closePrompt, closeBusy                             bool
 	closeEditing, closeChatFocused, closeUpdateFocused bool
 	closeTarget                                        *document
+	closeGroupID                                       uint64
 	closeError                                         string
 	saveForClose                                       func()
 	discardForClose                                    func()
@@ -199,10 +203,9 @@ func (m *model) removeTab(index int) {
 		}
 	}
 	m.documentEvent("close", m.docs[index], textbuffer.ChangeEvent{})
-	if l := m.docs[index].large; l != nil {
-		l.cancel()
-		go l.close()
-	}
+	d := m.docs[index]
+	m.forgetGroupDocument(d)
+	m.disposeLargeDocument(d, false)
 	copy(m.docs[index:], m.docs[index+1:])
 	m.docs[len(m.docs)-1] = nil
 	m.docs = m.docs[:len(m.docs)-1]
@@ -210,6 +213,8 @@ func (m *model) removeTab(index int) {
 		m.active--
 	}
 	m.active = min(m.active, len(m.docs)-1)
+	m.pruneEmptyGroups()
+	m.restoreActiveGroup()
 	m.documentEvent("focus", m.current(), textbuffer.ChangeEvent{})
 }
 

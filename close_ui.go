@@ -38,6 +38,7 @@ func (m *model) beginClose(target *document) {
 	}
 	m.closePrompt = true
 	m.closeTarget = target
+	m.closeGroupID = 0
 	m.closeError = ""
 	m.editing = false
 	m.chatFocused = false
@@ -51,6 +52,7 @@ func (m *model) cancelClose() {
 	}
 	m.closePrompt = false
 	m.closeTarget = nil
+	m.closeGroupID = 0
 	m.closeError = ""
 	m.editing, m.chatFocused, m.updateFocused = m.closeEditing, m.closeChatFocused, m.closeUpdateFocused
 	m.terminalFocused = m.closeTerminalFocused
@@ -58,7 +60,7 @@ func (m *model) cancelClose() {
 func (m *model) closePlans() []closeSave {
 	plans := []closeSave{}
 	for _, d := range m.docs {
-		if d.buffer != nil && d.dirty() && (m.closeTarget == nil || m.closeTarget == d) {
+		if d.buffer != nil && d.dirty() && m.closeScope(d) {
 			var expected *[32]byte
 			if d.diskKnown {
 				value := d.diskHash
@@ -71,8 +73,14 @@ func (m *model) closePlans() []closeSave {
 }
 func (m *model) finishClose(cx *ui.Context) {
 	target := m.closeTarget
+	groupID := m.closeGroupID
 	m.closePrompt = false
 	m.closeTarget = nil
+	m.closeGroupID = 0
+	if groupID != 0 {
+		m.dropEditorGroup(groupID)
+		return
+	}
 	if target == nil {
 		cx.Quit()
 		return

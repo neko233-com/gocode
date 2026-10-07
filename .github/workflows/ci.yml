@@ -67,6 +67,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Actual GiB search failed.' }
           & ./bin/gocode.exe -search-smoke -search-smoke-mib 1024
           if ($LASTEXITCODE -ne 0) { throw 'Native GiB search/navigation failed.' }
+      - name: Verify actual GiB independent split pages and source hash
+        if: matrix.os == 'windows-2025'
+        shell: powershell
+        env:
+          GOCODE_GROUPS_SCREENSHOTS: .cache/editor-groups-gib
+        run: |
+          & ./bin/gocode.exe -groups-large-smoke -groups-large-mib 1024
+          if ($LASTEXITCODE -ne 0) { throw 'Actual GiB split/index/lifetime/hash failed.' }
       - name: Install pinned official Copilot sidecars
         shell: powershell
         run: |
@@ -114,6 +122,10 @@ jobs:
             .cache/workbench-ui/*.png
             .cache/editor-tabs/*.png
             .cache/editor-tabs/*.json
+            .cache/editor-groups/*.png
+            .cache/editor-groups/*.json
+            .cache/editor-groups-gib/*.png
+            .cache/editor-groups-gib/*.json
             .cache/search-native/*.png
             .cache/search-native/*.json
             .cache/search-gib-native/*.png
@@ -159,6 +171,12 @@ jobs:
           ./bin/gocode -tabs-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_TABS_SCREENSHOTS=.cache/editor-tabs-150 ./bin/gocode -tabs-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_TABS_SCREENSHOTS=.cache/editor-tabs-200 ./bin/gocode -tabs-smoke
+          ./bin/gocode -groups-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-150 ./bin/gocode -groups-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-200 ./bin/gocode -groups-smoke
+          ./bin/gocode -groups-large-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-large-150 ./bin/gocode -groups-large-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-large-200 ./bin/gocode -groups-large-smoke
           ./bin/gocode -search-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-150 ./bin/gocode -search-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-200 ./bin/gocode -search-smoke
@@ -200,6 +218,16 @@ jobs:
             .cache/editor-tabs-150/*.json
             .cache/editor-tabs-200/*.png
             .cache/editor-tabs-200/*.json
+            .cache/editor-groups/*.png
+            .cache/editor-groups/*.json
+            .cache/editor-groups-150/*.png
+            .cache/editor-groups-150/*.json
+            .cache/editor-groups-200/*.png
+            .cache/editor-groups-200/*.json
+            .cache/editor-groups-large-150/*.png
+            .cache/editor-groups-large-150/*.json
+            .cache/editor-groups-large-200/*.png
+            .cache/editor-groups-large-200/*.json
             .cache/search-native/*.png
             .cache/search-native/*.json
             .cache/search-native-150/*.png

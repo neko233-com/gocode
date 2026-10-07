@@ -10,6 +10,7 @@ import (
 )
 
 func (m *model) documentEvent(kind string, d *document, change textbuffer.ChangeEvent) {
+	m.groupDocumentEvent(kind, d, change)
 	m.recordTabEvent(kind, d)
 	if kind == "change" && m.search.query.Text != "" {
 		m.searchChanged(m.native)
@@ -101,7 +102,7 @@ func (m *model) applyDocumentEdits(path string, version int, edits []textbuffer.
 func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 	if e.Kind == ui.InputCancelled {
 		m.endTabSwitch()
-		m.tabs.dragging = false
+		m.activeTabs().dragging = false
 	}
 	if e.Kind == ui.KeyReleased && e.Key == 17 {
 		m.endTabSwitch()
@@ -135,6 +136,9 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		}
 		return e.Kind != ui.PointerPressed && e.Kind != ui.PointerReleased && e.Kind != ui.PointerMoved && e.Kind != ui.InputCancelled
 	}
+	if m.groupInput(cx, e) {
+		return true
+	}
 	if m.tabInput(cx, e) {
 		return true
 	}
@@ -148,7 +152,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		m.terminalFocused = false
 	}
 	if e.Kind == ui.Scroll && cx != nil {
-		b, ok := cx.ElementBounds("editor-content")
+		b, ok := cx.ElementBounds(m.editorKey("editor-content"))
 		if !ok || e.PointerX < b.X || e.PointerX >= b.X+b.Width || e.PointerY < b.Y || e.PointerY >= b.Y+b.Height {
 			return false
 		}
@@ -166,7 +170,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 	}
 	if e.Kind == ui.PointerMoved && m.pointerSelecting {
 		if d := m.current(); d != nil && cx != nil {
-			if b, ok := cx.ElementBounds(fmt.Sprintf("code-line-%d", d.scroll)); ok {
+			if b, ok := cx.ElementBounds(m.editorKey(fmt.Sprintf("code-line-%d", d.scroll))); ok {
 				line := max(0, min(d.buffer.LineCount()-1, d.scroll+int((e.Y-b.Y)/20)))
 				m.moveCursor(d, line, hitColumn(d.buffer.Line(line), max(0, e.X-b.X-68)), true)
 				return true
@@ -181,7 +185,7 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 		m.updateFocused = false
 		if d := m.current(); d != nil && cx != nil {
 			for i := d.scroll; i < d.buffer.LineCount(); i++ {
-				b, ok := cx.ElementBounds(fmt.Sprintf("code-line-%d", i))
+				b, ok := cx.ElementBounds(m.editorKey(fmt.Sprintf("code-line-%d", i)))
 				if !ok {
 					break
 				}
@@ -194,8 +198,8 @@ func (m *model) input(cx *ui.Context, e ui.InputEvent) bool {
 			}
 			// The editor's blank area still owns focus and places the caret at the
 			// closest real line. Otherwise Undo/typing after a blank click is lost.
-			if area, ok := cx.ElementBounds("editor-content"); ok && e.X >= area.X && e.X < area.X+area.Width && e.Y >= area.Y && e.Y < area.Y+area.Height {
-				if first, ok := cx.ElementBounds(fmt.Sprintf("code-line-%d", d.scroll)); ok {
+			if area, ok := cx.ElementBounds(m.editorKey("editor-content")); ok && e.X >= area.X && e.X < area.X+area.Width && e.Y >= area.Y && e.Y < area.Y+area.Height {
+				if first, ok := cx.ElementBounds(m.editorKey(fmt.Sprintf("code-line-%d", d.scroll))); ok {
 					line := max(0, min(d.buffer.LineCount()-1, d.scroll+int((e.Y-first.Y)/20)))
 					m.moveCursor(d, line, hitColumn(d.buffer.Line(line), max(0, e.X-first.X-68)), m.pointerShift)
 					m.editing, m.pointerSelecting = true, true

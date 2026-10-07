@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	ui "github.com/neko233-com/godesktop"
+	textbuffer "github.com/neko233-com/godesktop/editor"
 )
 
 const (
@@ -66,7 +67,10 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		}
 		crumb = strings.ReplaceAll(filepath.ToSlash(rel), "/", "  ›  ")
 	}
-	parts := []*ui.Element{m.tabsView(cx), ui.Row(label(crumb).PaddingXY(10, 0), spacer()).Height(24)}
+	parts := []*ui.Element{}
+	if m.groups.root == nil {
+		parts = append(parts, m.tabsView(cx), ui.Row(label(crumb).PaddingXY(10, 0), spacer()).Height(24))
+	}
 	if m.openBusy || len(m.openJobs) > 0 {
 		parts = append(parts, ui.Row(label("Opening "+filepath.Base(m.openingPath)+"…").Flex(1), button("Cancel", "cancel-open", func(*ui.Context) {
 			if m.cancelPendingOpens != nil {
@@ -157,7 +161,12 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 	if d := m.current(); d != nil && d.diskConflict != nil {
 		visible = max(1, visible-2)
 	}
-	parts = append(parts, m.codeView(visible).Flex(1).Key("editor-content"))
+	if m.groups.root == nil {
+		parts = append(parts, m.codeView(visible).Flex(1).Key("editor-content"))
+	} else {
+		width, _ := cx.WindowSize()
+		parts = append(parts, m.editorGroupsView(cx, max(1, width-290), max(1, float32(visible*20)+59)).Flex(1))
+	}
 	if m.showPanel {
 		width, _ := cx.WindowSize()
 		parts = append(parts, m.panelView(max(120, width-290)))
@@ -265,17 +274,32 @@ func (m *model) sidebar(cx *ui.Context) *ui.Element {
 }
 func (m *model) codeView(visible int) *ui.Element {
 	d := m.current()
+	selection := textbuffer.Selection{}
+	if d != nil && d.buffer != nil {
+		selection = d.buffer.Selection()
+	}
+	width := float32(900)
+	if m.native != nil {
+		w, _ := m.native.WindowSize()
+		width = max(1, w-290)
+	}
+	return m.codeViewFor(d, visible, width, selection, m.editing, func(key string) string { return key }, func(line int) {
+		m.moveCursor(d, line, hitColumn(d.buffer.Line(line), max(0, m.pointerX-358)), m.pointerShift)
+		m.editing = true
+	}, func(line, offset int64, bytes bool) { m.navigateLarge(d, line, offset, bytes) }, func() { m.navigation = true; m.query = "" })
+}
+func (m *model) codeViewFor(d *document, visible int, width float32, selected textbuffer.Selection, editing bool, key func(string) string, click func(int), navigate func(int64, int64, bool), goTo func()) *ui.Element {
 	if d == nil {
 		return ui.Column(spacer(), label("gocode").FontSize(44).Foreground(ui.RGB(0x555555)), label("Open a file in Explorer to start editing."), spacer()).Padding(40)
 	}
 	if d.large != nil {
-		return m.largeCodeView(d, visible)
+		return m.largeCodeViewFor(d, visible, width, key, navigate, goTo)
 	}
-	if m.editing && d.line >= d.scroll+visible {
+	if editing && d.line >= d.scroll+visible {
 		d.scroll = max(0, d.line-visible+1)
 	}
 	rows := []*ui.Element{}
-	selection := d.buffer.Selection().Range()
+	selection := selected.Range()
 	for i := d.scroll; i < d.buffer.LineCount() && i < d.scroll+visible; i++ {
 		line := d.buffer.Line(i)
 		runes := []rune(line)
@@ -305,17 +329,14 @@ func (m *model) codeView(visible int) *ui.Element {
 			layers = append(layers, ui.Row(ui.Column().Width(x), ui.Column().Width(max(2, z-x)).Height(20).Background(ui.RGB(0x264f78)), spacer()))
 		}
 		layers = append(layers, ui.Row(segments...))
-		if m.editing && i == d.line {
+		if editing && i == d.line {
 			x, _ := ui.MeasureText(strings.ReplaceAll(string([]rune(line)[:min(d.column, len([]rune(line)))]), "\t", "    "), 14, codeFont())
 			layers = append(layers, ui.Row(ui.Column().Width(x), ui.Column().Width(1).Height(20).Background(ui.RGB(0xaeafad)), spacer()))
 			if ghost := ghostText(d, m.suggestion); ghost != "" {
 				layers = append(layers, ui.Row(ui.Column().Width(x), ui.Text(ghost).FontFamily(codeFont()).FontSize(14).Foreground(ui.RGB(0x777777)), spacer()))
 			}
 		}
-		rows = append(rows, ui.Row(ui.Text(fmt.Sprintf("%4d", i+1)).FontFamily(codeFont()).FontSize(14).Foreground(ui.RGB(0x858585)).Width(52), ui.Column().Width(16), ui.Stack(layers...).Flex(1)).Height(20).Background(bg).Key(fmt.Sprintf("code-line-%d", i)).OnClick(func(*ui.Context) {
-			m.moveCursor(d, i, hitColumn(d.buffer.Line(i), max(0, m.pointerX-358)), m.pointerShift)
-			m.editing = true
-		}))
+		rows = append(rows, ui.Row(ui.Text(fmt.Sprintf("%4d", i+1)).FontFamily(codeFont()).FontSize(14).Foreground(ui.RGB(0x858585)).Width(52), ui.Column().Width(16), ui.Stack(layers...).Flex(1)).Height(20).Background(bg).Key(key(fmt.Sprintf("code-line-%d", i))).OnClick(func(*ui.Context) { click(i) }))
 	}
 	rows = append(rows, spacer())
 	minimap := []*ui.Element{ui.Column().Height(4)}

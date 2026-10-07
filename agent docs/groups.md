@@ -1,0 +1,70 @@
+# Native editor groups
+
+Candidate v0.16.0 uses public godesktop v0.9.0 with GOWORK=off and no replace.
+Released/installed versions and immutable CI evidence remain in status.md.
+
+Visual thesis: Dark Modern planar editor groups use restrained borders and native
+font measurements. Content thesis: every group contains its own tabs, breadcrumb
+and source, while navigation, panel and status remain workspace-wide. Interaction
+thesis: one focused caret, independent view state, and live 4-DIP sash resizing.
+The reference is VS Code stable 1.140.0/main 0c68085a477224a09c7f73da287200713e685984,
+including editorActions.ts and editorgroupview.css in the MIT Code-OSS repository.
+This source comparison does not establish full pixel parity.
+
+## Ownership and actions
+
+At most eight leaves form a binary horizontal/vertical split tree. Ctrl/Cmd+\
+splits right; adding Shift splits down. Ctrl/Cmd+1..8 focuses groups in visual
+tree order. The native toolbar offers both splits and close group. Mouse input
+focuses the target group before editor hit testing; wheel input over an inactive
+source or tab strip updates that view without moving focus. Each group owns tab
+membership, MRU/reveal/overflow state, selection, caret and scroll. Sashes clamp
+each side to a feasible minimum (180 DIP horizontally, 100 vertically).
+
+One canonical document owns text, dirty/save points, undo/redo, disk identity and
+LSP/VSIX lifecycle across all its views. A split shares the actual Buffer; it does
+not emit another document-open event. Inactive selections transform through real
+UTF-16 change ranges, including multiline/CRLF and non-BMP input. The focused
+view projects its selection into the shared Buffer before ordinary editing.
+Closing one shared view neither discards dirty text nor closes its services.
+Closing the last view retains the existing dirty-save confirmation.
+
+Close group prompts only for dirty resources unique to that group. Cancel keeps
+the group; Save awaits the real background disk queue; Discard releases its unique
+resources. Shared dirty resources remain open and untouched on disk. Toolbar
+clicks retain the pressed group and membership/current-document generation;
+changed or expired review rejects the old release action. Background open tickets
+retain their originating group and reject a group closed before delivery.
+
+## Huge files
+
+Each large-file view owns page/request/cancellation/navigation state, sharing the
+thread-safe file-backed sparse index and ReadAt reader. A root resource keeps the
+reader alive when its original view closes; the last document close cancels all
+views and releases the file. Pages remain bounded; split rendering never loads
+the entire file. Long-line display uses measured pane width and rune cell width.
+Large files remain read-only and are not sent wholesale to language/AI services.
+
+## Verification and gaps
+
+Three-repeat race tests cover shared text/protocol events, transformed carets,
+independent views/shared undo and save points, group MRU, eight-group limit,
+close scope, held real-file receipts and shared large-reader lifetime. Full local
+public-module strict-cgo/race/vet and console/GUI regression passed. Owned native
+-groups-smoke uses actual Unicode input, group focus, horizontal sash drag,
+nested vertical splits, stale held close click, Cancel and actual scoped Save.
+Completed syntax glyph pixels are required in each viewport. Both console and
+GUI gates passed at local 150% and forced process 100% DPI.
+
+-groups-large-smoke streams actual files, independently renders first/tail pages,
+closes the original view and reads again from the survivor, then verifies the
+whole file SHA256. Local 32 MiB and actual 1,073,741,824-byte runs passed. CI adds
+the actual GiB split on Windows 2025 and both gates at normal/1.5/2 Mac densities.
+Cross-platform, published-byte and installed evidence is pending promotion.
+
+Full group persistence/restoration, tab move/drop/docking, configurable layouts,
+multi-window and VSIX visibleTextEditors/viewColumn integration remain gaps.
+The native gate currently drags the horizontal sash and checks nested vertical
+geometry; it does not independently prove vertical-sash native dragging. Complete
+IME/grapheme/bidi/multicursor/accessibility, SCM/DAP and official Copilot VSIX
+compatibility remain separate unfinished goals.

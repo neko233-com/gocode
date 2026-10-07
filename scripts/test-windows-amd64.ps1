@@ -63,6 +63,12 @@ try {
     & ./bin/gocode.exe -tabs-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native overflow/routing/identity/MRU tab acceptance failed.' }
     Invoke-CheckedGUI -tabs-smoke
+    & ./bin/gocode.exe -groups-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native editor groups/shared edits/sash/close scope failed.' }
+    Invoke-CheckedGUI -groups-smoke
+    & ./bin/gocode.exe -groups-large-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native shared-index/independent large split failed.' }
+    Invoke-CheckedGUI -groups-large-smoke
     & ./bin/gocode.exe -search-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native workspace search/UTF-16/stale/large-file navigation failed.' }
     Invoke-CheckedGUI -search-smoke

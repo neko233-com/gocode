@@ -22,6 +22,7 @@ var errOpenSuperseded = errors.New("opening was cancelled or superseded by newer
 
 type openJob struct {
 	ticket uint64
+	group  uint64
 	ctx    context.Context
 	path   string
 	done   func(*document, error)
@@ -97,27 +98,29 @@ func loadDocument(ctx context.Context, path string) (*document, error) {
 }
 
 func (m *model) adoptDocument(requestPath string, loaded *document, focus bool) *document {
-	for index, d := range m.docs {
+	return m.adoptDocumentInGroup(requestPath, loaded, focus, m.groups.active)
+}
+func (m *model) adoptDocumentInGroup(requestPath string, loaded *document, focus bool, groupID uint64) *document {
+	g := m.findGroup(groupID)
+	for _, d := range m.docs {
 		if pathKey(d.path) == pathKey(loaded.path) {
 			m.rememberDocument(requestPath, d)
+			m.addGroupDocument(g, d)
 			if focus {
-				m.active = index
-				m.editing = true
-				m.documentEvent("focus", d, textbuffer.ChangeEvent{})
+				m.focusTab(d)
 			}
 			return d
 		}
 	}
 	m.docs = append(m.docs, loaded)
+	m.addGroupDocument(g, loaded)
 	m.rememberDocument(requestPath, loaded)
 	if loaded.large != nil && m.native != nil {
 		m.startLargeDocument(loaded)
 	}
 	m.documentEvent("open", loaded, textbuffer.ChangeEvent{})
 	if focus {
-		m.active = len(m.docs) - 1
-		m.editing = true
-		m.documentEvent("focus", loaded, textbuffer.ChangeEvent{})
+		m.focusTab(loaded)
 	}
 	return loaded
 }
@@ -186,10 +189,13 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 				if err == nil && closed {
 					err = errOpenSuperseded
 				}
+				if err == nil && m.groups.root != nil && m.findGroup(job.group) == nil {
+					err = errOpenSuperseded
+				}
 				var d *document
 				if err == nil {
 					focused := job.ticket == m.openSequence
-					d = m.adoptDocument(job.path, loaded, focused)
+					d = m.adoptDocumentInGroup(job.path, loaded, focused, job.group)
 					if d == loaded {
 						unused = nil
 					}
@@ -245,14 +251,7 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 		m.openSequence++
 		ticket := m.openSequence
 		if d := m.findDocument(path); d != nil {
-			for i, candidate := range m.docs {
-				if candidate == d {
-					m.active = i
-					break
-				}
-			}
-			m.editing = true
-			m.documentEvent("focus", d, textbuffer.ChangeEvent{})
+			m.focusTab(d)
 			if done != nil {
 				done(d, nil)
 			}
@@ -266,7 +265,7 @@ func (m *model) startFileOpens(parent context.Context, dispatch func(func()) boo
 			}
 			return
 		}
-		m.openJobs = append(m.openJobs, openJob{ticket, request, path, done})
+		m.openJobs = append(m.openJobs, openJob{ticket: ticket, group: m.groups.active, ctx: request, path: path, done: done})
 		next()
 	}
 	m.cancelPendingOpens = func() {
@@ -306,14 +305,7 @@ func (m *model) openThen(ctx context.Context, path string, done func(*document, 
 	}
 	path = m.lexicalPath(path)
 	if d := m.findDocument(path); d != nil {
-		for i, candidate := range m.docs {
-			if candidate == d {
-				m.active = i
-				break
-			}
-		}
-		m.editing = true
-		m.documentEvent("focus", d, textbuffer.ChangeEvent{})
+		m.focusTab(d)
 		if done != nil {
 			done(d, nil)
 		}

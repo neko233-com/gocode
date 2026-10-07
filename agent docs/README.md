@@ -12,7 +12,7 @@ Open editable-file watching/reload/conflict contracts are in [files](files.md).
 The existing docs/vscode-parity.md remains the API/function coverage ledger.
 
 Reference: latest stable VS Code 1.140.0 and current main
-`491cf07046747e11065bf5cb1cb96cba7ab81782` (2026-10-07). Use source measurements,
+`0c68085a477224a09c7f73da287200713e685984` (2026-10-07). Use source measurements,
 colors/fonts/layout and native screenshots, rather than remembered old UI details.
 
 Production promotion requires real core/editor/process/native/visual/installer
@@ -25,3 +25,6 @@ are in [replace](replace.md).
 
 Workspace grouped undo/redo, confirmation/split and preparation are in
 [history](history.md).
+
+Native split ownership, independent views, scoped close and shared large readers
+are in [groups](groups.md).

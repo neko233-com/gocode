@@ -48,6 +48,12 @@ watching, diff/merge and stronger coordination remain required for full parity.
 
 ## UI
 
+Native editor groups share canonical document/history/service ownership and keep
+per-view caret/selection/scroll/tab state in a bounded split tree. Large views
+share the reader/index with independently cancellable pages. Origin-group open
+tickets and captured toolbar generation guard late events; close/save prompts
+cover only resources unique to the closing group. See groups.md for exact scope.
+
 Workspace replacement registers bounded metadata-only history groups before
 callbacks. A dedicated worker prepares real undo/redo stack transitions from
 immutable core history snapshots; complete UI preflight precedes all-buffer
