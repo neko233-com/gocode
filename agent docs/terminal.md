@@ -10,12 +10,15 @@ Terminal process I/O, VT parsing and shell preparation run in owned workers.
 Only immutable cell snapshots and native view/input state cross the UI thread.
 No Electron, xterm.js or browser surface is involved.
 
-Public v0.18.0 cross-platform owned drawable color/emoji PNG/JSON gates and the
-previous Mac no-op capture gap are documented in color-glyphs.md. Mac terminal
-window-width resize and full native color fonts on Windows remain unverified.
-Both Mac architectures pass normal/1.5/2 terminal density; actual ARM 200% PTY
-output shows native emoji details and ANSI/shell highlighting. Release and
-installed source/hash/ConPTY/settings/rollback evidence is in status.md.
+Public/installed v0.19.0 uses public core v0.12.0 for Windows/Mac intrinsic color
+glyphs. Both Windows real decoded ANSI emoji and owned GPU PNG/JSON gates pass;
+actual 2022/2025 terminal and installed 150% output PNGs were inspected. Both Mac
+architectures retain normal/1.5/2 terminal density, with native emoji details and
+ANSI/shell highlighting. Owned PowerShell UTF-8 avoids the first candidate's
+actual `??` regression. Mac terminal window-width resize and dedicated third-party
+SVG/bitmap/currentColor font fixtures remain unverified. Source/hash/ConPTY/
+settings/rollback evidence and the previous Mac no-op gap are in status.md and
+color-glyphs.md.
 
 ## Processes and shells
 
@@ -51,7 +54,7 @@ drains output and owns job cleanup. Loader holds one DLL for process lifetime.
   PSReadLine colors support PowerShell 7/5.1; existing profiles remain intact.
   The owned session sets Console input/output and PowerShell native-pipe
   OutputEncoding to UTF-8 after loading profiles. This prevents Console.WriteLine
-Chinese/emoji from becoming question marks under an inherited OEM code page;
+  Chinese/emoji from becoming question marks under an inherited OEM code page;
   it does not change the system locale or user profile files. Explicit legacy
   console applications may still require their own code-page selection.
 - Default Mac shell honors SHELL, falling back to /bin/zsh. For zsh, an owned

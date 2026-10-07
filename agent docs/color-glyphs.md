@@ -51,7 +51,7 @@ are ARM 5125/5200 and Intel 7482/7448 at 150%. Exact release hashes, signed
 direct/mirror bodies, rollback, installed actual GiB/GUI/Settings/ConPTY and
 unchanged config/PATH evidence are recorded in status.md. Full parity stays open.
 
-## Windows candidate
+## Windows public-module promotion
 
 Public core v0.12.0 now pins c42b4b43f0a27452937850871681f26746e39d7f and
 passes all five jobs in CI 37587610645. Both Windows normal/150/200% reference
@@ -63,9 +63,22 @@ VERSION 0.19.0 now imports public v0.12.0 without replace. Independent full
 GOWORK=off strict-cgo/three-repeat race/vet and console/GUI native regression pass
 locally. Public-module terminal count is 166 and split counts are 2922/3062;
 both actual PNGs were inspected, and real Node/editor/terminal gates pass.
-Workflow lint/diff checks pass. Exact-source CI/package/release/install promotion
-is pending. The older development record below is historical and is superseded
+Workflow lint/diff checks pass. Immutable application source 4616656 passes all
+five jobs in CI 37590651597, with unchanged same-source Ubuntu retry after one
+no-cgo descendant-close failure. Publication 37592393163 reuses those packages;
+public and installed v0.19.0 now pass signed direct/mirror/rollback and native
+GUI/VSIX/actual GiB/ConPTY/config/PATH gates. Both Windows actual terminal and
+editor PNGs, ARM terminal and Intel split were inspected. Windows 2022 terminal/
+split color counts are 219/3287/3287; 2025 counts are 59/870/870. Installed 150%
+terminal/split counts remain 166/2922/3062. Exact source/hash/evidence is in
+status.md. The older development record below is historical and is superseded
 by this public-core state.
+
+The first application source b69e9cf is rejected because both Windows real
+Console.WriteLine outputs lose emoji as `??`. The owned shell now configures
+Console input/output and PowerShell native-pipe encoding to UTF-8 after profiles.
+Real PowerShell 7/5.1 tests start with OEM 437/ASCII and require decoded colored
+Chinese/emoji, alongside the unchanged native output/pixel/resize/exit gates.
 
 Parent source 03ed1c7186b0a95071db3a034317729f1c28ca3e retains native Windows
 COLR/COLRv1 RGBA and ordinary R8 in a bounded mixed D3D12 batch. Exact parent

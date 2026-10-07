@@ -1,5 +1,51 @@
 # Milestone ledger
 
+## Windows native color v0.19.0 promotion (2026-10-07)
+
+Immutable source/package `4616656105b0b0222b03524f207ee9d53ca335bb` passes all
+five jobs in [CI 37590651597](https://github.com/neko233-com/gocode/actions/runs/37590651597).
+Windows 2022/2025 amd64, Mac Intel/ARM native/services/packages pass on the first
+attempt. Linux race/vet passes; its first no-cgo descendant-close check reports
+failure, then the same-source Ubuntu job passes unchanged on retry. No cause or
+relaxed assertion/deadline is claimed; the termination observer needs further
+stress/diagnostics if this failure recurs. Earlier b69e9cf/37589544875 is not promoted:
+both Windows reject actual `??` output. The corrected owned PowerShell 7/5.1
+startup selects UTF-8 after profiles; real OEM-437/ASCII regression processes
+require decoded ANSI-colored Chinese/emoji output. Local full public-module
+strict-cgo/three-repeat race/vet/console/GUI regression plus focused terminal
+race/vet/native correction, no-cgo, workflow lint and diff checks pass.
+
+Public godesktop v0.12.0/c42b4b4 is independently imported with GOWORK=off and no
+replace. Core all-five CI 37587610645 verifies both Windows 100/150/200% native
+reference RGB/mask/opacity/clip/eviction/recovery. Application terminal/split
+reports show Windows 2022 color counts 219 and 3287/3287; Windows 2025 counts
+59 and 870/870. Both Mac 200% terminal counts are 717; 150% split counts are
+ARM 5125/5200 and Intel 7482/7448. Actual Windows terminal/shared split, ARM
+terminal and Intel split PNGs were inspected; selected artifact ZIP entries
+were range-read with CRC verification. Mac retains normal/1.5/2 native gates.
+
+[Publication 37592393163](https://github.com/neko233-com/gocode/actions/runs/37592393163)
+tags that exact source and reuses tested packages. Metadata d6cd857 changes
+exactly seven free distribution files; both Python policies pass. ZIP SHA256 is
+`f0a7b757c9abf3ffeea698e9123feec5562c5d4078d3bb8d95dca49530114f8c`; MSI is
+`bbd429b1d27a88f6ee2da02bda062752bd1a693ff62671c4cd928c06a5546290`.
+Actual signed automatic/direct GitHub/manual ghfast.top archive bodies, all
+released native gates and actual prior v0.4.0 GUI rollback pass.
+
+The user's stable 0.5.1 launcher applies v0.18→v0.19 through direct GitHub and
+selects exact 4616656. Installed GUI/both icon handles/Settings/groups/real VSIX,
+actual 1,073,741,824-byte split and unchanged whole hash, highlighted ConPTY and
+source preservation pass. Settings shows Up to date (0.19.0), Auto=true/automatic
+route and gopls ready. Actual Settings/terminal/GiB survivor PNGs were inspected;
+terminal count is 166, shared split counts 2922/3062 at 150%. Config SHA256 remains
+d8a85199a0018d88355ab5786881c778dc63596858a58bbe64fde8f799c9ed5f; user PATH SHA256
+remains aec04bdd1653d4c8c70dc2b50aec868029787ecf0cc34cbd1f4a9f7df3d30aa3.
+Desktop and Start Menu targets remain gocode-launch.exe. Official Copilot reports
+authenticated/LSPInitialized/SDKConnected=true, networkPromptSent=false.
+Complete VS Code/UI/official Copilot VSIX parity, dedicated third-party color-font
+fixtures, Mac native terminal width resize and recorded editor/services gaps remain
+active. Copilot follows the accepted SDK/Language Server route.
+
 ## Windows shell encoding correction candidate (2026-10-07)
 
 Source b69e9cff47e712fa31a98c5111b33898c9423a36 in CI 37589544875 passes

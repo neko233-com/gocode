@@ -1,10 +1,10 @@
 # Free distribution contract
 
-Latest promotion: v0.17.0/source aa9d838, five-platform source CI 37570381921 and
-publication 37571358158 reusing tested artifacts. Seven generated metadata files
-at eb0de72 passed local policy tests and real signed automatic/direct/manual ZIP
+Latest promotion: v0.19.0/source 4616656, five-platform source CI 37590651597 and
+publication 37592393163 reusing tested artifacts. Seven generated metadata files
+at d6cd857 passed local policy tests and real signed automatic/direct/manual ZIP
 body checks. Released native gates and actual v0.4.0 GUI rollback passed. User
-selected payload is 0.17.0; stable MSI/launcher baseline remains 0.5.1. Actual
+selected payload is 0.19.0; stable MSI/launcher baseline remains 0.5.1. Actual
 installed native/visual/SDK-LSP-without-prompt gates passed with Auto=true/mode=auto.
 Installed native groups/real VSIX and actual GiB split pass; settings/PATH hashes
 and both stable shortcut targets match before/after. Automatic owned routing and
@@ -68,7 +68,7 @@ The local installation target is the user's per-user Programs directory, with a
 gocode command and Start Menu/desktop access; verify real installed launch/update
 settings. Never install test payloads over an unrelated application.
 
-Current verified install: v0.14.0/source de2a98f payload selected by the original
+Historical v0.14.0 install: source de2a98f payload selected by the original
 v0.5.1 MSI stable launcher through its actual -update command and signed/hashed
 public ZIP. The baseline installer and launcher file versions remain 0.5.1 until
 an MSI upgrade; -version reports the selected 0.14.0 source. The embedded official
