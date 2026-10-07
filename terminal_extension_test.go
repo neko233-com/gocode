@@ -34,6 +34,9 @@ func TestTerminalOptionsRejectBeforeStartup(t *testing.T) {
 }
 
 func TestTerminalDefaultNamePreservesUnicodeProtocolBound(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Only Windows permits a single filename exceeding 256 UTF-8 bytes")
+	}
 	directory := t.TempDir()
 	path := filepath.Join(directory, strings.Repeat("界", 90)+".exe")
 	if err := os.WriteFile(path, nil, 0700); err != nil {
