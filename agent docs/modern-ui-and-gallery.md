@@ -1,5 +1,14 @@
 # Modern Windows UI and native VS Gallery protocol
 
+2026-10-08: application VERSION is 0.24.0; the unpublished candidate continues
+to consume immutable public core v0.16.0 with GOWORK=off/no replace. Native
+fixed-header extension details and exact-ID catalog lookup are implemented and
+pass the complete independent default-three Windows suite below. Exact-source
+CI, publication and released/installed-byte checks remain pending. The
+framework's local shadow/recovery candidate is not this dependency.
+
+## Public v0.23.0 baseline
+
 Current public/installed v0.23.0 is immutable source
 47623823dd88fbb45422d096b545631be7e6b77b on public core v0.16.0. Five platforms
 pass attempt 1 in [CI 37678679723](https://github.com/neko233-com/gocode/actions/runs/37678679723),
@@ -9,7 +18,74 @@ minimized receipts and rounded Revert pass; installed 150% File/Settings/Revert/
 extension-detail GPU captures were inspected. The v0.22.0 native File menus,
 VS Code/JetBrains keymaps, radii and descendant clipping remain shipped behavior.
 Full pixel/API parity is unfinished. Native GPU shadows and independent extension
-detail scrolling are outside this release. Exact evidence is in status.md.
+detail scrolling were outside v0.23.0; fixed-header scrolling is now the
+unpublished v0.24.0 candidate below. Exact public evidence is in status.md.
+
+## v0.24.0 native extension editor candidate
+
+The reference is stable Code-OSS 1.141.0 at
+2a59476c9bfcb90b3ddc372c36762471b7dfad1c, specifically extensionEditor.ts and
+extensionEditor.css; pinned source/license/hash evidence is in
+[extension details](extension-details.md). Native title/close, metadata/actions
+header and 36-DIP navigation remain fixed above an independently clipped body.
+The viewport owns scroll/focus separately from sidebar search/list and documents.
+Native font measurement drives Unicode wrapping, narrow reflow, fitting and
+cached virtual rows. Bounds are 64 KiB description, 512 wrapped description rows,
+4096 commands and 1024 materialized rows including bounded overscan; this is
+a row budget, not a total-element count.
+
+Tab-switch followed immediately by End previously consumed a zero-extent key.
+Same-turn plan preparation against actual viewport bounds fixes that product
+defect. Body wheel/navigation and the existing VS Code Ctrl+W/JetBrains Ctrl+F4
+close paths preserve the underlying document. The real private VSIX acceptance
+registers 2000 isolated Node callbacks and executes the final command1999; it
+does not claim 2000 executions or arbitrary extension API compatibility.
+Enable/disable uses real private persistence and cancellable worker receipts.
+Fixed reports/screenshots, empty owned scratch and unchanged settings verify
+idempotence. Original pre-version-bump GPU evidence is preserved separately in
+.cache/extension-detail-pre-version-bump; .cache/extension-detail is reusable
+latest candidate evidence and must not inherit the old report hashes.
+
+Quick Input's native input, result rows and popup now use rounded descendant
+clipping, with 3/4/8-DIP inner/row/outer surfaces. Save All requires dirty
+documents and is disabled while saveBusy or fileActions.busy is set. These
+changes consume public core16 clipping; no local shadow API is needed.
+
+The first full public16 Windows default-three suite failed after 765.457s
+(.cache/app24-public-windows-first-failure.log; main 531.350s/coverage 34.6%,
+shuffle seed 1791410668665064700). One detail run clicked management before its
+acknowledged state had a fresh committed native callback/tree. The old workbench
+fixture's hardcoded contribution coordinates missed the new fixed-header layout
+in all three rounds after its real Unicode source was saved; the original
+.cache/app24-workbench-pointer-first-failure.png and notification-RGB failure
+remain retained. This is a failed full suite, not a successful package run.
+
+Fixture corrections wait at least three completed GPU frames after management
+acknowledgement before rereading actual bounds. The workbench test uses a
+test-only UI mailbox for two stable keys, bound to PID/sequence/View generation/
+selected tab and fresh completed frames. Product main bytes are unchanged by
+that overlay. Actual pointer input and original notification RGB, Unicode disk,
+source/icon/settings/restore/close/smoke assertions remain intact.
+
+Both corrected fixtures now pass public16/GOWORK=off, debug=0/default adapter,
+strict-cgo2/race/shuffle/count=3 in 72.035s, seed 1791411978500786200
+(.cache/app24-native-fixtures-targeted.log). Detail takes 15.71/13.56/13.41s,
+each with two real HWND/Node lifecycles and ten gates; workbench takes
+10.97/8.58/8.71s using actual contribution-tab bounds {491,232,180,35} and
+command bounds {311,325,936,42}. Completed/tree generations advance 21→27,
+21→27 and 22→28. The full default-three rerun passes 833.454s in
+.cache/app24-public-windows-final.log (main 498.701s/34.6%). Package repeats,
+vet/build/AMD64 PE and all console/GUI native modes pass. Independent full
+no-cgo three repeats also pass 170.494s; private Go tool telemetry is removed
+after the owned test process exits. Root inspects all three current v0.24.0
+GPU captures. Exact-source CI and released/installed-byte proof remain separate.
+
+The header still uses a generic icon and manifest/catalog description. Actual
+VSIX icons, README/CHANGELOG/Markdown images and richer contribution editors,
+scrollbar drag, overlay shadows and complete VS Code UI/API remain open. A
+bounded 27-gate released-byte checker and separate installed console/GUI detail
+reports are prepared, with original 8m/60s guards and v23 snapshots retained;
+that preparation is not publication or installed v0.24.0 evidence.
 
 ## Historical v0.22.0 rounding evidence
 
@@ -76,6 +152,16 @@ extensionGalleryManifestService.ts, extensionGalleryManifest.ts and extensionMan
 at the exact stable source. Query uses the same Target/SearchText, bounded page,
 flags and Accept version; native gocode User-Agent stays distinct.
 
+The v0.24.0 candidate adds bounded bare publisher.extension and @id exact
+queries. Installed/enabled/disabled filters stay local and ordinary free text
+retains its original search behavior. Open VSX named win32-x64/latest then
+universal/latest metadata is reread at an immutable version; identity, version,
+platform and HTTPS/host bounds must match. Superseding a query cancels stale
+network requests and rejected/queued receipts. Authorized Gallery uses exact
+ExtensionName=7, Target=8 and ordinary SearchText=10 from the pinned stable
+extensionGalleryManifestService.ts. Query redirects remain on the authorized
+HTTPS host; selected packages retain archive identity/version/download bounds.
+
 Windows x64/universal version selection rejects Mac packages/prereleases. Responses
 are limited to 1MiB/20 entries/128 versions, requests to the existing cancellable
 single worker, downloads to 64MiB and manifests to the existing archive caps.
@@ -109,3 +195,16 @@ in .cache/installed-catalog-v023.json. This is a query-specific search/resolutio
 limit, not evidence of a broken extension or network failure. These checks only
 read live Open VSX metadata; they install no catalog VSIX, prove no arbitrary
 extension activation, and do not access Microsoft's official Marketplace.
+
+The unpublished exact-query CLI now resolves golang.go and @id:GoLang.Go to
+canonical golang.Go 0.56.1/universal through actual named then immutable Open VSX
+metadata. Ordinary golang still returns the three win32-x64 versions above.
+Reports are .cache/extension-query-live-cli-{golang-go,id-golang-go,golang}.json,
+all installed=false; no live catalog VSIX is downloaded, installed or executed.
+The v23 free-text empty result remains historical query evidence. Genuine TLS,
+real generated VSIX/Node, platform/version/identity/404/cancellation and bounds
+tests pass with public16, three strict-cgo/race repeats 13.819s and no-cgo 3.791s.
+Exact source/hash/protocol provenance is in extension-details.md. These tests
+verify the authorized/private adapter and Open VSX scope; Microsoft's FAQ
+restriction and absence of separate authorization remain unchanged. The official
+SDK/LSP health proof remains v23 evidence, not official Copilot VSIX compatibility.

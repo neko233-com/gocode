@@ -82,6 +82,9 @@ try {
     & ./bin/gocode.exe -windows-workbench-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native File/shell dialog/Quick Input/VSIX management failed.' }
     Invoke-CheckedGUI -windows-workbench-smoke
+    & ./bin/gocode.exe -extension-detail-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native extension detail viewport/font/VSIX management failed.' }
+    Invoke-CheckedGUI -extension-detail-smoke
     & ./bin/gocode.exe -auto-save-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native Auto Save/window activation/Revert acceptance failed.' }
     Invoke-CheckedGUI -auto-save-smoke

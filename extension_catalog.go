@@ -48,6 +48,80 @@ type extensionCatalog struct {
 	search     func(string)
 }
 
+type extensionQuerySpec struct {
+	Text, ID                     string
+	Installed, Enabled, Disabled bool
+}
+
+func validCatalogID(id string) bool {
+	parts := strings.Split(id, ".")
+	if len(parts) != 2 {
+		return false
+	}
+	for _, part := range parts {
+		if len(part) == 0 || len(part) > 100 {
+			return false
+		}
+		for _, c := range part {
+			if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '-' || c == '_') {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// Installed filters stay local. A full publisher.extension or @id query uses
+// named metadata rather than assuming a free-text search indexes full IDs.
+func parseExtensionQuery(raw string) (extensionQuerySpec, error) {
+	var q extensionQuerySpec
+	if len(raw) > 1024 {
+		return q, errors.New("extension query exceeds limit")
+	}
+	var text []string
+	for _, token := range strings.Fields(raw) {
+		lower := strings.ToLower(token)
+		switch lower {
+		case "@installed":
+			q.Installed = true
+		case "@enabled":
+			q.Enabled = true
+		case "@disabled":
+			q.Disabled = true
+		default:
+			if strings.HasPrefix(lower, "@id:") {
+				id := strings.TrimPrefix(lower, "@id:")
+				if q.ID != "" || !validCatalogID(id) {
+					return q, errors.New("exact extension query requires one publisher.extension ID")
+				}
+				q.ID = id
+			} else if strings.HasPrefix(token, "@") {
+				return q, errors.New("unsupported extension search filter")
+			} else {
+				text = append(text, token)
+			}
+		}
+	}
+	q.Text = strings.Join(text, " ")
+	if q.ID != "" && q.Text != "" {
+		return q, errors.New("exact extension query cannot include search text")
+	}
+	if q.ID == "" && validCatalogID(q.Text) {
+		q.ID, q.Text = strings.ToLower(q.Text), ""
+	}
+	return q, nil
+}
+
+func (q extensionQuerySpec) catalogVisible() bool {
+	return !q.Installed && !q.Enabled && !q.Disabled && (q.Text != "" || q.ID != "")
+}
+
+func (q extensionQuerySpec) matchesInstalled(e extensionInfo, disabled bool) bool {
+	return !(q.Enabled && disabled || q.Disabled && !disabled) &&
+		(q.ID == "" || strings.EqualFold(q.ID, e.ID)) &&
+		quickMatches(e.Name+" "+e.ID+" "+e.Description, q.Text)
+}
+
 func catalogHTTPS(raw string) error {
 	u, err := url.Parse(raw)
 	if err != nil || u.Scheme != "https" || u.Hostname() != "open-vsx.org" || u.User != nil {
@@ -56,7 +130,14 @@ func catalogHTTPS(raw string) error {
 	return nil
 }
 func fetchCatalog(ctx context.Context, client *http.Client, query string) ([]catalogExtension, error) {
-	values := url.Values{"query": {query}, "size": {"20"}, "targetPlatform": {"win32-x64"}}
+	q, err := parseExtensionQuery(query)
+	if err != nil || !q.catalogVisible() {
+		return nil, err
+	}
+	if q.ID != "" {
+		return fetchCatalogExact(ctx, client, q.ID)
+	}
+	values := url.Values{"query": {q.Text}, "size": {"20"}, "targetPlatform": {"win32-x64"}}
 	req, err := http.NewRequestWithContext(ctx, "GET", "https://open-vsx.org/api/-/search?"+values.Encode(), nil)
 	if err != nil {
 		return nil, err
@@ -91,6 +172,88 @@ func fetchCatalog(ctx context.Context, client *http.Client, query string) ([]cat
 		}
 	}
 	return result.Extensions, nil
+}
+
+func validCatalogMetadata(e catalogExtension) error {
+	if !validCatalogID(e.id()) || len(e.Description) > 16<<10 || len(e.DisplayName) > 1024 ||
+		e.Version == "" || len(e.Version) > 128 || e.Version == "latest" ||
+		strings.ContainsAny(e.Version, "/\\\x00 \t\r\n") || e.Version == "." || e.Version == ".." {
+		return errors.New("invalid extension version metadata")
+	}
+	if catalogHTTPS(e.Files.Download) != nil || e.Files.SHA256 != "" && catalogHTTPS(e.Files.SHA256) != nil {
+		return errors.New("invalid extension metadata resource URL")
+	}
+	return nil
+}
+
+// API metadata must remain on Open VSX. Package redirects keep their existing
+// separate download policy; this copy does not mutate a shared HTTP client.
+func readCatalogMetadata(ctx context.Context, client *http.Client, address string) (catalogExtension, bool, error) {
+	var e catalogExtension
+	copy := *client
+	previous := client.CheckRedirect
+	copy.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) > 5 || catalogHTTPS(req.URL.String()) != nil {
+			return errors.New("invalid Open VSX metadata redirect")
+		}
+		if previous != nil {
+			return previous(req, via)
+		}
+		return nil
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", address, nil)
+	if err != nil {
+		return e, false, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", "gocode/"+appVersion())
+	resp, err := copy.Do(req)
+	if err != nil {
+		return e, false, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return e, false, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return e, false, fmt.Errorf("Open VSX HTTP %d", resp.StatusCode)
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, (1<<20)+1))
+	if err != nil {
+		return e, false, err
+	}
+	if len(data) > 1<<20 {
+		return e, false, errors.New("catalog response exceeds limit")
+	}
+	if err = json.Unmarshal(data, &e); err != nil {
+		return e, false, err
+	}
+	return e, true, validCatalogMetadata(e)
+}
+
+func fetchCatalogExact(ctx context.Context, client *http.Client, id string) ([]catalogExtension, error) {
+	parts := strings.Split(id, ".")
+	for _, platform := range []string{"win32-x64", "universal"} {
+		address := "https://open-vsx.org/api/" + url.PathEscape(parts[0]) + "/" + url.PathEscape(parts[1]) + "/" + platform + "/latest"
+		latest, found, err := readCatalogMetadata(ctx, client, address)
+		if err != nil {
+			return nil, err
+		}
+		if !found {
+			continue
+		}
+		if !strings.EqualFold(latest.id(), id) || latest.TargetPlatform != platform {
+			return nil, errors.New("extension latest platform/identity mismatch")
+		}
+		// Freeze the returned version and re-read its immutable metadata. Never
+		// offer a mutable latest download URL as the selected installation.
+		resolved, err := resolveCatalogWindows(ctx, client, latest)
+		if err != nil {
+			return nil, err
+		}
+		return []catalogExtension{resolved}, nil
+	}
+	return nil, nil // Both named platform endpoints legitimately returned 404.
 }
 func downloadCatalogVSIX(ctx context.Context, client *http.Client, root string, e catalogExtension) (string, func(), error) {
 	var err error
@@ -183,30 +346,17 @@ func downloadCatalogVSIX(ctx context.Context, client *http.Client, root string, 
 // Search can return another platform's latest file even with targetPlatform.
 // Resolve the selected immutable version explicitly; never install that URL.
 func resolveCatalogWindows(ctx context.Context, client *http.Client, e catalogExtension) (catalogExtension, error) {
+	if !validCatalogID(e.id()) || e.Version == "" || len(e.Version) > 128 || e.Version == "latest" || strings.ContainsAny(e.Version, "/\\\x00 \t\r\n") || e.Version == "." || e.Version == ".." {
+		return e, errors.New("invalid selected extension identity/version")
+	}
 	for _, platform := range []string{"win32-x64", "universal"} {
 		address := "https://open-vsx.org/api/" + url.PathEscape(e.Publisher) + "/" + url.PathEscape(e.Name) + "/" + platform + "/" + url.PathEscape(e.Version)
-		req, err := http.NewRequestWithContext(ctx, "GET", address, nil)
+		resolved, found, err := readCatalogMetadata(ctx, client, address)
 		if err != nil {
 			return e, err
 		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return e, err
-		}
-		data, err := io.ReadAll(io.LimitReader(resp.Body, (1<<20)+1))
-		resp.Body.Close()
-		if resp.StatusCode == 404 {
+		if !found {
 			continue
-		}
-		if err != nil {
-			return e, err
-		}
-		if resp.StatusCode != 200 || len(data) > 1<<20 {
-			return e, errors.New("invalid extension version metadata")
-		}
-		var resolved catalogExtension
-		if err = json.Unmarshal(data, &resolved); err != nil {
-			return e, err
 		}
 		if !strings.EqualFold(resolved.id(), e.id()) || resolved.Version != e.Version || resolved.TargetPlatform != platform {
 			return e, errors.New("extension platform/identity mismatch")
@@ -242,8 +392,12 @@ func (m *model) startExtensionCatalog(parent context.Context, dispatch func(func
 		generation := m.extensionsView.catalog.generation
 		m.extensionsView.catalog.results = nil
 		m.extensionsView.catalog.error = ""
-		if strings.TrimSpace(query) == "" || strings.Contains(query, "@") {
+		q, err := parseExtensionQuery(query)
+		if err != nil || !q.catalogVisible() {
 			m.extensionsView.catalog.busy = false
+			if err != nil {
+				m.extensionsView.catalog.error = err.Error()
+			}
 			return
 		}
 		request, stop := context.WithCancel(ctx)
@@ -266,8 +420,8 @@ func (m *model) startExtensionCatalog(parent context.Context, dispatch func(func
 			} else {
 				result, err = fetchCatalog(c, client, query)
 			}
-			uidispatch.Retry(ctx, dispatch, func() {
-				if ctx.Err() != nil || generation != m.extensionsView.catalog.generation {
+			uidispatch.Retry(request, dispatch, func() {
+				if request.Err() != nil || generation != m.extensionsView.catalog.generation {
 					return
 				}
 				m.extensionsView.catalog.busy = false

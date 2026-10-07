@@ -132,7 +132,7 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		visible = max(1, visible-2)
 	}
 	if m.extensionsView.detail != "" {
-		parts = append(parts, m.extensionDetailView())
+		parts = append(parts, m.extensionDetailView(cx))
 	} else if m.scm.diff != nil {
 		parts = append(parts, m.scmDiffView(cx, visible).Flex(1))
 	} else if m.groups.root == nil {

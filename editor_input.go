@@ -25,6 +25,7 @@ func (m *model) documentEvent(kind string, d *document, change textbuffer.Change
 	}
 	if kind == "focus" {
 		m.extensionsView.detail = ""
+		m.extensionsView.detailUI.reset()
 		m.dismissSCMDiff()
 		m.openSequence++
 	}

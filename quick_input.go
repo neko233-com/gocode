@@ -101,7 +101,7 @@ func (m *model) quickOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 	if m.query == "" {
 		query = "Search files by name"
 	}
-	children := []*ui.Element{ui.Column(label(query).PaddingXY(8, 0).Height(28).Background(ui.RGB(0x313131))).Padding(1).Background(ui.RGB(accent)).Key("quick-input")}
+	children := []*ui.Element{ui.Column(label(query).PaddingXY(8, 0).Height(28).ClipRounded(3).Background(ui.RGB(0x313131))).Padding(1).ClipRounded(4).Background(ui.RGB(accent)).Key("quick-input")}
 	visible := max(1, min(12, int((h-80)/24)))
 	start := max(0, m.quick.index-visible+1)
 	if len(items) == 0 {
@@ -113,7 +113,7 @@ func (m *model) quickOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 		if i == m.quick.index {
 			bg = ui.RGB(0x04395e)
 		}
-		children = append(children, ui.Row(label(item.Title), label(item.Detail).FontSize(11).Foreground(ui.RGB(muted)).Flex(1), label(item.Binding).FontSize(11).Foreground(ui.RGB(muted))).Gap(8).PaddingXY(8, 0).Height(24).Background(bg).Key(fmt.Sprintf("quick-item-%d", i)).OnClick(func(*ui.Context) { m.chooseQuickItem(item) }))
+		children = append(children, ui.Row(label(item.Title), label(item.Detail).FontSize(11).Foreground(ui.RGB(muted)).Flex(1), label(item.Binding).FontSize(11).Foreground(ui.RGB(muted))).Gap(8).PaddingXY(8, 0).Height(24).ClipRounded(4).Background(bg).Key(fmt.Sprintf("quick-item-%d", i)).OnClick(func(*ui.Context) { m.chooseQuickItem(item) }))
 	}
 	popup := ui.Column(children...).Gap(4).Padding(6).Width(width).ClipRounded(8).Background(ui.RGB(0x222222)).Key("quick-popup")
 	return ui.Stack(base, ui.Column().OnClick(func(*ui.Context) { m.closeQuickInput() }), ui.Column(ui.Column().Height(6), ui.Row(spacer(), popup, spacer()), spacer()))

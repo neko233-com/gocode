@@ -131,6 +131,7 @@ jobs:
             .cache/windows-workbench/*.png
             .cache/auto-save-native/*.png
             .cache/auto-save-minimized/*.json
+            .cache/extension-detail/
             .cache/editor-tabs/*.png
             .cache/editor-tabs/*.json
             .cache/editor-groups/*.png

@@ -140,6 +140,7 @@ func run() (runErr error) {
 	lspSmoke := flag.Bool("lsp-smoke", false, "Verify real LSP formatting/hover/definition/completion/diagnostics in a native disposable workspace")
 	openSmoke := flag.Bool("open-smoke", false, "Verify native typing/resize/cancel and awaited VSIX opens during delayed disk workers")
 	uiSmoke := flag.Bool("ui-smoke", false, "Verify owned native workbench logo, complete tab captions and tab controls")
+	extensionDetailSmoke := flag.Bool("extension-detail-smoke", false, "Verify native extension detail scrolling, measured fonts, real VSIX commands and management in an owned workspace")
 	windowsWorkbenchSmoke := flag.Bool("windows-workbench-smoke", false, "Verify real Windows File menus, shell dialogs, quick input and VSIX management")
 	autoSaveSmoke := flag.Bool("auto-save-smoke", false, "Verify native Auto Save modes, real disk writes, activation, conflicts and Revert File")
 	autoSaveMinimizedSmoke := flag.Bool("auto-save-minimized-smoke", false, "Verify real Auto Save writes and UI receipts while an owned native window stays minimized")
@@ -161,6 +162,9 @@ func run() (runErr error) {
 	}
 	if *windowsWorkbenchSmoke {
 		return runWindowsWorkbenchAcceptance()
+	}
+	if *extensionDetailSmoke {
+		return runExtensionDetailAcceptance()
 	}
 	if *autoSaveSmoke {
 		return runAutoSaveAcceptance()

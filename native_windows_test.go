@@ -56,8 +56,10 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 		old, _, _ := fn.Call(^uintptr(0))
 		defer fn.Call(old)
 	}
-	exe := filepath.Join(t.TempDir(), "gocode.exe")
-	build := exec.Command("go", "build", "-race", "-o", exe, ".")
+	buildRoot := t.TempDir()
+	exe := filepath.Join(buildRoot, "gocode.exe")
+	overlay := nativeWorkbenchBoundsOverlay(t, buildRoot)
+	build := exec.Command("go", "build", "-overlay="+overlay, "-race", "-o", exe, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build %v\n%s", err, output)
 	}
@@ -68,11 +70,12 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	workspace := m.workspace
 	var output safeOutput
 	configRoot := t.TempDir()
+	boundsRoot := t.TempDir()
 	cmd := exec.Command(exe, "-workspace", workspace, "-extensions-dir", t.TempDir(), "-copilot=false", "-lsp=false")
 	if os.Getenv("GOCODE_TEST_SMALL_WINDOW") == "1" {
 		cmd.Args = append(cmd.Args, "-window-width", "1024", "-window-height", "728")
 	}
-	cmd.Env = append(os.Environ(), "GODESKTOP_READBACK=1", "APPDATA="+configRoot)
+	cmd.Env = append(os.Environ(), "GODESKTOP_READBACK=1", "APPDATA="+configRoot, "GOCODE_TEST_WORKBENCH_BOUNDS="+boundsRoot)
 	if os.Getenv("GOCODE_TEST_DPIUNAWARE") == "1" {
 		// Force only the owned child to 96 DPI; keep the probing thread aware.
 		cmd.Env = append(cmd.Env, "__COMPAT_LAYER=DPIUNAWARE")
@@ -206,8 +209,11 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	// its Feature Contributions tab and the first actual manifest command.
 	click(24, 250)
 	click(130, 170)
-	click(440, 290)
-	click(430, 386)
+	boundsClient := nativeWorkbenchBoundsClient{root: boundsRoot, pid: cmd.Process.Pid}
+	features := boundsClient.lookup(t, "Details", "extension-tab-Feature Contributions")
+	click(int(features.X+features.Width/2), int(features.Y+features.Height/2))
+	command := boundsClient.lookup(t, "Feature Contributions", "extension-detail-command-gocode.hello")
+	click(int(command.X+command.Width/2), int(command.Y+command.Height/2))
 	until(t, func() bool { color, err := w.Pixel(700, 50); return err == nil && color == 0x252526 })
 	if name := os.Getenv("GOCODE_SCREENSHOT"); name != "" {
 		image, err := w.Capture()

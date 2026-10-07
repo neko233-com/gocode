@@ -4,17 +4,20 @@
 
 当前公开/本机已验收版本为 v0.23.0，源码 `47623823dd88fbb45422d096b545631be7e6b77b`，公开核心 v0.16.0；[CI 37678679723](https://github.com/neko233-com/gocode/actions/runs/37678679723) 首次五平台通过。真实发布包、回滚和安装后验证见 [工程记录](../agent%20docs/status.md)。新 Auto Save/Revert 的原生产品验收范围为 Windows amd64。
 
+当前 VERSION 为 v0.24.0 的未发布候选，仍独立使用公开核心 v0.16.0。固定头部扩展详情、独立虚拟滚动和精确扩展 ID 查询已实现；Windows 两个原生 fixture 的三轮定向 race/strict-cgo2 验收通过。完整 default-three Windows 复测通过833.454s（main498.701s/34.6%），独立无cgo全套三轮通过170.494s；精确源码 CI、发布字节及安装后 v0.24.0 验证均待完成，不能继承 v0.23.0 的五平台/安装结论。
+
 | 功能 | 当前状态 | 已验证 / 尚缺 |
 | --- | --- | --- |
 | Windows amd64 | 已验证 | 两种 Server runner、GOAMD64=v1、race、严格 cgo、真实 HWND/GPU、PE 架构；不等于所有设备/显卡/输入法均通过 |
 | macOS Intel / Apple Silicon | CI 验证 | 原生构建、Metal smoke、VSIX 编辑验收、官方 Copilot 协议握手；v0.12.0 已通过真实工作台普通/1.5/2 密度 Metal 像素、40 标签原生 wheel/drag/key/身份验收和截图；付费账号 UI 验收目前在 Windows 执行 |
 | 原生 UI | 部分 | Dark Modern 工作台结构、标题栏、活动栏、标签/面包屑/行号/面板/状态栏，系统字体实测 Latin/CJK 标签、标签溢出/滚轮/拖动及最多九组原生分屏；v0.22.0 发布真实 File/Edit 弹出菜单/子菜单/键盘导航和控件/菜单/编辑器圆角、子元素 GPU 裁剪；v0.23.0 继承这些能力并验收真实 150% File/Settings/Revert/扩展详情 GPU 像素。缺固定/预览/折行标签、全部菜单贡献、拖放/停靠、布局持久化、多窗口、全面逐像素对照；原生 GPU 阴影尚未发布，见 agent docs/modern-ui-and-gallery.md |
+| 扩展详情编辑器 | Windows 候选完整已验证 | v0.24.0 固定标题/元数据与操作头部、36-DIP 导航、独立原生裁剪/焦点/滚动；真实字体 Unicode wrap 和窄窗 reflow，64 KiB 描述/512 描述行/4096 命令/最多1024物化行（含 overscan）有界虚拟化；tab→End 同 UI turn 准备 extent，真实私有 VSIX 注册2000回调并执行最后 command1999，两套键位 page/close/reset、启停持久化、四文件复用/私有 scratch 清空均通过定向原生测试。缺真实 VSIX 图标、README/CHANGELOG/Markdown、多种贡献编辑器及 scrollbar drag；完整Windows三轮及全部console/GUI原生验收通过，CI/发行/安装待验收，见 agent docs/extension-details.md |
 | 文档编辑 | 部分 | UTF-16 坐标、版本、不可变快照、事务、LF/CRLF、选区、撤销重做、剪贴板、拖选/重复按键；缺多光标、snippet、完整 IME/字素簇/双向导航和水平滚动 |
 | 文件/工作区 | 部分 | 单工作区、后台打开/Explorer 扫描、取消/焦点/别名保护、真实原生打开文件/文件夹与另存为、未保存关闭确认、监听/原子替换/重载和脏文档冲突、真实 GiB 有界只读浏览；v0.23.0 保存/另存为冻结路径保护通过实际 writer/Node VSIX/安装后验证。缺递归监听、diff/merge、multi-root、完整 Explorer 文件操作、大文件编辑/编码选择 |
 | Auto Save | Windows 已验证 | v0.23.0 原生 File checked toggle、Settings 四种模式/延迟，真实 Unicode/CRLF 写盘与去重；发布/安装后的 console+GUI 实际最小化 IsIconic、save/didSave/clean 与 View/GPU 2→2 后再恢复均通过。untitled/大文件不自动另存为；缺保存参与者、format/code actions on save、设置作用域/热更新和按资源排除 |
 | Revert File | Windows 已验证 | v0.23.0 原生 File 命令、dirty 确认/取消、真实异步读盘/恢复、128 watch cap 外第129个目标优先、版本/哈希/身份保护；取消/新编辑/删除/二进制/超限保留缓冲区。真实发布包及安装后 rounded Revert 验收通过；untitled/只读大文件禁用，完整 diff/merge 仍缺 |
 | 搜索替换 | 部分 | v0.13.0 全文搜索、Unicode/Go 正则、Git/glob、未保存快照、虚拟结果及 UTF-16/超大文件跳转；v0.14.0 后台预览、完整缓冲区提交和保存/冲突保护；v0.15.0 整组撤销/重做、原生确认/当前文件拆分、旧回执/关闭重开/光标/组过期保护已通过五平台、Mac 三密度、真实 GiB、发行字节/回滚和本机安装验收；精确证据见 agent docs/search.md、replace.md、history.md、status.md；缺 PCRE2、全局忽略/编码/provider、逐项替换控制、跨关闭资源/复合撤销及完整 diff |
-| 命令/快捷键 | 部分 | v0.22.0 发布原生内置 VS Code/JetBrains 两套键位、Settings/命令面板切换及持久化，菜单提示同步；v0.23.0 发布/安装后两套原生键位与幂等验证通过。标签支持 Ctrl MRU 顺序/反向/松开提交、PageUp/Down 与保留脏文档关闭；缺 MRU 浮层、when/context keys、自定义键位及全部菜单贡献 |
+| 命令/快捷键 | 部分 | v0.22.0 发布原生内置 VS Code/JetBrains 两套键位、Settings/命令面板切换及持久化，菜单提示同步；v0.23.0 发布/安装后两套原生键位与幂等验证通过。v0.24.0 候选 Quick Input 输入/结果行/弹层使用原生圆角裁剪，Save All 在保存或文件操作忙碌时禁用，详情页继承 VS Code Ctrl+W/JetBrains Ctrl+F4 关闭。标签支持 Ctrl MRU 顺序/反向/松开提交、PageUp/Down 与保留脏文档关闭；缺 MRU 浮层、when/context keys、自定义键位及全部菜单贡献 |
 | 语言功能 | 部分 | VSIX/通用 LSP 补全、Problems、gopls 格式化/定义跳转/Output 悬停、原子附加导入编辑；缺语义着色、重构、多位置/浮层和 snippet UI |
 | LSP | 部分 | 用户服务器配置、gopls 固定安装、UTF-16 能力协商、增量/完整同步、版本诊断/清除、save/close/取消/进程回收、独立崩溃重启/退避和未保存文档重放；新源码跨平台验证见 harness，文件监听、多工作区和完整语言能力仍缺 |
 | VSIX 宿主 | 部分 | 本地安装、CommonJS 激活、文档/事务/事件、语言提供者、持久状态；v0.17.0 增加原生 visibleTextEditors/viewColumn/选区/可见范围事件、隐藏打开、preserveFocus、独立 reveal、关闭重开身份与延迟焦点保护，实际验证状态见 agent docs/status.md；完整 tabGroups、options/decorations/snippets/undo merging 和大量贡献点尚缺，未知 API 抛错 |
@@ -29,12 +32,15 @@
 | Copilot 原生补全 | 真实验收 | 官方 LSP、UTF-16 版本同步、灰色建议、Tab 插入、实际接受后命令；尚缺完整 next-edit/partial acceptance 和配额/模型 UI |
 | Copilot 原生聊天 | 真实验收 | 官方 Go SDK、流式文本、取消与取消后重试；当前禁用工作区工具，缺 Agent 权限/工具 UI、完整附件/模型/历史管理 |
 | 官方 Copilot VSIX | 未通过 | native SDK/LSP 的成功不能替代 VSIX 激活/API 依赖验收 |
-| 扩展商店 / Gallery | 部分 | 默认真实 Open VSX 搜索/Windows x64-universal 包选择/VSIX 安装，原生详情/贡献命令、启用/禁用/卸载及保存保护重启已发布并安装验收；原生 `-extension-gallery-url` 支持获授权服务的 VS Gallery 协议。2026-10-08 [官方 FAQ](https://code.visualstudio.com/docs/supporting/FAQ#extensions) 仍限制衍生产品访问微软 Marketplace，本项目没有单独授权，不能宣称官方商店已接入；自动更新/依赖/全部扩展 API 仍缺 |
+| 扩展商店 / Gallery | 部分 | 默认真实 Open VSX 搜索/Windows x64-universal 包选择/VSIX 安装，基础详情/贡献命令、启用/禁用/卸载及保存保护重启已发布并安装验收。v0.24.0 候选支持 publisher.extension/@id 精确查询、named latest→immutable version 校验和 stale query 取消，普通搜索/installed/enabled/disabled 过滤保留；实际只读查询解析 golang.Go 0.56.1/universal，未安装 live VSIX。原生 `-extension-gallery-url` 支持获授权服务的 VS Gallery 协议及 exact ExtensionName=7，真实 TLS/私有 VSIX/Node 已验收。2026-10-08 [官方 FAQ](https://code.visualstudio.com/docs/supporting/FAQ#extensions) 仍限制衍生产品访问微软 Marketplace，本项目没有单独授权，不能宣称官方商店已接入；真实扩展图标/README、自动更新/依赖/全部扩展 API 仍缺 |
 
 ## 本阶段验收
 
+- v0.24.0 候选：public16/GOWORK=off、debug=0/default adapter 的详情/工作台两 fixture strict-cgo2/race/shuffle/count=3 定向通过72.035s，seed1791411978500786200，原始记录 .cache/app24-native-fixtures-targeted.log。详情每轮两个真实 HWND/Node 生命周期，实际2000注册回调中的最后1999执行；工作台使用真实原生 bounds/generation，保留 pointer/notification RGB/Unicode disk/icon/settings/restore/close/smoke guards。完整 default-three 复测在 .cache/app24-public-windows-final.log 通过833.454s/main498.701s/coverage34.6%，包含全部package/race/vet/PE/console+GUI原生验收；独立nocgo三轮170.494s通过。私有TMP/settings清空，Root已检查当前v0.24.0三张真实GPU图；精确源码CI/发布/安装验证仍待完成。
+- v0.24.0 首次完整脚本765.457s失败保留在 .cache/app24-public-windows-first-failure.log（main531.350s、coverage34.6%、seed1791410668665064700），截图 .cache/app24-workbench-pointer-first-failure.png。详情 fixture 过早点击尚未提交的新 callback/tree；旧工作台坐标没有跟随固定头部布局，三轮在原 notification RGB 断言失败，真实 Unicode 源已保存。fixture 现等待至少三次 completed GPU frames/重新读取真实 bounds；test-only mailbox 绑定PID/sequence/View generation/tab，原输入/像素/磁盘/时限断言未放宽，product main 字节未因 overlay 改变。定向通过不能覆盖这条失败历史或替代整套结果。
+- v0.24.0 query：实际 Open VSX named/immutable metadata 将 golang.go 和 @id:GoLang.Go 解析为 golang.Go0.56.1/universal，普通golang仍返回三个win32-x64版本，报告 installed=false，无 live VSIX 下载/安装/执行。真实 TLS、私有 VSIX/Node、identity/version/platform/404/cancel/limits 的 focused race三轮13.819s、no-cgo3.791s通过；source/hash 记录见 agent docs/extension-details.md。27项新发布字节 console/GUI checker 和分开的 installed detail 报告已准备，但 v0.24.0 发布/安装验收未运行。
 - v0.23.0：五平台精确源码 CI、独立公开核心 full Windows default-three strict-cgo/race、25项真实发布字节 console/GUI、签名完整 ZIP 三条实际请求（自动 direct、手动 direct、手动 ghfast.top）、实际 v0.4.0 GUI/VSIX 回滚及用户本机安装后的 Auto Save/Revert/GiB/菜单/键位/终端/Git/SDK-LSP 健康验证。当前安装健康检查 networkPromptSent=false，不能代替付费请求或官方 Copilot VSIX 验收。
-- 扩展商店：安装版 `-extension-catalog-check golang` 只读查询真实 Open VSX，解析三个实际 win32-x64 版本，installed=false；`golang.go` 查询未解析到 Windows x64/universal 版本，保留为查询解析限制。版本、原始成功/失败报告及范围见 agent docs/modern-ui-and-gallery.md；这些查询不安装扩展，也不验证微软官方 Marketplace 或目标 VSIX 已兼容。
+- 扩展商店历史：安装版v0.23.0 `-extension-catalog-check golang` 只读查询真实 Open VSX，解析三个实际 win32-x64 版本，installed=false；其free-text `golang.go` 合法空结果未解析到 Windows x64/universal，原始报告保留为当时的查询限制。v0.24.0 候选 named exact lookup 的新成功不改写旧失败。版本、报告及范围见 agent docs/modern-ui-and-gallery.md；两类 metadata 查询均不安装扩展，也不验证微软官方 Marketplace 或目标 VSIX 已兼容。
 - 框架：UTF-16/CRLF、原子事务、快照、保存点、随机编辑/撤销 oracle；LSP 碎片帧、乱序并发、双向请求和取消/回收。
 - 真实 VSIX：编辑未保存文档、UTF-16 代理对范围、增量事件、提供者观察新版本、Memento 在新宿主进程中保留。
 - gocode：实际原生窗口中的 VSIX 编辑→CRLF 保存→撤销/重做→版本化补全；Windows 鼠标拖选和 Unicode 替换。

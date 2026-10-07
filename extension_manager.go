@@ -23,6 +23,7 @@ type extensionSettings struct {
 }
 type extensionViewState struct {
 	catalog                              extensionCatalog
+	detailUI                             extensionDetailState
 	contributions                        map[string][]extensionCommand
 	query, detail, tab                   string
 	focused, focusedBefore, busy, reload bool

@@ -13,30 +13,29 @@ func (m *model) showExtensions() {
 	m.hideSidebar = false
 	m.palette = false
 	m.extensionsView.focused = true
+	m.extensionsView.detailUI.focused = false
 	m.editing, m.terminalFocused, m.chatFocused = false, false, false
 }
 func (m *model) closeExtensionDetails() {
 	m.extensionsView.detail = ""
+	m.extensionsView.detailUI.reset()
 	m.extensionsView.focused = false
 	if d := m.current(); d != nil {
 		m.focusTab(d)
 	}
 }
 func (m *model) filteredExtensions() []extensionInfo {
-	query := strings.TrimSpace(m.extensionsView.query)
-	enabledOnly, disabledOnly := strings.Contains(query, "@enabled"), strings.Contains(query, "@disabled")
-	for _, token := range []string{"@installed", "@enabled", "@disabled"} {
-		query = strings.ReplaceAll(query, token, "")
+	query, err := parseExtensionQuery(m.extensionsView.query)
+	if err != nil {
+		return nil
 	}
 	var result []extensionInfo
 	for _, e := range m.installed {
 		disabled := containsExtension(m.extensionsView.settings.Disabled, e.ID)
-		if containsExtension(m.extensionsView.settings.Uninstall, e.ID) || enabledOnly && disabled || disabledOnly && !disabled {
+		if containsExtension(m.extensionsView.settings.Uninstall, e.ID) || !query.matchesInstalled(e, disabled) {
 			continue
 		}
-		if quickMatches(e.Name+" "+e.ID+" "+e.Description, query) {
-			result = append(result, e)
-		}
+		result = append(result, e)
 	}
 	return result
 }
@@ -54,12 +53,20 @@ func (m *model) extensionsSidebar(cx *ui.Context) *ui.Element {
 	if m.extensionsView.focused {
 		inputBorder = accent
 	}
-	field := ui.Column(label(query).Foreground(ui.RGB(fg)).PaddingXY(6, 0).Height(26).Background(ui.RGB(0x313131)).ClipRounded(3)).Padding(1).ClipRounded(4).Background(ui.RGB(inputBorder)).Key("extensions-search").OnClick(func(*ui.Context) { m.extensionsView.focused = true; m.editing = false })
+	field := ui.Column(label(query).Foreground(ui.RGB(fg)).PaddingXY(6, 0).Height(26).Background(ui.RGB(0x313131)).ClipRounded(3)).Padding(1).ClipRounded(4).Background(ui.RGB(inputBorder)).Key("extensions-search").OnClick(func(*ui.Context) {
+		m.extensionsView.focused = true
+		m.extensionsView.detailUI.focused = false
+		m.editing = false
+	})
 	items := m.filteredExtensions()
 	section := "INSTALLED"
-	if m.extensionsView.query != "" && !strings.Contains(m.extensionsView.query, "@") {
+	spec, queryErr := parseExtensionQuery(m.extensionsView.query)
+	if queryErr == nil && spec.catalogVisible() {
 		section = "SEARCH RESULTS · " + strings.ToUpper(m.extensionStoreName())
 		for _, result := range m.extensionsView.catalog.results {
+			if spec.ID != "" && !strings.EqualFold(spec.ID, result.id()) {
+				continue
+			}
 			known := false
 			for _, e := range items {
 				if strings.EqualFold(e.ID, result.id()) {
@@ -103,7 +110,7 @@ func (m *model) extensionsSidebar(cx *ui.Context) *ui.Element {
 		if containsExtension(m.extensionsView.settings.Disabled, e.ID) {
 			state = "Disabled"
 		}
-		action := icon("settings", "extension-gear-"+e.ID, func(*ui.Context) { m.extensionsView.detail = e.ID; m.extensionsView.focused = false }).Width(18).Height(18)
+		action := icon("settings", "extension-gear-"+e.ID, func(*ui.Context) { m.focusExtensionDetails(e.ID, m.extensionsView.tab) }).Width(18).Height(18)
 		if !installed {
 			var install func(*ui.Context)
 			if !m.extensionsView.busy && m.extensionsView.manage != nil {
@@ -112,9 +119,7 @@ func (m *model) extensionsSidebar(cx *ui.Context) *ui.Element {
 			action = button("Install", "extension-install-"+e.ID, install).FontSize(11).PaddingXY(6, 0).Height(18).Background(ui.RGB(accent))
 		}
 		row := ui.Row(ui.Icon("extensions").Width(32).Height(40).Foreground(ui.RGB(muted)), ui.Column(ui.Row(label(e.Name).Flex(1), label(e.Version).FontSize(10).Foreground(ui.RGB(muted))).Gap(6), label(e.Description).FontSize(12).Foreground(ui.RGB(muted)), ui.Row(label(publisher).FontSize(11).Foreground(ui.RGB(muted)).Flex(1), label(state).FontSize(11).Foreground(ui.RGB(muted)), action)).Gap(3).Flex(1)).Gap(8).PaddingXY(12, 6).Height(72).Radius(4).HoverBackground(ui.RGB(0x2a2d2e)).Background(bg).FocusRing(false).Key("extension-card-" + e.ID).OnClick(func(*ui.Context) {
-			m.extensionsView.detail = e.ID
-			m.extensionsView.focused = false
-			m.extensionsView.tab = "Details"
+			m.focusExtensionDetails(e.ID, "Details")
 		})
 		children = append(children, row)
 	}
@@ -124,93 +129,27 @@ func (m *model) extensionsSidebar(cx *ui.Context) *ui.Element {
 	children = append(children, spacer(), rule(), button("Install from VSIX...", "extensions-install-vsix", func(*ui.Context) { m.chooseFileAction("vsix", nil, nil) }).Height(28))
 	return ui.Column(children...).Flex(1)
 }
-func (m *model) extensionDetailView() *ui.Element {
-	var selected *extensionInfo
-	for i := range m.installed {
-		if m.installed[i].ID == m.extensionsView.detail {
-			selected = &m.installed[i]
-			break
-		}
-	}
-	installed := selected != nil
-	if selected == nil {
-		for _, result := range m.extensionsView.catalog.results {
-			if result.id() == m.extensionsView.detail {
-				info := result.info()
-				selected = &info
-				break
-			}
-		}
-	}
-	if selected == nil {
+func (m *model) extensionDetailView(cx *ui.Context) *ui.Element {
+	e, installed, found := m.selectedExtensionDetail()
+	if !found {
 		m.extensionsView.detail = ""
+		m.extensionsView.detailUI.reset()
 		return ui.Column()
-	}
-	e := *selected
-	disabled := containsExtension(m.extensionsView.settings.Disabled, e.ID)
-	action, title := "disable", "Disable"
-	if disabled {
-		action, title = "enable", "Enable"
-	}
-	if !installed {
-		action, title = "catalogInstall", "Install"
-	}
-	var toggle, uninstall func(*ui.Context)
-	if !m.extensionsView.busy && m.extensionsView.manage != nil {
-		toggle = func(*ui.Context) { m.extensionsView.manage(action, e.ID) }
-		if installed && !strings.EqualFold(e.ID, bundledID) {
-			uninstall = func(*ui.Context) { m.extensionsView.manage("uninstall", e.ID) }
-		}
-	}
-	header := ui.Row(ui.Icon("extensions").Width(100).Height(100).Foreground(ui.RGB(muted)), ui.Column(label(e.Name).FontSize(26), ui.Row(label(e.ID).Foreground(ui.RGB(muted)), label("v"+e.Version).Foreground(ui.RGB(muted))).Gap(16), label(e.Description).FontSize(14), ui.Row(button(title, "extension-toggle", toggle).Height(28).Background(ui.RGB(accent)), button("Uninstall", "extension-uninstall", uninstall).Height(28).Background(ui.RGB(0x313131))).Gap(8)).Gap(10).Flex(1)).Gap(24).Padding(28).Height(200)
-	items := []*ui.Element{ui.Row(label("Extensions: "+e.Name).PaddingXY(12, 0).Flex(1), icon("close", "extension-detail-close", func(*ui.Context) { m.closeExtensionDetails() })).Height(35).Background(ui.RGB(outer)), header}
-	if m.extensionsView.reload {
-		items = append(items, ui.Row(label("Reload the window to apply extension changes.").Flex(1), button("Reload Window", "extension-detail-reload", func(*ui.Context) { m.requestRelaunch(m.workspace) }).Background(ui.RGB(accent)).Height(28)).PaddingXY(28, 4).Height(36))
 	}
 	if m.extensionsView.tab == "" {
 		m.extensionsView.tab = "Details"
 	}
-	tabs := []*ui.Element{}
-	for _, tab := range []string{"Details", "Feature Contributions"} {
-		fg := uint32(muted)
-		if m.extensionsView.tab == tab {
-			fg = foreground
-		}
-		tabs = append(tabs, button(tab, "extension-tab-"+tab, func(*ui.Context) { m.extensionsView.tab = tab }).Foreground(ui.RGB(fg)).Height(36))
-	}
-	items = append(items, ui.Row(tabs...).PaddingXY(28, 0).Height(36), rule())
-	content := []*ui.Element{}
-	if m.extensionsView.tab == "Feature Contributions" {
-		content = append(content, label("Commands").FontSize(20).Height(36))
-		for _, c := range m.extensionsView.contributions[e.ID] {
-			command := c
-			var run func(*ui.Context)
-			if m.extensionsView.running[strings.ToLower(e.ID)] && m.execute != nil {
-				run = func(*ui.Context) { m.execute(command.ID) }
-			}
-			content = append(content, button(command.Title, "extension-detail-command-"+command.ID, run).Height(28), label(command.ID).FontSize(11).Foreground(ui.RGB(muted)).Height(20))
-		}
-	} else {
-		content = append(content, label(e.Name).FontSize(22).Height(38))
-		for _, line := range wrapChatText(e.Description, 650) {
-			content = append(content, label(line).Height(24))
-		}
-		state := "Enabled"
-		if !installed {
-			state = "Available in " + m.extensionStoreName()
-		}
-		if disabled {
-			state = "Disabled"
-		}
-		if containsExtension(m.extensionsView.settings.Uninstall, e.ID) {
-			state = "Uninstalled · reload required"
-		}
-		content = append(content, label("Identifier: "+e.ID).Height(28), label("Version: "+e.Version).Height(28), label("Status: "+state).Height(28), label("Runs in the isolated Node extension host").Foreground(ui.RGB(muted)).Height(28))
-	}
-	items = append(items, ui.Column(content...).Padding(28), spacer())
-	return ui.Column(items...).Flex(1).Background(ui.RGB(editor))
+	m.extensionsView.detailUI.sync(m.extensionsView.detail, m.extensionsView.tab)
+	return m.renderExtensionDetail(cx, e, installed)
 }
 func (m *model) extensionInput(cx *ui.Context, e ui.InputEvent) bool {
+	lookup := func(string) (ui.Bounds, bool) { return ui.Bounds{}, false }
+	if cx != nil {
+		lookup = cx.ElementBounds
+	}
+	if m.extensionDetailRoute(e, lookup) {
+		return true
+	}
 	if m.activity != "extensions" {
 		return false
 	}

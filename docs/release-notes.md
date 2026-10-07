@@ -1,53 +1,47 @@
-gocode v0.23.0 makes File Auto Save and Revert File functional in the native
-Windows workbench, using public Go/godesktop v0.16.0.
+gocode v0.24.0 gives extension details a native editor with a fixed metadata/actions
+header, 36-DIP navigation bar and independently clipped, measured, virtualized
+content. It continues to use public Go/godesktop v0.16.0.
 
-Immutable source 47623823dd88fbb45422d096b545631be7e6b77b passes all five
-jobs on the first attempt in [source CI 37678679723](https://github.com/neko233-com/gocode/actions/runs/37678679723).
-[Publication 37682493872](https://github.com/neko233-com/gocode/actions/runs/37682493872)
-reuses those tested packages. Actual signed automatic and manual direct GitHub
-ZIP bodies, manual ghfast.top, all 25 ordered released console/GUI gates and a
-genuine prior-v0.4.0 GUI/VSIX rollback pass. The user's stable launcher selects
-this exact v0.23.0 source through direct GitHub; installed console/GUI Auto Save,
-actual minimized disk/events/GPU-idle, real GiB split, native UI/icons/settings
-and authenticated official SDK/LSP health pass. User configuration, PATH and
-stable shortcuts are preserved. Exact hashes and evidence are in the
+Details and Feature Contributions keep their header/navigation visible while the
+body scrolls. Native proportional-font measurement controls Unicode wrapping and
+narrow-window reflow. Content is bounded to 64 KiB of description, 512 wrapped
+description rows, 4096 commands and 1024 materialized visible rows with bounded
+overscan. Immediate tab-switch followed by End now prepares the actual viewport
+extent before handling the key. Pointer/wheel, page/home/end navigation and the
+existing VS Code Ctrl+W/JetBrains Ctrl+F4 close paths operate on the detail editor
+without editing the underlying document.
+
+Real native acceptance installs a private generated VSIX, registers 2000 Node
+command callbacks and navigates to and executes its final details.command.1999
+callback. Enable/disable operations use the existing cancellable worker and real
+private settings. Repeated acceptance reuses exactly four fixed report/PNG names,
+leaves private scratch empty and preserves pre-existing settings.
+
+Catalog searches accept both publisher.extension and @id:publisher.extension.
+Open VSX named metadata checks Windows x64/latest, falls back to universal and
+rereads the selected immutable version with identity/platform bounds. Actual
+read-only queries golang.go and @id:GoLang.Go resolve golang.Go 0.56.1/universal;
+ordinary search and installed/enabled/disabled filters retain their behavior.
+These metadata checks did not install the live extension. Authorized/private
+Gallery services use the upstream exact-name query criterion while retaining
+native gocode identity, HTTPS/host/size/version/archive guards and cancellation.
+
+Quick Input now applies native rounded descendant clipping to its input, result
+rows and popup. Save All is disabled while a save or file action is busy.
+
+Publication requires independent public-module strict-cgo/race repeated tests,
+the complete native Windows suite, successful exact-source CI and signed
+released-byte/installed validation. The release checker runs 27 ordered native
+gates, including separate console/GUI detail reports bound to actual completed
+PID/version/source; the final ordered marker also binds both payload hashes.
+Existing process deadlines, complete archive integrity, genuine prior-version
+rollback and preservation of user
+settings, PATH and shortcuts remain requirements. Detailed capabilities,
+limitations and exact validation evidence are in the
 [milestone ledger](../agent%20docs/status.md).
 
-Auto Save supports off, afterDelay, onFocusChange and onWindowChange. File toggles
-the checked action; native Settings configures all four modes and the delay.
-Bounded scheduling uses the existing immutable, hash-checked atomic writer.
-Newer edits remain dirty, conflicts require review, and untitled/read-only large
-files cannot produce automatic Save As dialogs. Session flags and new windows
-preserve the chosen policy; idempotent settings avoid duplicate writes.
-
-Actual minimized-window UI receipts no longer wait for rendering. Window-change
-and delayed saves complete disk/clean/save events while View/GPU submissions
-remain stopped. Bounded, cancellable worker retries retain acknowledgements under
-UI queue pressure, including file/scan/search/history/Git/language/terminal/update
-services. Superseded large-page/debounce receipts are cancelled. Closed terminals
-stop per-tab retries and reap their actual processes. Save As excludes overlapping
-original-path saves, and frozen path/version checks keep newer edits dirty.
-Coalesced keyboard/Auto Save persistence continues behind rejected UI errors;
-superseded errors and late shutdown callbacks are cancelled.
-
-Revert uses asynchronous real file reads and explicit dirty-discard confirmation,
-preserving newer edits, cancelled requests, missing/binary/oversized sources and
-document identity. Close/Reload/history dialogs use actual rounded descendant
-clipping; scrolling keeps lower Settings controls reachable. Current Code-OSS
-1.141.0 and main-source rounding/provenance remain the native visual reference.
-
-Strict-cgo/race, genuine Node VSIX, owned HWND/GPU/disk, repeated private-root
-idempotence and independent public-module checks gate publication. Release assets
-reuse the successful exact-source CI packages. Free MSI/ZIP/CLI channels, signed
-integrity metadata, automatic/manual mirror routing and stable launcher rollback
-are retained; no paid certificates or installer tooling are required.
-
-Full VS Code UI/API/debug/task/refactoring parity remains unfinished. Save
-participants (VSIX onWillSave/waitUntil, LSP willSaveWaitUntil, formatting/code
-actions on save), settings scopes/hot reload and per-resource exclusions remain
-open. Default catalog is Open VSX; the native Gallery adapter requires separate
-authorization for Microsoft's official Marketplace. Copilot keeps the accepted
-official SDK/Language Server path; full official Copilot VSIX parity is not
-claimed. New native product acceptance targets Windows amd64; the shared Metal
-regression gates pass on both Mac architectures for this source.
-Floating shadows and independent extension-detail scrolling remain unpublished.
+Actual per-extension VSIX icons, README/CHANGELOG rendering, overlay shadows,
+complete VS Code UI/API/debug/tasks and official Copilot VSIX parity remain open.
+The accepted Copilot integration uses the official SDK/Language Server path.
+Default live catalog access is Open VSX; Microsoft's official Marketplace still
+requires separate authorization, which is absent here.

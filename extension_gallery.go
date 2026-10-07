@@ -59,15 +59,22 @@ type galleryEntry struct {
 }
 
 func fetchGallery(ctx context.Context, client *http.Client, base, query string) ([]catalogExtension, error) {
-	if _, err := galleryURL(base); err != nil {
+	gallery, err := galleryURL(base)
+	if err != nil {
 		return nil, err
 	}
-	if len(query) > 1024 {
-		return nil, errors.New("Gallery query exceeds limit")
+	q, err := parseExtensionQuery(query)
+	if err != nil || !q.catalogVisible() {
+		return nil, err
 	}
-	// Source manifest values: Target=8, SearchText=10; versions/files/
+	// Code-OSS 1.141.0/2a59476c, extensionGalleryManifestService.ts (MIT):
+	// ExtensionName=7, Target=8, SearchText=10; versions/files/
 	// properties/asset URI/latest platform versions = 1|2|16|128|512.
-	body, err := json.Marshal(map[string]any{"filters": []any{map[string]any{"criteria": []any{map[string]any{"filterType": 8, "value": "Microsoft.VisualStudio.Code"}, map[string]any{"filterType": 10, "value": query}}, "pageNumber": 1, "pageSize": 20, "sortBy": 0, "sortOrder": 0}}, "assetTypes": []string{"Microsoft.VisualStudio.Services.VSIXPackage"}, "flags": 1 | 2 | 16 | 128 | 512})
+	filter, value := 10, q.Text
+	if q.ID != "" {
+		filter, value = 7, q.ID
+	}
+	body, err := json.Marshal(map[string]any{"filters": []any{map[string]any{"criteria": []any{map[string]any{"filterType": 8, "value": "Microsoft.VisualStudio.Code"}, map[string]any{"filterType": filter, "value": value}}, "pageNumber": 1, "pageSize": 20, "sortBy": 0, "sortOrder": 0}}, "assetTypes": []string{"Microsoft.VisualStudio.Services.VSIXPackage"}, "flags": 1 | 2 | 16 | 128 | 512})
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +85,18 @@ func fetchGallery(ctx context.Context, client *http.Client, base, query string) 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json;api-version=3.0-preview.1")
 	req.Header.Set("User-Agent", "gocode/"+appVersion())
-	response, err := client.Do(req)
+	copy := *client
+	previous := client.CheckRedirect
+	copy.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) > 5 || req.URL.Scheme != "https" || req.URL.User != nil || !strings.EqualFold(req.URL.Host, gallery.Host) {
+			return errors.New("invalid Gallery query redirect")
+		}
+		if previous != nil {
+			return previous(req, via)
+		}
+		return nil
+	}
+	response, err := copy.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +120,14 @@ func fetchGallery(ctx context.Context, client *http.Client, base, query string) 
 	if len(result.Results) != 1 || len(result.Results[0].Extensions) > 20 {
 		return nil, errors.New("invalid Gallery result count")
 	}
+	if q.ID != "" && len(result.Results[0].Extensions) > 1 {
+		return nil, errors.New("exact Gallery query returned too many entries")
+	}
 	var items []catalogExtension
 	for _, entry := range result.Results[0].Extensions {
+		if q.ID != "" && !strings.EqualFold(entry.Publisher.PublisherName+"."+entry.ExtensionName, q.ID) {
+			return nil, errors.New("exact Gallery extension identity mismatch")
+		}
 		if len(entry.Versions) > 128 || len(entry.Publisher.PublisherName) > 100 || len(entry.ExtensionName) > 100 || len(entry.DisplayName) > 1024 || len(entry.ShortDescription) > 16<<10 {
 			return nil, errors.New("Gallery entry exceeds bounds")
 		}

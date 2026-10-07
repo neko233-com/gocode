@@ -8,6 +8,8 @@ Go 1.27 的原生编辑器，以 [godesktop](https://github.com/neko233-com/gode
 
 当前公开并已完成本机安装验收的是 [v0.23.0](https://github.com/neko233-com/gocode/releases/tag/v0.23.0)，源码 `47623823dd88fbb45422d096b545631be7e6b77b`，使用公开 godesktop v0.16.0。五平台精确源码 CI、真实发布包更新/回滚及 Windows 安装后的 Auto Save、Revert、两种快捷键、原生终端/VSIX/Git 和实际 GiB 分屏均已通过。具体源码、日志和范围见 [工程记录](agent%20docs/status.md)。
 
+v0.24.0 候选补齐扩展详情的固定头部、独立滚动、真实字体换行和长贡献列表，并修复切换标签后立即按 End 丢失滚动的问题。`golang.go` / `@id:golang.go` 使用真实版本元数据查询；默认商店为 Open VSX。独立公开核心的完整 Windows 三轮严格 cgo/race 和全部 console/GUI 原生验收通过（833.454s），无 cgo 全套也通过；精确源码 CI、发布及安装验证继续进行。真实扩展图标、README 和浮层阴影继续完善。见 [扩展详情记录](agent%20docs/extension-details.md)。
+
 ## 安装与更新
 
 发布包位于 [Releases](https://github.com/neko233-com/gocode/releases)：Windows x64

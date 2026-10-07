@@ -51,7 +51,7 @@ func (m *model) workbenchCommands() []workbenchCommand {
 		c("openFolder", "Open Folder...", "Ctrl+K Ctrl+O", m.fileActions.choose != nil && m.relaunch != nil, func() { m.chooseFileAction("folder", nil, nil) }),
 		c("save", "Save", "Ctrl+S", editable, m.saveActive),
 		c("saveAs", "Save As...", "Ctrl+Shift+S", editable && m.fileActions.choose != nil, func() { m.saveAsDocument(d, nil) }),
-		c("saveAll", "Save All", "Ctrl+K S", dirty && !m.saveBusy, func() {
+		c("saveAll", "Save All", "Ctrl+K S", dirty && !m.saveBusy && !m.fileActions.busy, func() {
 			var docs []*document
 			for _, doc := range m.docs {
 				if doc.dirty() {

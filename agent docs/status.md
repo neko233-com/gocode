@@ -1,5 +1,74 @@
 # Milestone ledger
 
+## Unpublished v0.24.0 extension editor candidate (2026-10-08)
+
+Public core v0.16.0 remains the independent GOWORK=off/no-replace dependency.
+Native extension details keep a fixed metadata/actions header and 36-DIP navbar,
+with independently clipped/scrolled measured content and bounded virtual rows.
+Immediate tab-switch followed by End previously consumed navigation at a zero
+extent; same-turn plan preparation fixes the actual owned-HWND failure without
+changing its guards. Three strict-cgo/race/shuffle tests pass 41.877s, each with
+two real HWND/Node child lifecycles: six total, ten gates, 2000 registered VSIX
+commands and actual final-command execution, both keymaps, private scratch empty,
+unchanged settings and exactly four reused report/PNG files. A standalone actual
+console smoke passes 5.562s; its source reports development/version 0.23.0 before
+this candidate version bump. Root inspected all three GPU captures. Focused
+model/real-Node race three repeats, no-cgo and both full vet modes also pass.
+
+Bare publisher.extension and @id queries now use named platform/latest metadata
+then immutable version metadata. Actual golang.go and @id:GoLang.Go resolve
+canonical golang.Go 0.56.1 universal; installed=false, no live VSIX activation
+is claimed. Native authorized Gallery exact criterion and transport/identity/
+platform/cancellation/bounds tests pass. See extension-details.md for exact
+commands, upstream revisions, failure history and artifacts.
+
+Exact-source CI, publication, released-byte and installed validation remain
+required. Actual extension icons/README, floating
+shadows and full VS Code API parity are open. Separately, an exact public16
+control reproduces non-debug forced-WARP RemoveDevice crashes with no Shadow API;
+the local framework shadow/recovery candidate is not this application's dependency.
+
+The first complete default Repeat=3 public-module run exits 1 after 765.457s
+(.cache/app24-public-windows-first-failure.log; main 531.350s/34.6%). The original
+12m package timeout does not fire. One detail repeat clicks an
+old Disable callback after the worker receipt, before a new frame exposes Enable;
+all three legacy workbench repeats use obsolete extension-tab/command coordinates.
+These are retained failures, not a full regression pass. Test synchronization now
+waits for three real completed GPU frames and reads actual stable-key bounds.
+The normal-app child uses a private read-only build overlay for just two geometry
+keys; production main.go is byte-identical, with bounded worker I/O off the UI
+thread and explicit shutdown. Real USER32 clicks, extension notification pixels,
+Unicode disk bytes, icons, Settings, drag and original timeout guards remain.
+
+The two corrected owned-native fixtures pass three shuffled strict-cgo/race
+repeats in 72.035s (.cache/app24-native-fixtures-targeted.log), configured with
+GODESKTOP_GPU_DEBUG=0, the default hardware-preferred policy and public v0.16.0.
+Its telemetry confirms Direct3D12/DXGI, not the specific physical adapter.
+Each detail repeat opens two real HWND/Node lifecycles. The workbench resolves
+Features bounds {X:491,Y:232,Width:180,Height:35} and hello-command bounds
+{X:311,Y:325,Width:936,Height:42} from matching view generations after real GPU
+completion. The original failed log is immutable; the final full run uses
+.cache/app24-public-windows-final.log and now passes below.
+
+Independent full no-cgo GOWORK=off/shuffle/count=3/p1 tests exit 0 in 170.494s,
+main 80.678s (.cache/app24-public-nocgo-final.log), with real private Git/Node/
+local-protocol checks and zero remaining scratch entries. Public module origin
+is rechecked as 5178f551a179351391af6eaab62f3f5cf150350e, with the recorded
+v0.16.0 sum and go mod verify success (.cache/app24-public-module.json).
+Both repositories' actual workflow files pass actionlint with ShellCheck;
+all eight tracked validation/packaging PowerShell scripts parse successfully.
+All 241 nonignored Go source files pass gofmt and git diff --check passes.
+The final full default-three independent Windows script exits 0 in 833.454s,
+main 498.701s/34.6%. All package strict-cgo/race/shuffle repeats, vet/build/AMD64
+PE and console/GUI native gates pass, including fixed-header detail controls,
+actual 2000-command VSIX/Node callback, File/dialog/Quick Input, Auto Save,
+actual minimized disk/didSave/GPU idle, real language/Git/file-watch/terminal,
+tab/group/split/large-reader guards. Root inspected all three current detail
+GPU captures with version 0.24.0/base bad4e20 source; this is an unpublished
+dirty candidate, not a release-source or installed-byte proof. No local core
+shadow API is linked into it. Native cleanup/source-bound evidence follows in
+.cache/app24-full-validation.json; immutable exact-source CI is next.
+
 ## Public and installed Windows v0.23.0 (2026-10-08)
 
 Immutable application source 47623823dd88fbb45422d096b545631be7e6b77b uses
