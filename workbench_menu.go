@@ -154,7 +154,7 @@ func menuHeight(entries []menuEntry) float32 {
 // Return handled separately from consumed: popup clicks still use framework
 // press/release identity, while all underlying editor/terminal input is excluded.
 func (m *model) menuInput(cx *ui.Context, e ui.InputEvent) (bool, bool) {
-	if e.Kind == ui.KeyPressed && e.Modifiers&ui.ModifierAlt != 0 && e.Modifiers&(ui.ModifierControl|ui.ModifierCommand) == 0 {
+	if e.Kind == ui.KeyPressed && e.Modifiers&ui.ModifierAlt != 0 && e.Modifiers&(ui.ModifierControl|ui.ModifierCommand|ui.ModifierShift) == 0 {
 		for _, name := range workbenchMenuNames {
 			if int(name[0]) == e.Key {
 				m.openMenu(cx, name)

@@ -112,6 +112,16 @@ cancellation uses bounded FindWindowEx loops rather than allocating callbacks
 per dialog. The new keymap and repeatable 45-phase gate is recorded in
 keymaps-and-idempotence.md.
 
+Initial exact source CI 37644269599 catches a real Shift+Alt+F mnemonic collision
+and stale single-key hover acceptance. The full dispatch negative control fails
+before the fix; Alt-only mnemonics and the correct Ctrl+K Ctrl+I chord pass three
+focused race repeats and real Windows gopls/recovery/GPU acceptance. Intel's Git
+commit assertion failure has no established cause yet. SCM native acceptance now
+waits for the actual worker request generation after posted pointer events before
+checking completed HEAD/index state, retains the 60-second guard and all source/
+index assertions, and logs exact status/generation on failure. Actual Windows Git
+and 45-phase menus/keymaps pass. Superseded source is not published.
+
 Full VS Code parity is not complete. Disabled editing/debug/task/appearance
 commands, Auto Save, persistent Recent/workspace history, rich README/changelog/
 icon/rating detail rendering and complete extension API compatibility remain.

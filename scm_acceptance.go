@@ -88,6 +88,8 @@ func runSCMAcceptance() error {
 	}()
 	phase, waiting, nextFrame := 0, false, uint64(8)
 	awaitedControl := ""
+	var awaitingAction bool
+	var actionGeneration uint64
 	var failure error
 	var diagnostic atomic.Value
 	diagnostic.Store("starting")
@@ -124,6 +126,10 @@ func runSCMAcceptance() error {
 			}
 			awaitedControl = ""
 			waiting = true
+			// Posting a native pointer event does not acknowledge its callback.
+			// Require the real Git worker request before checking its result.
+			awaitingAction = key != "scm-message"
+			actionGeneration = m.scm.generation
 			x, y := bounds.X+bounds.Width/2, bounds.Y+bounds.Height/2
 			tabsNativePointer(cx, root, x, y, true, func(err error) {
 				if err != nil {
@@ -133,8 +139,11 @@ func runSCMAcceptance() error {
 				tabsNativePointer(cx, root, x, y, false, advance)
 			})
 		}
-		diagnostic.Store(fmt.Sprintf("phase=%d waiting=%t busy=%t status=%s entries=%d diff=%t control=%s", phase, waiting, m.scm.busy, m.scm.status, len(m.scm.snapshot.Entries), m.scm.diff != nil, awaitedControl))
-		if !waiting && !m.scm.busy && cx.RenderedFrames() >= nextFrame && failure == nil {
+		if awaitingAction && m.scm.generation > actionGeneration {
+			awaitingAction = false
+		}
+		diagnostic.Store(fmt.Sprintf("phase=%d waiting=%t awaiting-action=%t generation=%d/%d busy=%t status=%s entries=%d diff=%t control=%s", phase, waiting, awaitingAction, m.scm.generation, actionGeneration, m.scm.busy, m.scm.status, len(m.scm.snapshot.Entries), m.scm.diff != nil, awaitedControl))
+		if !waiting && !awaitingAction && !m.scm.busy && cx.RenderedFrames() >= nextFrame && failure == nil {
 			switch phase {
 			case 0:
 				if len(m.scm.snapshot.Entries) == 1 {
@@ -185,6 +194,9 @@ func runSCMAcceptance() error {
 					click("scm-message")
 				}
 			case 6:
+				if !m.scm.inputFocused {
+					break
+				}
 				for _, r := range "Native commit 世界 😀" {
 					m.input(cx, ui.InputEvent{Kind: ui.Character, Key: int(r)})
 				}
@@ -198,7 +210,7 @@ func runSCMAcceptance() error {
 				click("scm-commit")
 			case 8:
 				if m.scm.snapshot.Head == initialHead || len(m.scm.snapshot.Entries) != 0 || m.scm.message != "" {
-					fail(errors.New("native commit did not update actual HEAD/index"))
+					fail(fmt.Errorf("native commit did not update actual HEAD/index: generation=%d/%d status=%q head-changed=%t entries=%d message=%q", m.scm.generation, actionGeneration, m.scm.status, m.scm.snapshot.Head != initialHead, len(m.scm.snapshot.Entries), m.scm.message))
 					break
 				}
 				if m.current().buffer.Dirty() || m.current().buffer.Text() != after {

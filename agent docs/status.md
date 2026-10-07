@@ -2,6 +2,21 @@
 
 ## Windows workbench, keymaps, rounded UI and Gallery candidate (2026-10-07)
 
+Initial application source 589362bd6ba15ae1bbfa292d4039306b5f709f75 in CI
+37644269599 passes Ubuntu and both Macs' race/vet, but ARM real gopls stops at
+format phase 1: Alt menu handling incorrectly accepts Shift+Alt+F. A new full
+input-dispatch negative-control test reproduces that exact failure. Alt mnemonics
+now exclude Shift, and the existing native LSP fixture uses the actual VS Code
+Ctrl+K Ctrl+I hover chord. Three focused strict-cgo/race repeats pass (2.027s),
+and real Windows gopls format/hover/definition/completion/diagnostics/crash replay
+and final GPU pixels pass. The 45-phase native menu gate and actual Git gate pass.
+Intel's native Git gate reports the old immediate commit assertion failure;
+cause is not yet established. Native SCM acceptance now requires a real worker
+request generation after posted pointer events before checking its immutable
+HEAD/index result, and preserves assertions/the 60-second guard. Failure output
+includes generation/status/state. The superseded run is cancelled; its source is
+not tagged or published. Corrected exact-source CI follows.
+
 Public core v0.14.0/08c8e355110b8e7241411e36781c2a1919d81eb5 passes all five
 exact source jobs in CI 37624236198. Independent GOWORK=off/no-replace fetch and
 module hashes pass. New rounded clipping/hover requires the parent v0.15 candidate;

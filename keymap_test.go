@@ -67,6 +67,29 @@ func TestBuiltInKeymapsDispatchAndLabels(t *testing.T) {
 		}
 	}
 }
+func TestVSCodeLanguageShortcutsPassThroughMenuInput(t *testing.T) {
+	m, err := newModel(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer m.closeDocuments()
+	m.newTextFile()
+	var methods []string
+	m.requestLSP = func(d *document, method string) { methods = append(methods, method) }
+	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'F', Modifiers: ui.ModifierShift | ui.ModifierAlt})
+	if len(methods) != 1 || methods[0] != "textDocument/formatting" || m.menu.name != "" {
+		t.Fatal("Shift+Alt+F was consumed by File menu", methods, m.menu.name)
+	}
+	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'K', Modifiers: ui.ModifierControl})
+	if len(methods) != 1 {
+		t.Fatal("incomplete hover chord executed early")
+	}
+	m.input(nil, ui.InputEvent{Kind: ui.KeyPressed, Key: 'I', Modifiers: ui.ModifierControl})
+	if len(methods) != 2 || methods[1] != "textDocument/hover" {
+		t.Fatal("Ctrl+K Ctrl+I did not request hover", methods)
+	}
+}
+
 func TestJetBrainsDoubleShiftAndCancellation(t *testing.T) {
 	m, err := newModel(t.TempDir())
 	if err != nil {

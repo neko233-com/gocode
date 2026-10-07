@@ -63,6 +63,7 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 		line, _ := find("greeting", true)
 		if d.line == line {
 			m.input(cx, ui.InputEvent{Kind: ui.KeyPressed, Key: 'K', Modifiers: ui.ModifierControl})
+			m.input(cx, ui.InputEvent{Kind: ui.KeyPressed, Key: 'I', Modifiers: ui.ModifierControl})
 			a.phase = 3
 		}
 	}

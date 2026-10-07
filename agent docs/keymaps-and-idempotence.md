@@ -78,3 +78,11 @@ including both 45-phase workbench runs and scratch-root cleanup. No-cgo, vet,
 actionlint/ShellCheck, distribution policies and diff checks pass. File popup and
 selected JetBrains Settings PNGs are inspected. Exact source CI and published/
 installed-byte checks follow before promotion.
+
+Initial source CI 37644269599 catches Shift+Alt+F being routed as Alt+F during
+real gopls formatting. A full m.input dispatch test fails on the original code;
+the Alt mnemonic mask now excludes Shift as well as Control/Command. Three race/
+strict-cgo repeats pass (2.027s). The native LSP fixture now sends the actual
+Ctrl+K Ctrl+I chord, preserving the rule that Ctrl+K alone does not issue hover.
+Real Windows formatting/hover/definition/completion/diagnostics/crash recovery/
+final pixels, the 45-phase gate and actual Git commit pass after the correction.
