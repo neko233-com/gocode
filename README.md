@@ -49,7 +49,7 @@ go.mod 固定依赖公开发布的 godesktop v0.13.0，没有本地 replace，�
 
 ## 编辑与扩展
 
-- v0.21.0 候选版增加真实 Git 工作台：Ctrl/Cmd+Shift+G、初始化、暂存/取消暂存、提交与原生左右差异视图，保留未暂存内容和未保存文档。需要已安装 Git；跨平台/发行状态与范围见 [Git 工程记录](agent%20docs/scm.md)。
+- v0.21.0 增加真实 Git 工作台：Ctrl/Cmd+Shift+G、初始化、暂存/取消暂存、提交与原生左右差异视图，保留未暂存内容和未保存文档。已通过五平台、发行字节/回滚和本机实际安装验收；需要已安装 Git，具体范围见 [Git 工程记录](agent%20docs/scm.md)。
 - UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。
 - v0.20.0 将 VSIX Terminal API 连接真实 ConPTY/PTY：创建/PID/cwd/env/Unicode 输入、显示/隐藏/焦点与生命周期事件，扩展销毁和用户关闭会回收进程。公开模块、五平台/发行/本机验收，以及 Pseudoterminal/shell integration 等缺口，见 [终端工程记录](agent%20docs/terminal.md)。
 - v0.19.0 使用公开核心保留 Windows 与 Mac 彩色 emoji 的原生 RGBA、透明度和裁剪；普通文字与彩色字形混合批次仍有界。Windows ConPTY 的实际彩色 emoji 输出和编辑器分栏 GPU 像素验收见 [彩色字形记录](agent%20docs/color-glyphs.md)。

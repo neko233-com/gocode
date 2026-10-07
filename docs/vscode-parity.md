@@ -16,7 +16,7 @@
 | VSIX 宿主 | 部分 | 本地安装、CommonJS 激活、文档/事务/事件、语言提供者、持久状态；v0.17.0 增加原生 visibleTextEditors/viewColumn/选区/可见范围事件、隐藏打开、preserveFocus、独立 reveal、关闭重开身份与延迟焦点保护，实际验证状态见 agent docs/status.md；完整 tabGroups、options/decorations/snippets/undo merging 和大量贡献点尚缺，未知 API 抛错 |
 | 配置/主题 | 部分 | 扩展读取/更新 JSON 配置；缺 JSONC、配置 UI、schema/defaults、主题/语法贡献和配置实际应用到全部编辑器行为 |
 | 终端 | 部分 | Windows ConPTY/macOS PTY、真实 shell 输入高亮、VT/真彩色/Unicode/备用屏、网格 resize、输入/中断/退出、标签/选区/滚动与有界历史；v0.20.0 发布真实 VSIX createTerminal/PID/环境/Unicode 输入、show/hide/焦点、生命周期事件与原生关闭/进程回收，通过五平台、发行和本机验收，见 agent docs/terminal.md；Pseudoterminal、完整扩展 API、shell integration、链接、IME/字形样式仍缺 |
-| Git / SCM / Diff | 部分 | v0.21.0 候选版真实仓库状态/初始化、单项及全部暂存/取消暂存、索引提交和原生只读左右差异；Unicode/CRLF/二进制/重命名/工作树/SHA256、脏文档和过期索引保护、子进程取消；具体 source CI/发行/安装状态见 agent docs/scm.md；缺编辑/逐块 diff、合并、历史/分支/远程、多仓库与扩展 SCM API |
+| Git / SCM / Diff | 部分 | v0.21.0 真实仓库状态/初始化、单项及全部暂存/取消暂存、索引提交和原生只读左右差异；Unicode/CRLF/二进制/重命名/工作树/SHA256、脏文档和过期索引保护、子进程取消已通过五平台/发行/回滚/本机验收，见 agent docs/scm.md；缺编辑/逐块 diff、合并、历史/分支/远程、多仓库与扩展 SCM API |
 | Debug / DAP | 未实现 | 需要会话/断点/变量/调用栈、launch.json、debug adapter 与扩展 API |
 | Tasks / Testing | 未实现 | 需要任务和测试树/结果、进程/问题匹配器、tasks.json 与 testing API |
 | Webviews / TreeViews | 未实现 | 需要原生视图协议、树的数据/事件，以及受控的 webview 渲染方案 |

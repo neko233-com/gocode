@@ -1,6 +1,6 @@
 # Native Git / Source Control
 
-Candidate v0.21.0 uses installed Git in a cancellable background worker and the
+Released v0.21.0 uses installed Git in a cancellable background worker and the
 public godesktop v0.13.0 native UI. Ctrl/Cmd+Shift+G opens Source Control. A
 non-repository workspace can be initialized. Staged and working-tree resources
 have individual/all stage or unstage actions; clicking a resource opens a
@@ -19,7 +19,10 @@ unstaged disk bytes. Failed commands retain the message and report real errors.
 Diff uses bounded immutable before/after snapshots and Git's no-index algorithm
 with external diff/textconv disabled. Original and working/index sides, aligned
 line numbers, syntax colors, red/green backgrounds and synchronized virtual
-vertical scrolling are native. Binary files show metadata. Files above 8 MiB
+vertical scrolling are native. Arrows/Page/Home/End navigate rows; Escape or
+Ctrl/Cmd+W closes the diff. Selecting a normal editor tab restores editing, and
+delayed diff results cannot steal that newer editor focus. Binary files show
+metadata. Files above 8 MiB
 report the limit and remain available through the existing bounded file browser.
 Unmerged and submodule resources report their distinct unsupported diff modes.
 
@@ -49,9 +52,22 @@ GOCODE_SCM_SCREENSHOTS or .cache/scm-native. The message path exercises native
 input handling with Unicode events; it does not claim OS keyboard/IME coverage.
 Windows console/GUI and Mac normal/1.5/2 density run in source CI.
 
-Local native Windows gate passes; exact five-platform source CI, immutable
-release bytes and installed promotion are pending. Do not infer those from
-unit tests. Latest authoritative installed version remains v0.20.0.
+Immutable source/package 7f722c05bf7df7ad7b3a5c4f2c906cad80237360 passes all five
+jobs in source CI 37614173233; publication 37615680818 reuses those tested packages.
+Both Windows console/GUI and both Macs normal/1.5/2 pass real SCM gates. Final
+Windows 100%, ARM 200% and Intel 150% PNGs were inspected. Initial source 626ad70
+passes Git/race/native but Intel's total 15-minute job budget expires installing
+gopls. Only that total budget changes to 20 minutes; per-test guards stay intact.
+Logs/PNGs are retained, and only the fully successful final source is published.
+
+Actual signed automatic/direct/mirror full release bodies, all released native
+regressions including SCM and prior v0.4.0 GUI rollback pass. The user's stable
+launcher updates actual v0.20→v0.21 and selects exact source 7f722c0. Installed
+GUI/icons/Settings, genuine VSIX, real 1 GiB split with unchanged whole hash,
+highlighted/VSIX terminals and native SCM all pass. Settings/SCM PNGs were inspected
+at 150% (SCM syntax ink 1674); configuration/PATH and both shortcut targets stay
+unchanged. Official Copilot LSP/SDK/authentication pass with no model prompt.
+Exact hashes and immutable CI/publication/install evidence are in status.md.
 
 Remaining: editable/inline/hunk diffs, conflict resolution/merge editor,
 submodule/history/branch/remote/stash UI, multi-repository discovery,

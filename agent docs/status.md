@@ -1,6 +1,6 @@
 # Milestone ledger
 
-## Candidate native Git v0.21.0 (2026-10-07)
+## Native Git v0.21.0 promotion (2026-10-07)
 
 Actual Windows HWND pointer stage/unstage/restage/commit passes and checks real
 HEAD/index/disk plus Unicode/CRLF original/staged GPU diff pixels. Captured
@@ -14,18 +14,45 @@ Independent Windows strict-cgo/three-repeat race/vet and full console/GUI native
 regressions pass (model 30.7%, Git 79.1%, search 81.4%). Final parser validation
 also passes three-repeat race and a second 470,413-execution fuzz run; no-cgo,
 actionlint/ShellCheck and diff checks pass. Latest VS Code stable 1.141.0/main
-9fcc9a1 was rechecked. Exact source CI, immutable release and installed promotion
-are pending. Public/installed v0.20.0 below remains authoritative.
+9fcc9a1 was rechecked. Immutable application/package source
+7f722c05bf7df7ad7b3a5c4f2c906cad80237360 passes all five jobs in
+[CI 37614173233](https://github.com/neko233-com/gocode/actions/runs/37614173233):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. Both Macs pass native SCM
+normal/1.5/2 and real owned descendant cancellation; Ubuntu also runs bounded
+10-second parser fuzz. Final-source Windows 100%, ARM 200% and Intel 150% diff
+PNGs were retrieved through validated ZIP/CRC range reads and visually inspected.
+Syntax ink counts are 728/728 on Windows, 3025 ARM 200%, 1844 Intel 150%.
+
+[Publication 37615680818](https://github.com/neko233-com/gocode/actions/runs/37615680818)
+reuses those exact tested packages and tags that source as v0.21.0. Metadata
+311a0edc7fe59dd704fc239104a1f3171848a926 changes exactly seven free channel files;
+both Python policies pass. Actual signed automatic/direct GitHub/manual ghfast
+full release bytes, all released native gates including SCM, and the real prior
+v0.4.0/cfcd351 GUI rollback pass. ZIP SHA256 is
+2a20e513ed71f9758a65921eb48efa155109ded04cdd7ba579e258a600af4013; MSI is
+e06488d39b1099d8c5d716dfc368b84536aa033ee1eb4d237f24b21ccf77a5ae.
+
+The user's original stable 0.5.1 launcher updates v0.20→v0.21 via direct GitHub
+and selects exact 7f722c0. Installed GUI/both icon handles/Settings, editor groups
+and genuine VSIX, actual 1,073,741,824-byte split with identical whole SHA256,
+highlighted ConPTY/native VSIX terminals and real Git stage/unstage/commit/diff
+all pass. Installed Settings and SCM PNGs were inspected: Up to date (0.21.0),
+auto=true/automatic route and gopls ready; SCM syntax ink 1674 at 150%.
+Config SHA256 remains d8a85199a0018d88355ab5786881c778dc63596858a58bbe64fde8f799c9ed5f;
+user PATH remains aec04bdd1653d4c8c70dc2b50aec868029787ecf0cc34cbd1f4a9f7df3d30aa3.
+Actual Desktop/Start Menu shortcuts still target stable gocode-launch.exe.
+Official Copilot authenticated/LSPInitialized/SDKConnected=true;
+networkPromptSent=false. Full VS Code/GPUI/official Copilot VSIX parity remains active.
 See scm.md for exact limits and remaining merge/history/remote/provider gaps.
 
 Initial source 626ad7097eccc757fe441587f42028a47bcaf3fc in CI 37612073450 passes
 Windows 2022/2025, ARM and Ubuntu. Intel race/Git (80.9%), vet, all native gates
 including SCM normal/1.5/2, and official Copilot protocol pass. Its job is cancelled
 while installing gopls: the annotation explicitly reports the total 15-minute
-job maximum. Packages are not promoted. Actual logs and all three density SCM
+job maximum. Those incomplete packages were not promoted. Actual logs and all three density SCM
 PNGs are retained. Only the Intel total job budget becomes 20 minutes; native
-watchdogs/assertions and other platform budgets remain unchanged. Full exact
-new-source CI is required before release.
+watchdogs/assertions and other platform budgets remain unchanged. Exact final
+source CI above passes all five, and Intel finishes in 12 minutes 6 seconds.
 
 ## Native VSIX terminal v0.20.0 promotion (2026-10-07)
 
