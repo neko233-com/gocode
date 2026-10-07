@@ -31,12 +31,25 @@ Published and installed app remains v0.16.0/source 38f7d15. Full tabGroups/previ
 docking/options/undo merging/IME/accessibility and official Copilot VSIX remain gaps.
 
 First exact-source app CI 37568560220 at 9fb9f2d did not pass: both Windows runners
-fail the native palette Save assertion, while Mac ARM's existing 200% replacement
+fail the native palette background wait before Save, while Mac ARM's existing 200% replacement
 gate times out awaiting a second grouped Undo prompt. New VSIX gates pass on ARM
 normal/1.5/2. Promotion is stopped. Native failure snapshots/DPI and Mac key/history
 diagnostics are retained; local owned 96-DPI full-window race passes after matching
 probe/child virtualization. Failed gates remain required; further CI diagnosis is
 pending, and no application release/install success is claimed.
+
+The Windows failure is now reproduced at the runner's 1024×728/96 DPI: the added
+background sample x=700 intersects centered button glyphs, preventing the click
+from being sent. Sampling the blank left side fixes it without changing native
+Save or its exact-byte assertion. Three-repeat owned small-window races pass.
+Initial -window-width/-window-height DIP options allow faithful startup fixtures;
+owned forced-DPI failure captures keep matching probe awareness during cleanup.
+Diagnostic CI 37569352467 passes all Mac ARM native/package gates, including all
+three densities and the unchanged previously timed-out Undo prompt, with actual
+key/history traces retained. Full public-module Windows strict-cgo/three-repeat
+race/vet plus all normal console/GUI native regressions pass again, with the unit
+owned-window fixture forced to the runner's 1024×728/96 DPI. Model coverage is
+31.3%, search 81.4%. A fresh exact-source full app CI is still required.
 
 ## Native editor groups v0.16.0 promotion (2026-10-07)
 

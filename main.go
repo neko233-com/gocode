@@ -112,6 +112,8 @@ func run() error {
 	updateMirror := flag.String("update-mirror", "", "Manual HTTPS prefix for GitHub downloads")
 	updateAuto := flag.String("updates-auto", "", "Enable or disable automatic updates: true/false")
 	workspace := flag.String("workspace", ".", "Workspace directory")
+	windowWidth := flag.Int("window-width", 1280, "Initial native window width in DIP")
+	windowHeight := flag.Int("window-height", 820, "Initial native window height in DIP")
 	extensionDir := flag.String("extensions-dir", "", "Local VSIX installation directory")
 	install := flag.String("install-extension", "", "Install a trusted local VSIX and exit")
 	smoke := flag.Bool("smoke", false, "Verify a native frame and a real extension command, then exit")
@@ -593,7 +595,7 @@ func run() error {
 		}
 	})
 	defer watchdog.Stop()
-	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(m.workspace), Width: 1280, Height: 820, Background: ui.RGB(editor), CustomTitlebar: true, Input: m.input, CloseRequested: m.requestWindowClose}, func(viewContext *ui.Context) *ui.Element {
+	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(m.workspace), Width: float32(*windowWidth), Height: float32(*windowHeight), Background: ui.RGB(editor), CustomTitlebar: true, Input: m.input, CloseRequested: m.requestWindowClose}, func(viewContext *ui.Context) *ui.Element {
 		if !started {
 			cx = viewContext
 			m.native = viewContext

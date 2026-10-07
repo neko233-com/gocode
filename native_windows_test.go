@@ -69,6 +69,9 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	var output safeOutput
 	configRoot := t.TempDir()
 	cmd := exec.Command(exe, "-workspace", workspace, "-extensions-dir", t.TempDir(), "-copilot=false", "-lsp=false")
+	if os.Getenv("GOCODE_TEST_SMALL_WINDOW") == "1" {
+		cmd.Args = append(cmd.Args, "-window-width", "1024", "-window-height", "728")
+	}
 	cmd.Env = append(os.Environ(), "GODESKTOP_READBACK=1", "APPDATA="+configRoot)
 	if os.Getenv("GOCODE_TEST_DPIUNAWARE") == "1" {
 		// Force only the owned child to 96 DPI; keep the probing thread aware.
@@ -83,6 +86,15 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	var w winprobe.Window
 	t.Cleanup(func() {
 		if t.Failed() {
+			runtime.LockOSThread()
+			defer runtime.UnlockOSThread()
+			restore := winprobe.Awareness()
+			defer restore()
+			if os.Getenv("GOCODE_TEST_DPIUNAWARE") == "1" {
+				fn := syscall.NewLazyDLL("user32.dll").NewProc("SetThreadDpiAwarenessContext")
+				old, _, _ := fn.Call(^uintptr(0))
+				defer fn.Call(old)
+			}
 			width, height, _ := w.ClientSize()
 			color, pixelErr := w.Pixel(600, 105)
 			t.Logf("owned window dpi=%d client=%dx%d first row=%06x (%v)", w.DPI(), width, height, color, pixelErr)
@@ -112,6 +124,9 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	w.Raise()
 	unpin := w.Pin()
 	defer unpin()
+	if os.Getenv("GOCODE_TEST_SMALL_WINDOW") == "1" {
+		until(t, func() bool { width, height, err := w.ClientSize(); return err == nil && width == 1024 && height == 728 })
+	}
 	until(t, func() bool { color, err := w.Pixel(500, 400); return err == nil && color == editor })
 	// Welcome and the pending-open banner can paint before startup finishes.
 	// Wait for the actual first source row at its final input coordinates.
@@ -182,7 +197,9 @@ func TestNativeWorkbenchAMD64(t *testing.T) {
 	// The native group tree is now initialized before service startup, so the
 	// workspace-wide command palette precedes the group tabs and breadcrumb.
 	// Click its actual first action rather than the old single-editor location.
-	until(t, func() bool { color, err := w.Pixel(700, 90); return err == nil && color == 0x252526 })
+	// Use the blank left side: the centered caption crosses x=700 on the
+	// runner's 1024-DIP window, so that pixel is glyph ink rather than backdrop.
+	until(t, func() bool { color, err := w.Pixel(430, 90); return err == nil && color == 0x252526 })
 	click(430, 90)
 	until(t, func() bool {
 		data, _ := os.ReadFile(filepath.Join(workspace, "main.go"))

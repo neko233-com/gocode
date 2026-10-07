@@ -43,6 +43,8 @@ go run . -workspace .
 
 macOS 使用 `CGO_ENABLED=1 go run . -workspace .`。Windows GUI 构建：`go build -trimpath -ldflags="-s -w -H=windowsgui" -o bin/gocode.exe .`。
 
+`-window-width 1024 -window-height 728` 可指定启动窗口的 DIP 尺寸，默认 1280×820；原生标题栏仍可拖动、缩放和最大化。
+
 go.mod 固定依赖公开发布的 godesktop v0.10.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
