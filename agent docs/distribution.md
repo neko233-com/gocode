@@ -1,14 +1,16 @@
 # Free distribution contract
 
-Latest promotion: v0.19.0/source 4616656, five-platform source CI 37590651597 and
-publication 37592393163 reusing tested artifacts. Seven generated metadata files
-at d6cd857 passed local policy tests and real signed automatic/direct/manual ZIP
-body checks. Released native gates and actual v0.4.0 GUI rollback passed. User
-selected payload is 0.19.0; stable MSI/launcher baseline remains 0.5.1. Actual
-installed native/visual/SDK-LSP-without-prompt gates passed with Auto=true/mode=auto.
-Installed native groups/real VSIX and actual GiB split pass; settings/PATH hashes
-and both stable shortcut targets match before/after. Automatic owned routing and
-actual user update chose direct GitHub; manual route used ghfast.top.
+Latest promotion: v0.22.0/source 0b5966171e5e183e74a9fecbeccce391cd1cf229,
+five-platform source CI 37651719075 and publication 37654475129 reusing tested
+artifacts. Seven metadata files at 787be53d2662c4c8d85417371474636190604b03 pass
+both Python policies. Actual signed automatic/manual gh-proxy.com full ZIP bodies,
+released native gates and genuine v0.4.0 GUI/VSIX rollback pass. Direct GitHub
+archive body checks fail twice on this network; rejected incomplete downloads
+do not count as direct-route proof. Actual user update uses gh-proxy.com.
+User selected payload is 0.22.0; stable MSI/launcher baseline remains 0.5.1.
+Installed native File/keymaps/groups/real VSIX, actual GiB split, shell/VSIX
+terminals/Git and official SDK/LSP health without a prompt pass. Auto=true/mode=auto,
+settings/PATH hashes and both stable shortcut targets/icons match baseline.
 Exact hashes and source references are in status.md and distribution/SHA256SUMS.
 
 Maintained channels: Windows unsigned MSI/portable ZIP and pinned PowerShell install;

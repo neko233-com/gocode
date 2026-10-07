@@ -1,5 +1,54 @@
 # Milestone ledger
 
+## Public and installed Windows v0.22.0 (2026-10-08)
+
+Immutable application source 0b5966171e5e183e74a9fecbeccce391cd1cf229 passes
+all five exact-source jobs in CI 37651719075: Windows amd64 2022/2025, Mac
+Intel/ARM and Ubuntu. Both Windows jobs retain default three shuffled race/
+strict-cgo repeats, owned native menus/dialogs/keymaps/VSIX/Git/GPU acceptance,
+real services and installer checks; Windows 2025 adds actual GiB acceptance.
+Publication 37654475129 reuses those tested packages and tags that same source
+as v0.22.0. Seven distribution metadata files at
+787be53d2662c4c8d85417371474636190604b03 pass both Python policy checks.
+Public core v0.15.0/4d62ed73a5513d8cbc281e05fe9ea43a74fd61ea was fetched and
+verified independently with GOWORK=off/GOPROXY=direct, without a local replace.
+The earlier failed/cancelled sources below remain untagged and retained as history.
+
+Actual signed automatic and explicitly selected gh-proxy.com full Windows ZIP
+downloads pass SHA256/source/native health. ZIP SHA256 is
+5879d7ac2883df797c867c2e7a9a6084d4d3626abc70af6390881c40214443ef;
+MSI SHA256 is 477ce00ef7970be447094469f678d6698fd38d4459c2008f0c3dc3043261bdc6.
+All released native gates pass, including the new 45-phase workbench and existing
+large browser/save/close/editor/open/file-watch/LSP/search/replace/groups/real
+VSIX/terminal/SCM checks. Actual rollback selects v0.4.0/source
+cfcd3513aedc4ec50ae19625fbd2f04446039abe and renders/executes its bundled VSIX.
+Direct GitHub archive body checks fail twice on this network with timeout/size
+mismatch; bad bodies are rejected. GitHub metadata reachability is not proof of
+a successful direct archive download. Automatic/manual mirror success is verified.
+Logs: ignored .cache/live-release-check/{current,resume,mirror-rollback}.log.
+
+The user's original stable 0.5.1 launcher applies the signed v0.22.0 update using
+gh-proxy.com and current.json selects exactly 0b5966171e5e183e74a9fecbeccce391cd1cf229.
+Installed GUI/version/source/icon handles, real File menu and Settings, both
+native keymaps, groups/genuine VSIX and an actual 1,073,741,824-byte shared split
+with identical whole-file SHA256 pass. Highlighted shell/VSIX terminal and actual
+Git stage/unstage/commit/diff pass. Installed File/Settings GPU captures at 150%
+were inspected: rounded popup/editor frame, real New Window/Open Folder entries,
+VS Code preset, Automatic=true, automatic route, up to date (0.22.0), gopls ready.
+Config SHA256 d8a85199a0018d88355ab5786881c778dc63596858a58bbe64fde8f799c9ed5f
+and user PATH SHA256 aec04bdd1653d4c8c70dc2b50aec868029787ecf0cc34cbd1f4a9f7df3d30aa3
+match baseline. Both Desktop/Start Menu shortcuts retain the stable
+Programs/gocode/gocode-launch.exe target and original MSI icon location.
+Installed official Copilot reports authenticated/lspInitialized/sdkConnected=true,
+networkPromptSent=false. Logs/captures reuse ignored stable installed-* paths;
+user workspaces remain untouched.
+
+Full VS Code UI/API/debug/refactoring/official Copilot VSIX parity remains open.
+Microsoft's official Marketplace is not enabled without separate service
+authorization; default Open VSX and authorized native Gallery protocol are
+distinct. The owned failed manual diagnostic directory and automatic cleanup
+rejection recorded below remain unresolved; isolated repeatable tests clean up.
+
 ## Windows workbench, keymaps, rounded UI and Gallery candidate (2026-10-07)
 
 2026-10-08: f24758584ceaf8bc64d326a52a1fb3d2f42a8f77 / CI 37648319182 passes

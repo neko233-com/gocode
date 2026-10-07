@@ -1,9 +1,11 @@
 # Windows workbench correction
 
 The current user priority is Windows first, with actual VS Code File menus and
-extension interactions. Mac/IME development is deferred. Public/installed app
-v0.21.0 remains installed until application promotion completes. Public core
-v0.14.0 is verified and imported independently with GOWORK=off.
+extension interactions. Mac/IME development is deferred. Public and installed app
+v0.22.0/source 0b5966171e5e183e74a9fecbeccce391cd1cf229 now uses independently
+verified public core v0.15.0 with GOWORK=off. All five exact-source CI jobs
+37651719075 and package-reuse publication 37654475129 pass. The earlier
+candidate validation below is historical; status.md records final promotion.
 
 ## Upstream source and license
 
@@ -25,7 +27,7 @@ no Electron/browser UI is introduced. The actual inspected source snapshots are
 cached under ignored .cache/vscode-menu-reference. Existing icon provenance stays
 in assets/code-oss/PROVENANCE.md.
 
-## Implemented candidate
+## Implemented behavior
 
 File/Edit/Selection/View/Go/Run/Terminal/Help have separate popup trees with
 separators, shortcut labels, disabled entries, selection, check state and nested
@@ -137,3 +139,12 @@ Open VSX is not Microsoft's Marketplace. Availability/download/install does not
 prove a third-party extension's APIs work. Official Copilot remains the accepted
 SDK/LSP route; official Copilot VSIX compatibility is not claimed. Mac file
 dialogs and new Windows acceptance are intentionally not advertised on Mac.
+
+Final released bytes and actual user-installed GUI pass the 45-phase workbench,
+groups/real VSIX, actual GiB split, shell/VSIX terminal and Git acceptance.
+The installed File menu and Settings GPU captures were inspected at actual 150%
+density. Real New Window/Open Folder entries are enabled in production; fixture
+disabled entries do not represent the installed lifecycle callbacks. The signed
+update selects exact source 0b596617, preserving config/PATH/shortcut identities.
+Automatic/manual mirror download and genuine old-GUI rollback pass; direct
+GitHub archive checks fail twice on the current network and are not claimed.

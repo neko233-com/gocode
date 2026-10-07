@@ -1,5 +1,14 @@
 # Modern Windows UI and native VS Gallery protocol
 
+Final native rounded UI is public and installed in v0.22.0/source
+0b5966171e5e183e74a9fecbeccce391cd1cf229 on public core v0.15.0. All five source
+jobs 37651719075 and tested-package publication 37654475129 pass. Actual final
+Windows 2025 File menu and Windows 2022 JetBrains Search Everywhere CI captures
+were inspected, together with installed 150% File menu/Settings GPU pixels.
+The framework's descendant clipping fixes a real missing capability; it does
+not establish full VS Code pixel/API parity. Earlier candidate checks below
+are retained as history. Exact installed/released-byte evidence is in status.md.
+
 The user's latest steering requests current VS Code rounding and the official
 extension store. Actual MIT Code-OSS 1.141.0/2a59476c9bfcb90b3ddc372c36762471b7dfad1c
 modernUI sources are inspected: roundedCorners, editorBorder, padding, tabs,
@@ -67,3 +76,10 @@ identity validation, extraction, actual contributed command and cleanup pass.
 Different selected version and foreign/credential URLs are rejected without
 changing the installed fixture. This is actual protocol/process evidence for the
 fixture, not proof of live official Marketplace access or arbitrary extension APIs.
+
+The installed v0.22.0 official Copilot SDK/LSP health check reports authentication,
+LSP initialization and SDK connection true, networkPromptSent=false. Microsoft's
+FAQ was rechecked on 2026-10-08: alternative products, including Code-OSS forks,
+are not permitted to access the official Marketplace. Separate service
+authorization is absent here; the native authorized Gallery implementation and
+default live Open VSX remain the implemented scope.

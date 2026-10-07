@@ -1,5 +1,13 @@
 # Native keymaps and repeatable Windows acceptance
 
+Public/installed v0.22.0/source 0b5966171e5e183e74a9fecbeccce391cd1cf229
+passes all five exact-source CI jobs 37651719075 and package-reuse publication
+37654475129. Both Windows jobs retain three shuffled race/strict-cgo repeats;
+package binaries run serially (-p=1), with unchanged native guards/assertions.
+Released and actual installed 45-phase native keymap checks pass. The actual
+installed configuration/PATH and both stable shortcuts match baseline. Final
+Settings/File PNGs were inspected at 150%; full release evidence is in status.md.
+
 The user explicitly requested idempotent tests and built-in JetBrains/VS Code
 shortcuts. Both presets are native Go data, require no extension, and drive the
 same command dispatcher and menu/Quick Input binding labels. VS Code is default.
@@ -105,3 +113,12 @@ race repeat count remains three and native guards/cleanup assertions are unchang
 Local independent serial Windows script Repeat=1 passes (app 81.809s), all
 console/GUI native gates, vet and owned scratch cleanup. Final three-repeat
 source CI remains the publication gate.
+
+Final-source CI satisfies that gate on Windows 2022 and 2025. Isolated scratch
+tests remove their owned roots and reuse stable evidence names. One earlier
+manual diagnostic used inconsistent drawable/input density and timed out; it is
+not valid product evidence. Its owned directory
+C:/Users/14170/AppData/Local/Temp/gocode-scm-native-4191533845 remains because
+automatic approval review rejected checked literal deletion with 'blocked by policy'
+and no further reason. No alternate deletion mechanism was used to bypass it;
+global temporary-directory emptiness is not claimed.
