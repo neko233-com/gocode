@@ -355,6 +355,9 @@ func run() error {
 		*copilotEnabled, *lspEnabled = false, false
 	}
 	if *terminalSmoke {
+		if err := os.Setenv("GODESKTOP_READBACK", "1"); err != nil {
+			return err
+		}
 		fixture, err := os.MkdirTemp("", "gocode-terminal-native-")
 		if err != nil {
 			return err

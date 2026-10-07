@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -294,6 +295,7 @@ func captureGroupsPixels(cx *ui.Context, m *model, stage string) error {
 		return err
 	}
 	inks := []int{}
+	colorGlyphPixels := []int{}
 	bounds := []ui.Bounds{}
 	for _, g := range m.allGroups() {
 		b, ok := cx.ElementBounds(groupKey(g, "editor-content"))
@@ -302,6 +304,7 @@ func captureGroupsPixels(cx *ui.Context, m *model, stage string) error {
 		}
 		bounds = append(bounds, b)
 		ink := 0
+		intrinsic := 0
 		large := g.current != nil && g.current.large != nil
 		left, right, top := float32(68), float32(94), float32(0)
 		if large {
@@ -313,9 +316,15 @@ func captureGroupsPixels(cx *ui.Context, m *model, stage string) error {
 				if (!large && int(p.B) > int(p.R)+15 && p.G > 90) || (large && p.R >= 100 && p.G >= 100 && p.B >= 100) {
 					ink++
 				}
+				// Fixture string tint is brown; native 😀 must retain its yellow
+				// face. Count only completed editor pixels, excluding chrome/gutter.
+				if p.R > 150 && p.G > 110 && p.B < 70 {
+					intrinsic++
+				}
 			}
 		}
 		inks = append(inks, ink)
+		colorGlyphPixels = append(colorGlyphPixels, intrinsic)
 	}
 	dir := os.Getenv("GOCODE_GROUPS_SCREENSHOTS")
 	if dir == "" {
@@ -337,7 +346,8 @@ func captureGroupsPixels(cx *ui.Context, m *model, stage string) error {
 		Scale         float64
 		Bounds        []ui.Bounds
 		Ink           []int
-	}{stage, pixels.Bounds().Dx(), pixels.Bounds().Dy(), scale, bounds, inks}, "", "  ")
+		ColorGlyph    []int
+	}{stage, pixels.Bounds().Dx(), pixels.Bounds().Dy(), scale, bounds, inks, colorGlyphPixels}, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -347,6 +357,9 @@ func captureGroupsPixels(cx *ui.Context, m *model, stage string) error {
 	for i, ink := range inks {
 		if ink < 16 {
 			return fmt.Errorf("group %d lacks completed syntax GPU ink: %d", i, ink)
+		}
+		if runtime.GOOS == "darwin" && stage == "shared" && colorGlyphPixels[i] < 12 {
+			return fmt.Errorf("group %d lacks intrinsic emoji GPU color: %d pixels", i, colorGlyphPixels[i])
 		}
 	}
 	return nil

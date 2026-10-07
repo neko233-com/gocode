@@ -116,6 +116,7 @@ jobs:
             .cache/updates-native-settings.png
             .cache/close-native/*.png
             .cache/terminal-native/*.png
+            .cache/terminal-native/*.json
             .cache/filewatch-native/*.png
             .cache/filewatch-native-lsp/*.png
             .cache/open-native/*.png
@@ -161,6 +162,8 @@ jobs:
       - run: go test -race -shuffle=on -count=3 -coverprofile=coverage.out ./...
       - run: go vet ./...
       - name: Build and smoke native workbench
+        env:
+          GODESKTOP_READBACK: '1'
         run: |
           mkdir -p bin
           go build -trimpath -ldflags="-s -w" -o bin/gocode .
@@ -192,7 +195,9 @@ jobs:
             ./bin/gocode -extensions-dir .cache/extensions -close-smoke "$mode"
           done
           ./bin/gocode -extensions-dir .cache/extensions -largefile-smoke
-          ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
+          GOCODE_TERMINAL_SCREENSHOTS=.cache/terminal-native ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_TERMINAL_SCREENSHOTS=.cache/terminal-native-150 ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_TERMINAL_SCREENSHOTS=.cache/terminal-native-200 ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
           ./bin/gocode -extensions-dir .cache/extensions -filewatch-smoke -lsp=false
       - name: Install pinned official Copilot sidecars
         run: ./bin/gocode -install-copilot
@@ -248,6 +253,12 @@ jobs:
             .cache/replace-native-150/*.json
             .cache/replace-native-200/*.png
             .cache/replace-native-200/*.json
+            .cache/terminal-native/*.png
+            .cache/terminal-native/*.json
+            .cache/terminal-native-150/*.png
+            .cache/terminal-native-150/*.json
+            .cache/terminal-native-200/*.png
+            .cache/terminal-native-200/*.json
             dist/*.zip
             dist/*.tar.gz
           include-hidden-files: true

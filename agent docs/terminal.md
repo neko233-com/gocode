@@ -10,6 +10,10 @@ Terminal process I/O, VT parsing and shell preparation run in owned workers.
 Only immutable cell snapshots and native view/input state cross the UI thread.
 No Electron, xterm.js or browser surface is involved.
 
+Candidate cross-platform owned drawable color/emoji PNG/JSON gates and the
+previous Mac no-op capture gap are documented in color-glyphs.md. Mac terminal
+window-width resize and full native color fonts on Windows remain unverified.
+
 ## Processes and shells
 
 Windows uses official Microsoft.Windows.Console.ConPTY 1.25.260930003 from

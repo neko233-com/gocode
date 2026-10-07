@@ -87,13 +87,13 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 	capture := func(name string) bool {
 		directory := os.Getenv("GOCODE_TERMINAL_SCREENSHOTS")
 		if directory == "" {
-			return true
+			directory = filepath.Join(".cache", "terminal-native")
 		}
 		bounds, ok := cx.ElementBounds("terminal-grid")
 		if !ok {
 			return false
 		}
-		if err := captureTerminalAcceptance(m.workspace, filepath.Join(directory, name+".png"), bounds); err != nil {
+		if err := captureTerminalAcceptance(cx, m.workspace, filepath.Join(directory, name+".png"), bounds); err != nil {
 			if errors.Is(err, errTerminalPixelsPending) {
 				a.lastPixelError = err.Error()
 				return false
@@ -150,7 +150,7 @@ func (a *terminalAcceptance) step(cx *ui.Context, m *model) {
 			}
 		case 4:
 			if shellPromptReady(f) && strings.Count(f.Text(), "NATIVE_INPUT_HIGHLIGHT") >= 2 {
-				command := `printf '\033[38;2;229;192;123mNATIVE_TRUECOLOR\033[0m\n'`
+				command := `printf '\033[38;2;229;192;123mNATIVE_TRUECOLOR 😀\033[0m\n'`
 				if runtime.GOOS == "windows" {
 					command = `[Console]::WriteLine("$([char]27)[38;2;229;192;123mNATIVE_TRUECOLOR$([char]27)[0m")`
 				}

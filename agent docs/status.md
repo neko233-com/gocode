@@ -1,5 +1,24 @@
 # Milestone ledger
 
+## Candidate native color and terminal pixels (2026-10-07)
+
+The Mac alpha-only emoji gap is being fixed in the parent Metal atlas with
+bounded RGBA pages and one mixed text batch. gocode adds actual initial split
+emoji pixels and replaces the previous Mac no-op terminal capture with owned
+drawable command/string/ANSI/emoji checks and PNG/JSON evidence. Both Mac jobs
+will run normal/1.5/2 terminal density. Local Windows strict-cgo/three-repeat
+race/vet and workflow lint pass. Real Windows console/GUI terminal pixel and
+native split gates pass; actual GUI output PNG was inspected. Manual hidden
+startup caused no rendered frames; the existing normal GUI harness passes.
+Public core v0.11.0/6706e59 passes exact all-five CI 37574802922 and Intel
+diagnosis 37574803095, with unchanged readiness/drain gates and normal/1.5/2
+color/eviction/recovery pixels. VERSION 0.18.0 imports that public module with
+GOWORK=off/no replace. Independent app/native/release/install is pending.
+Independent public v0.11.0 strict-cgo/three-repeat race and vet now pass locally;
+native source CI and tested package/release/install promotion remain pending.
+Current installed/public v0.17.0 evidence below remains authoritative.
+See color-glyphs.md for scope and retained rendering/terminal limitations.
+
 ## Native VSIX editor views v0.17.0 promotion (2026-10-07)
 
 Immutable source/package `aa9d838b8b59bd82d0ce0fe52ffb2225213708c9` passes all five
