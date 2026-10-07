@@ -1,5 +1,50 @@
 # Milestone ledger
 
+## Native VSIX terminal v0.20.0 promotion (2026-10-07)
+
+Immutable application/package source `05ae59a211ca6649553682ab609d938600c6a86a`
+passes all five jobs on the first attempt in
+[CI 37602674156](https://github.com/neko233-com/gocode/actions/runs/37602674156):
+Windows 2022/2025 amd64, Mac Intel/ARM and Ubuntu. Public core v0.13.0/965678a is
+independently imported with GOWORK=off/no replace. Its CI 37599839423 passes all
+five; the first ARM existing bitmap timeout after the grid passes unchanged retry
+without a claimed cause or relaxed checks. Full local independent Windows strict-
+cgo/three-repeat race/vet and console/GUI regression, no-cgo, workflow lint,
+channel Python policies and diff checks pass (model 30.6%, search 81.4%).
+
+Terminal API objects/PID/options/state/exit/events now control actual native
+ConPTY/PTY processes with copied env/null/strictEnv, cwd and ordered Unicode input.
+Show/hide/preserveFocus, real exit 7, extension disposal, native-pointer user close,
+failed-start undefined PID and process reaping preserve source. Atomic/stale
+snapshot, failure/queue and real Windows raw quoted/Unicode/empty argument tests
+pass. Generated Windows Unicode executable names are safely bounded to protocol
+UTF-8 limits. Both Mac architectures pass normal/1.5/2 native VSIX gates. Actual
+Win2022/2025 100%, ARM 200%, Intel 150% PNGs were inspected after selected ZIP
+range reads with CRC validation. VSIX terminal color counts are 227/60 on Windows,
+735 ARM 200%, 656 Intel 150%; existing terminal/editor regression gates remain.
+
+[Publication 37604774438](https://github.com/neko233-com/gocode/actions/runs/37604774438)
+tags that exact source and reuses tested packages. Metadata cb2b036 changes exactly
+seven free distribution files and both Python policies pass. ZIP SHA256 is
+ec5ffe7c016c5323a3319c92d87ebec4168fb7dbc34efffe70e5bc490ff91c99; MSI is
+d8da6340a358e625c181e8d72e73855cbf4783ed3d6227a32fa8fcaf40fa3858.
+Actual signed automatic/direct GitHub/manual ghfast.top full release bodies, all
+released native gates including VSIX terminal and actual prior v0.4.0 GUI rollback
+pass. The owned rollback root again selects the real v0.4.0 source.
+
+The user's stable 0.5.1 launcher applies v0.19→v0.20 via direct GitHub and selects
+exact 05ae59a. Actual installed GUI/icon handles/Settings/groups/editor VSIX,
+1,073,741,824-byte split with identical whole hash, highlighted ConPTY and new
+VSIX terminal pass. Settings and installed terminal PNGs were inspected: Up to
+date (0.20.0), auto=true/automatic route, gopls ready; VSIX color count is 182 at
+150%. Config SHA256 remains d8a85199a0018d88355ab5786881c778dc63596858a58bbe64fde8f799c9ed5f;
+user PATH remains aec04bdd1653d4c8c70dc2b50aec868029787ecf0cc34cbd1f4a9f7df3d30aa3.
+Official Copilot authenticated/LSPInitialized/SDKConnected=true and
+networkPromptSent=false. Both actual Desktop/Start Menu shortcuts still target
+the stable gocode-launch.exe. Full VS Code/official Copilot VSIX, Pseudoterminal,
+shell integration/providers/persistence and other coverage-ledger gaps remain
+active. The accepted Copilot SDK/Language Server path is retained.
+
 ## Native VSIX terminal candidate (2026-10-07)
 
 Process-backed Terminal API and actual owned VSIX/native process acceptance are

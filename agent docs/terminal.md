@@ -1,6 +1,6 @@
 # Native terminal contract
 
-## Process-backed VSIX API candidate
+## Process-backed VSIX API
 
 The optional native terminal capability now bridges real `createTerminal`,
 Terminal objects/processId/creationOptions/state/exitStatus, sendText/show/hide/
@@ -29,7 +29,13 @@ remain unchanged; its local 150% output PNG was inspected. Windows console/GUI
 and both Mac architectures at normal/1.5/2 are now wired for source CI. Public
 core v0.13.0/965678a is independently imported with GOWORK=off/no replace; full
 Windows strict-cgo/three-repeat race/vet and console/GUI native regression pass.
-Source CI/package/release/install promotion is pending; v0.19.0 stays installed.
+v0.20.0/05ae59a passes all five source jobs in CI 37602674156 and publication
+37604774438 reuses those packages. Both Mac architectures pass normal/1.5/2 native
+VSIX gates; both Windows, ARM 200% and Intel 150% actual PNGs were inspected. Signed
+automatic/direct/manual full release bytes, all native modes and actual old GUI
+rollback pass. The user is updated to exact v0.20.0 and installed GUI/Settings/
+real VSIX terminal/actual GiB/source/settings/PATH checks pass; installed native
+Settings and terminal PNGs were inspected. See status.md for exact hashes/evidence.
 
 Pseudoterminal, editor/split terminal locations, icons/color, shell integration,
 profiles/link providers, env collections, session persistence and shutdown-event
@@ -50,7 +56,7 @@ Terminal process I/O, VT parsing and shell preparation run in owned workers.
 Only immutable cell snapshots and native view/input state cross the UI thread.
 No Electron, xterm.js or browser surface is involved.
 
-Public/installed v0.19.0 uses public core v0.12.0 for Windows/Mac intrinsic color
+Public/installed v0.20.0 uses public core v0.13.0 for Windows/Mac intrinsic color
 glyphs. Both Windows real decoded ANSI emoji and owned GPU PNG/JSON gates pass;
 actual 2022/2025 terminal and installed 150% output PNGs were inspected. Both Mac
 architectures retain normal/1.5/2 terminal density, with native emoji details and
