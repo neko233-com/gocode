@@ -37,3 +37,14 @@ Windows strict-cgo/race/vet/console/GUI regression passes. Cross-platform/releas
 install evidence is pending. Full VS Code history
 persistence across closed resources, compound undo groups, provider edits/multi-root
 and full diff editor remain open.
+
+First source CI 37556152512 failed the new Windows 100% modal glyph assertion:
+the 13px gray glyphs blend with blue rather than reaching high coverage in all
+RGB channels. The exact 1280×820/100% failure was reproduced with a process-only
+DPI compatibility layer; its owned PNG shows the actual readable label. Capture
+now preserves failure PNG/JSON and checks gray-on-blue glyph contrast. The fixed
+100% gate reports 314 glyph pixels; an ignored Go-overlay binary removing only
+the primary button label fails with zero glyph pixels despite 4,348 blue fill
+pixels. Thus background alone cannot pass. Fixed 100% and normal 150% complete
+native Undo/Redo/split gates and vet pass. The replacement model/UI did not change;
+a fresh exact-source all-five CI and promotion are still required.

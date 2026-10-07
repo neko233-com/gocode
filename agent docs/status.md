@@ -19,6 +19,14 @@ install evidence is pending.
 Installed version remains v0.14.0/core0.8.0.
 See history.md for exact behavior and remaining closed-resource/provider gaps.
 
+Initial source CI 37556152512 found a Windows 100% DPI glyph assertion error,
+reproduced locally with an owned 1280×820 window. Actual gray-on-blue text was
+readable but the original all-channel high-coverage predicate counted two pixels.
+Corrected contrast counts 314; an ignored overlay binary with the primary label
+removed fails with zero ink despite 4,348 blue background pixels. Failure PNG/JSON
+is now retained. Fixed 100%/normal 150% complete native gates and vet pass; exact
+replacement source CI/promotion is pending. No app UI/model behavior was changed.
+
 ## Native workspace replacement v0.14.0 promotion (2026-10-07)
 
 Immutable application/package source `de2a98fb0a041cd88c0ec5ac658bb2fd41a62f9b`

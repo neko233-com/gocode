@@ -363,17 +363,20 @@ func captureReplacementPixels(cx *ui.Context, m *model, stage string, preview bo
 	if err != nil {
 		return err
 	}
-	red, green := 0, 0
+	red, green, ink, accentPixels := 0, 0, 0, 0
+	var validationErr error
 	if stage == "undo-confirmation" {
 		bounds, ok := cx.ElementBounds("history-all")
 		if !ok {
 			return errors.New("workspace undo confirmation missing")
 		}
-		ink, accentPixels := 0, 0
 		for y := int(float64(bounds.Y) * scale); y < min(pixels.Bounds().Dy(), int(float64(bounds.Y+bounds.Height)*scale)); y++ {
 			for x := int(float64(bounds.X) * scale); x < min(pixels.Bounds().Dx(), int(float64(bounds.X+bounds.Width)*scale)); x++ {
 				p := pixels.RGBAAt(x, y)
-				if p.R > 160 && p.G > 160 && p.B > 160 {
+				// At 100% DPI, hinted 13px gray text blends with the blue fill:
+				// high coverage in all RGB channels is not guaranteed. Require
+				// visible gray-on-blue glyph contrast; the fill alone has R=0.
+				if p.R >= 48 && p.G >= 135 && p.B >= 190 && p.B <= 220 {
 					ink++
 				}
 				if p.R == uint8(accent>>16) && p.G == uint8((accent>>8)&255) && p.B == uint8(accent&255) {
@@ -382,7 +385,7 @@ func captureReplacementPixels(cx *ui.Context, m *model, stage string, preview bo
 			}
 		}
 		if ink < 24 || accentPixels < 24 {
-			return fmt.Errorf("undo confirmation lacks completed GPU text/button: ink=%d accent=%d", ink, accentPixels)
+			validationErr = fmt.Errorf("undo confirmation lacks completed GPU text/button: ink=%d accent=%d", ink, accentPixels)
 		}
 	}
 	if preview {
@@ -402,7 +405,7 @@ func captureReplacementPixels(cx *ui.Context, m *model, stage string, preview bo
 			}
 		}
 		if red < 24 || green < 24 {
-			return fmt.Errorf("replace preview lacks completed before/after GPU pixels: red=%d green=%d", red, green)
+			validationErr = fmt.Errorf("replace preview lacks completed before/after GPU pixels: red=%d green=%d", red, green)
 		}
 	}
 	directory := os.Getenv("GOCODE_REPLACE_SCREENSHOTS")
@@ -420,13 +423,13 @@ func captureReplacementPixels(cx *ui.Context, m *model, stage string, preview bo
 		return err
 	}
 	data, err := json.MarshalIndent(struct {
-		Stage                     string
-		Width, Height, Red, Green int
-		Scale                     float64
-		Status, Message           string
-	}{stage, pixels.Bounds().Dx(), pixels.Bounds().Dy(), red, green, scale, m.search.replaceStatus, m.message}, "", "  ")
+		Stage                                  string
+		Width, Height, Red, Green, Ink, Accent int
+		Scale                                  float64
+		Status, Message                        string
+	}{stage, pixels.Bounds().Dx(), pixels.Bounds().Dy(), red, green, ink, accentPixels, scale, m.search.replaceStatus, m.message}, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(directory, stage+".json"), data, 0600)
+	return errors.Join(os.WriteFile(filepath.Join(directory, stage+".json"), data, 0600), validationErr)
 }
