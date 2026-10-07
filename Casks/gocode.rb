@@ -1,8 +1,8 @@
 cask "gocode" do
   arch arm: "arm64", intel: "amd64"
-  version "0.15.0"
-  sha256 arm: "efc14f2c8011faaba087630968714af6f5f5c0501cb4cdc0df6fe7d1dd8bf1a9",
-         intel: "07a9984e470566098d8d8fc59cfc7a89dc5f05ecc48a58043f73daae3a537f95"
+  version "0.16.0"
+  sha256 arm: "69f7a6c0ec566f0f57923add0b4acaf8e10c2d33ea6af12592f43a8636949f48",
+         intel: "5c6b4e5107a2600d32492afc7d57b4876c57ecf5cbb4364c5e5874ccba999695"
   url "https://github.com/neko233-com/gocode/releases/download/v#{version}/gocode-#{version}-darwin-#{arch}.tar.gz"
   name "gocode"
   desc "Native Go desktop editor powered by godesktop"
