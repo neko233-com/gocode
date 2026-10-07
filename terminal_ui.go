@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -15,13 +17,19 @@ import (
 )
 
 type terminalTab struct {
-	id                    int
-	name, state           string
-	session               *terminal.Session
-	frame, selectionFrame *terminal.Frame
-	size                  terminal.Size
-	cancel                context.CancelFunc
-	anchor, active        int
+	id                                 int
+	wireID                             string
+	options                            terminalLaunchOptions
+	hidden, extensionOwned, interacted bool
+	pending                            bool
+	ready                              chan struct{}
+	onReady                            func(error)
+	name, state                        string
+	session                            *terminal.Session
+	frame, selectionFrame              *terminal.Frame
+	size                               terminal.Size
+	cancel                             context.CancelFunc
+	anchor, active                     int
 }
 
 // Only this controller's worker registry is shared; tabs/model fields are UI
@@ -33,36 +41,88 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 	var workers sync.WaitGroup
 	sequence := 0
 	m.terminalHeight = 280
-	m.newTerminal = func() {
-		if ctx.Err() != nil {
+	m.requestTerminal = func(request context.Context, id string, options terminalLaunchOptions, complete func(error)) {
+		if err := errors.Join(ctx.Err(), request.Err()); err != nil {
+			complete(err)
 			return
 		}
 		if len(m.terminals) >= 8 {
-			m.message = "Close a terminal before creating another (maximum 8)"
+			complete(errors.New("close a terminal before creating another (maximum 8)"))
 			return
 		}
+		if id != "" {
+			if m.extensionTerminal(id) != nil {
+				complete(errors.New("duplicate terminal identity"))
+				return
+			}
+			for _, closed := range m.closedTerminals {
+				if closed.ID == id {
+					complete(errors.New("terminal identity has closed"))
+					return
+				}
+			}
+		}
 		sequence++
+		extensionOwned := id != ""
+		if id == "" {
+			id = fmt.Sprintf("native:%d", sequence)
+		}
 		tabCtx, tabCancel := context.WithCancel(ctx)
-		tab := &terminalTab{id: sequence, name: "Starting…", state: "Starting shell…", cancel: tabCancel, size: terminal.Size{Columns: 80, Rows: 10}}
+		name := options.Name
+		if name == "" {
+			name = "Starting…"
+		}
+		tab := &terminalTab{id: sequence, wireID: id, options: options, extensionOwned: extensionOwned, hidden: options.HideFromUser, pending: true, ready: make(chan struct{}), onReady: complete, name: name, state: "Starting shell…", cancel: tabCancel, size: terminal.Size{Columns: 80, Rows: 10}}
+		empty := m.currentTerminal() == nil
 		m.terminals = append(m.terminals, tab)
-		m.activeTerminal = len(m.terminals) - 1
-		m.focusTerminal()
+		if !extensionOwned || (empty && !tab.hidden) {
+			m.activeTerminal = len(m.terminals) - 1
+		} else if empty {
+			m.activeTerminal = -1
+		}
+		m.terminalChanged()
 		workspace := m.workspace
 		isolated := m.terminalAcceptance
 		workers.Go(func() {
-			config, err := terminal.Shell(workspace, isolated)
+			select {
+			case <-tab.ready:
+				return
+			case <-request.Done():
+				cx.Dispatch(func() {
+					if tab.pending {
+						m.closeTerminal(tab, 0)
+					}
+				})
+			case <-tabCtx.Done():
+				return
+			}
+		})
+		workers.Go(func() {
+			config, err := prepareExtensionTerminal(request, workspace, options, isolated)
 			if err == nil {
 				var session *terminal.Session
-				session, err = terminal.Start(tabCtx, config, terminal.Size{Columns: 80, Rows: 10})
+				if err = errors.Join(tabCtx.Err(), request.Err()); err == nil {
+					session, err = terminal.Start(tabCtx, config, terminal.Size{Columns: 80, Rows: 10})
+				} else {
+					config.Discard()
+				}
 				if err == nil {
 					mu.Lock()
 					sessions[session] = true
 					mu.Unlock()
 					defer func() { _ = session.CloseAndWait(); mu.Lock(); delete(sessions, session); mu.Unlock() }()
 					if !cx.Dispatch(func() {
-						if tabCtx.Err() == nil {
+						if tabCtx.Err() == nil && request.Err() == nil {
 							tab.name, tab.state, tab.session, tab.frame = config.Name, "", session, session.Snapshot()
 							tab.size = terminal.Size{}
+							if !extensionOwned {
+								tab.options = terminalLaunchOptions{Name: config.Name, CWD: config.Directory, ShellPath: config.Command[0]}
+								tab.options.ShellArgs, _ = json.Marshal(config.Command[1:])
+							}
+							m.completeTerminal(tab, nil)
+							m.terminalChanged()
+						} else if tab.pending {
+							m.closeTerminal(tab, 0)
 						}
 					}) {
 						return
@@ -75,7 +135,7 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 						case <-session.Done():
 							cx.Dispatch(func() {
 								if tabCtx.Err() == nil {
-									tab.frame = session.Snapshot()
+									m.updateTerminalFrame(tab, session.Snapshot())
 								}
 							})
 							return
@@ -84,7 +144,7 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 								if !cx.Dispatch(func() {
 									pending.Store(false)
 									if tabCtx.Err() == nil {
-										tab.frame = session.Snapshot()
+										m.updateTerminalFrame(tab, session.Snapshot())
 									}
 								}) {
 									return
@@ -97,12 +157,25 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 			cx.Dispatch(func() {
 				if tabCtx.Err() == nil {
 					tab.name, tab.state = "Failed", err.Error()
+					m.completeTerminal(tab, err)
+					if extensionOwned {
+						m.closeTerminal(tab, 0)
+					} else {
+						m.terminalChanged()
+					}
 				}
 			})
 		})
 	}
-	m.killTerminal = func(tab *terminalTab) {
+	m.closeTerminal = func(tab *terminalTab, reason int) {
+		if m.extensionTerminal(tab.wireID) != tab {
+			return
+		}
 		tab.cancel()
+		m.closedTerminals = append(m.closedTerminals, recordTerminal(tab, reason))
+		if len(m.closedTerminals) > 32 {
+			m.closedTerminals = append([]nativeTerminalRecord(nil), m.closedTerminals[len(m.closedTerminals)-32:]...)
+		}
 		for i, candidate := range m.terminals {
 			if candidate == tab {
 				m.terminals = append(m.terminals[:i], m.terminals[i+1:]...)
@@ -114,9 +187,21 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 			}
 		}
 		m.terminalSelecting = false
-		if len(m.terminals) == 0 {
+		m.selectVisibleTerminal()
+		if m.currentTerminal() == nil {
 			m.terminalFocused = false
 		}
+		m.terminalChanged()
+		m.completeTerminal(tab, context.Canceled)
+	}
+	m.killTerminal = func(tab *terminalTab) { m.closeTerminal(tab, 3) }
+	m.newTerminal = func() {
+		m.requestTerminal(ctx, "", terminalLaunchOptions{}, func(err error) {
+			if err != nil {
+				m.message = err.Error()
+			}
+		})
+		m.focusTerminal()
 	}
 	return func() {
 		cancel()
@@ -134,16 +219,61 @@ func (m *model) startTerminals(parent context.Context, cx *ui.Context) func() {
 	}
 }
 
+func (m *model) selectVisibleTerminal() {
+	if tab := m.currentTerminal(); tab != nil && !tab.hidden {
+		return
+	}
+	for offset := range len(m.terminals) {
+		index := (max(0, m.activeTerminal) + offset) % len(m.terminals)
+		if !m.terminals[index].hidden {
+			m.activeTerminal = index
+			return
+		}
+	}
+	m.activeTerminal = -1
+}
+
 func (m *model) currentTerminal() *terminalTab {
 	if m.activeTerminal < 0 || m.activeTerminal >= len(m.terminals) {
 		return nil
 	}
 	return m.terminals[m.activeTerminal]
 }
+
+func (m *model) completeTerminal(tab *terminalTab, err error) {
+	if !tab.pending {
+		return
+	}
+	tab.pending = false
+	close(tab.ready)
+	done := tab.onReady
+	tab.onReady = nil
+	if done != nil {
+		done(err)
+	}
+}
+func (m *model) updateTerminalFrame(tab *terminalTab, frame *terminal.Frame) {
+	previous := tab.frame
+	tab.frame = frame
+	if frame == nil {
+		return
+	}
+	if frame.Exited && tab.extensionOwned {
+		m.closeTerminal(tab, 2)
+		return
+	}
+	if previous == nil || previous.Exited != frame.Exited {
+		m.terminalChanged()
+	}
+}
 func (m *model) focusTerminal() {
+	if tab := m.currentTerminal(); tab != nil {
+		tab.hidden = false
+	}
 	m.panel, m.showPanel, m.terminalFocused = "TERMINAL", true, true
 	m.editing, m.chatFocused, m.updateFocused, m.palette, m.navigation = false, false, false, false, false
 	m.pointerSelecting = false
+	m.terminalChanged()
 }
 func (m *model) hidePanel() {
 	m.showPanel, m.terminalFocused, m.terminalSelecting, m.chatFocused = false, false, false, false
@@ -177,6 +307,9 @@ func (m *model) terminalBody(width, height float32) *ui.Element {
 	tab := m.currentTerminal()
 	header := []*ui.Element{}
 	for index, item := range m.terminals {
+		if item.hidden {
+			continue
+		}
 		bg := uint32(outer)
 		if index == m.activeTerminal {
 			bg = 0x37373d
@@ -421,16 +554,19 @@ func (m *model) terminalKeyboard(e ui.InputEvent) bool {
 		return true
 	}
 	var err error
+	sent := false
 	if e.Kind == ui.KeyPressed && (control || command) && e.Key == 'V' {
 		if m.readClipboard != nil {
 			var value string
 			value, err = m.readClipboard()
 			if err == nil {
 				err = tab.session.Paste(value)
+				sent = value != ""
 			}
 		}
 	} else if e.Kind == ui.Character {
 		if (!control || e.Modifiers&ui.ModifierAlt != 0) && !command && e.Key >= 32 {
+			sent = true
 			if !control && e.Modifiers&ui.ModifierAlt != 0 {
 				err = tab.session.SendKey(uv.KeyPressEvent{Code: rune(e.Key), Mod: uv.ModAlt})
 			} else {
@@ -487,6 +623,7 @@ func (m *model) terminalKeyboard(e ui.InputEvent) bool {
 			key.Mod |= uv.ModAlt
 		}
 		err = tab.session.SendKey(key)
+		sent = true
 	} else {
 		return false
 	}
@@ -494,6 +631,9 @@ func (m *model) terminalKeyboard(e ui.InputEvent) bool {
 	m.terminalSelecting = false
 	if err != nil {
 		m.message = err.Error()
+	} else if sent && !tab.interacted {
+		tab.interacted = true
+		m.terminalChanged()
 	}
 	return true
 }

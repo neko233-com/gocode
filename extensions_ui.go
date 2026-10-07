@@ -280,6 +280,7 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		}
 	})
 	m.registerEditorRPC(ctx, cx, host)
+	m.registerTerminalRPC(cx, host)
 	m.ensureGroups()
 	documents := make([]*documentState, 0, len(m.docs))
 	known := map[*document]bool{}
@@ -291,10 +292,15 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 	}
 	layout := m.editorLayout(nil, 0)
 	lastSent := layout.Generation
-	params := map[string]any{"documents": documents, "active": stateOf(m.current()), "editors": layout, "storageRoot": storage, "clientCapabilities": map[string]bool{"showDocument": true, "openDocument": true, "editorGroups": true, "applyEdit": true}}
+	terminals := m.terminalState()
+	lastTerminalSent := terminals.Generation
+	params := map[string]any{"documents": documents, "active": stateOf(m.current()), "editors": layout, "terminals": terminals, "storageRoot": storage, "clientCapabilities": map[string]bool{"showDocument": true, "openDocument": true, "editorGroups": true, "applyEdit": true, "terminals": true}}
 	queue := startExtensionDocumentSync(ctx,
 		func(request context.Context) error { return host.Call(request, "initialize", params, nil) },
 		func(request context.Context, job map[string]any) error {
+			if job["kind"] == "terminals" {
+				return host.Call(request, "syncTerminals", job["terminals"], nil)
+			}
 			if job["kind"] == "editors" {
 				return host.Call(request, "syncEditors", job["editors"], nil)
 			}
@@ -306,6 +312,7 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		if err := queue.push(extensionSyncJob{params: params}); err != nil && ctx.Err() == nil {
 			m.message = err.Error() + "; extension host stopped"
 			m.publishEditors = nil
+			m.publishTerminals = nil
 			go host.Close()
 		}
 	}
@@ -316,6 +323,14 @@ func (m *model) startExtensions(ctx context.Context, cx *ui.Context, host *exten
 		}
 		lastSent = state.Generation
 		push(map[string]any{"kind": "editors", "editors": state})
+	}
+	m.publishTerminals = func() {
+		state := m.terminalState()
+		if state.Generation == lastTerminalSent {
+			return
+		}
+		lastTerminalSent = state.Generation
+		push(map[string]any{"kind": "terminals", "terminals": state})
 	}
 	previous := m.onDocument
 	m.onDocument = func(kind string, d *document, change textbuffer.ChangeEvent) {

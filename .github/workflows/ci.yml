@@ -117,6 +117,8 @@ jobs:
             .cache/close-native/*.png
             .cache/terminal-native/*.png
             .cache/terminal-native/*.json
+            .cache/terminal-vsix/*.png
+            .cache/terminal-vsix/*.json
             .cache/filewatch-native/*.png
             .cache/filewatch-native-lsp/*.png
             .cache/open-native/*.png
@@ -198,6 +200,9 @@ jobs:
           GOCODE_TERMINAL_SCREENSHOTS=.cache/terminal-native ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_TERMINAL_SCREENSHOTS=.cache/terminal-native-150 ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_TERMINAL_SCREENSHOTS=.cache/terminal-native-200 ./bin/gocode -extensions-dir .cache/extensions -terminal-smoke
+          ./bin/gocode -terminal-vsix-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_TERMINAL_VSIX_SCREENSHOTS=.cache/terminal-vsix-150 ./bin/gocode -terminal-vsix-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_TERMINAL_VSIX_SCREENSHOTS=.cache/terminal-vsix-200 ./bin/gocode -terminal-vsix-smoke
           ./bin/gocode -extensions-dir .cache/extensions -filewatch-smoke -lsp=false
       - name: Install pinned official Copilot sidecars
         run: ./bin/gocode -install-copilot
@@ -259,6 +264,12 @@ jobs:
             .cache/terminal-native-150/*.json
             .cache/terminal-native-200/*.png
             .cache/terminal-native-200/*.json
+            .cache/terminal-vsix/*.png
+            .cache/terminal-vsix/*.json
+            .cache/terminal-vsix-150/*.png
+            .cache/terminal-vsix-150/*.json
+            .cache/terminal-vsix-200/*.png
+            .cache/terminal-vsix-200/*.json
             dist/*.zip
             dist/*.tar.gz
           include-hidden-files: true

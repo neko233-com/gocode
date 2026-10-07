@@ -45,11 +45,12 @@ macOS 使用 `CGO_ENABLED=1 go run . -workspace .`。Windows GUI 构建：`go bu
 
 `-window-width 1024 -window-height 728` 可指定启动窗口的 DIP 尺寸，默认 1280×820；原生标题栏仍可拖动、缩放和最大化。
 
-go.mod 固定依赖公开发布的 godesktop v0.12.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
+go.mod 固定依赖公开发布的 godesktop v0.13.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
 
 - UTF-16 坐标、中文/emoji、Shift 方向键/点击选区、鼠标拖选、原生剪贴板、版本化事务和撤销重做。
+- 候选 v0.20.0 将 VSIX Terminal API 连接真实 ConPTY/PTY：创建/PID/cwd/env/Unicode 输入、显示/隐藏/焦点与生命周期事件，扩展销毁和用户关闭会回收进程。公开模块、跨平台和发行状态，以及 Pseudoterminal/shell integration 等缺口，见 [终端工程记录](agent%20docs/terminal.md)。
 - v0.19.0 使用公开核心保留 Windows 与 Mac 彩色 emoji 的原生 RGBA、透明度和裁剪；普通文字与彩色字形混合批次仍有界。Windows ConPTY 的实际彩色 emoji 输出和编辑器分栏 GPU 像素验收见 [彩色字形记录](agent%20docs/color-glyphs.md)。
 - 原生标题栏复用 Code-OSS 图片纹理；标签按系统字体实测宽度，完整显示 README.md 和中文文件名。源代码参照和原生像素验收见 [UI 工程记录](agent%20docs/ui.md)。
 - 标签过多时使用原生滚动视口、可见项布局和可拖动滚动条；滚轮按指针位置分流。Ctrl+Tab／Ctrl+Shift+Tab 按最近使用顺序切换，松开 Ctrl 结束一次切换；Ctrl/Cmd+PageUp／PageDown 按标签顺序切换，Ctrl/Cmd+W 保留未保存关闭确认。

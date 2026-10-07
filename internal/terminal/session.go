@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -30,14 +31,26 @@ type Size struct{ Columns, Rows int }
 func (s Size) valid() bool { return s.Columns >= 2 && s.Columns <= 400 && s.Rows >= 2 && s.Rows <= 160 }
 
 type Config struct {
-	Command     []string
-	Directory   string
-	Environment []string
-	Name        string
-	History     int
-	cleanup     func()
-	trace       func(string, []byte) // Internal owned-fixture diagnostics only.
+	Command           []string
+	Directory         string
+	Environment       []string
+	Name              string
+	History           int
+	WindowsArguments  *string
+	InitialMessage    string
+	StrictEnvironment bool
+	cleanup           func()
+	trace             func(string, []byte) // Internal owned-fixture diagnostics only.
 }
+
+// Discard releases a prepared shell profile when startup is cancelled before
+// Start takes ownership. Do not call it on a config owned by a running Session.
+func (c Config) Discard() {
+	if c.cleanup != nil {
+		c.cleanup()
+	}
+}
+
 type Cell struct {
 	Text                   string
 	Width                  int
@@ -118,7 +131,16 @@ func Start(parent context.Context, config Config, size Size) (_ *Session, failur
 	if parent == nil {
 		return nil, errors.New("terminal context is required")
 	}
-	total := 0
+	total := len(config.InitialMessage)
+	if !utf8.ValidString(config.InitialMessage) || len(config.InitialMessage) > 8192 {
+		return nil, errors.New("invalid terminal initial message")
+	}
+	if config.WindowsArguments != nil {
+		if runtime.GOOS != "windows" || !utf8.ValidString(*config.WindowsArguments) || strings.ContainsRune(*config.WindowsArguments, 0) {
+			return nil, errors.New("invalid Windows terminal arguments")
+		}
+		total += len(*config.WindowsArguments)
+	}
 	for _, arg := range config.Command {
 		total += len(arg)
 		if !utf8.ValidString(arg) || strings.ContainsRune(arg, 0) {
@@ -148,10 +170,10 @@ func Start(parent context.Context, config Config, size Size) (_ *Session, failur
 	if info, err := os.Stat(directory); err != nil || !info.IsDir() {
 		return nil, errors.New("terminal directory must be an existing directory")
 	}
-	if config.Environment == nil {
+	if config.Environment == nil && !config.StrictEnvironment {
 		config.Environment = os.Environ()
 	}
-	config.Environment = append(append([]string{}, config.Environment...), "TERM=xterm-256color", "COLORTERM=truecolor", "TERM_PROGRAM=gocode")
+	config.Environment = ProcessEnvironment(config.Environment, config.StrictEnvironment)
 	if config.History <= 0 {
 		config.History = MaxHistory
 	}
@@ -172,7 +194,19 @@ func Start(parent context.Context, config Config, size Size) (_ *Session, failur
 	}
 	s.emulator.RegisterOscHandler(8, func([]byte) bool { return true })  // No automatic hyperlink action/storage.
 	s.emulator.RegisterOscHandler(52, func([]byte) bool { return true }) // Output cannot set/read the user's clipboard.
-	s.emulator.SetCallbacks(vt.Callbacks{Title: func(title string) { s.title = title[:min(len(title), 256)] }, CursorVisibility: func(visible bool) { s.cursorVisible = visible }, CursorStyle: func(style vt.CursorStyle, _ bool) { s.cursorStyle = int(style) }})
+	if config.InitialMessage != "" {
+		var filter controlFilter
+		_, _ = s.emulator.Write(filter.feed([]byte(config.InitialMessage + "\r\n")))
+	}
+	s.emulator.SetCallbacks(vt.Callbacks{Title: func(title string) {
+		if len(title) > 256 {
+			title = title[:256]
+			for !utf8.ValidString(title) {
+				title = title[:len(title)-1]
+			}
+		}
+		s.title = title
+	}, CursorVisibility: func(visible bool) { s.cursorVisible = visible }, CursorStyle: func(style vt.CursorStyle, _ bool) { s.cursorStyle = int(style) }})
 	s.mu.Lock()
 	s.publish()
 	s.mu.Unlock()

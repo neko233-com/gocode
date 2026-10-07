@@ -1,5 +1,12 @@
 # Acceptance contract
 
+- Extension terminals: -terminal-vsix-smoke installs a real VSIX and exercises
+  actual native PID/cwd/strict environment, ordered Unicode sendText/default
+  execution, hidden/show/hide/preserveFocus and ANSI/emoji GPU pixels. Stable API
+  identity/events, real exit 7, extension disposal, owned native-pointer user close,
+  failed-start undefined PID and process reaping preserve editor/disk source.
+  Required Windows console/GUI and Mac normal/1.5/2 gates complement protocol races.
+
 - Extension views: -groups-vsix-smoke installs/activates a real temporary VSIX,
   opens a real hidden file, shows the shared resource beside while preserving focus,
   selects UTF-16 text, edits/reveals the inactive view and verifies actual view

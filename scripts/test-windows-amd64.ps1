@@ -92,6 +92,9 @@ try {
     & ./bin/gocode.exe -extensions-dir .cache/extensions -terminal-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native real terminal highlighting/resize/interrupt acceptance failed.' }
     Invoke-CheckedGUI -extensions-dir .cache/extensions -terminal-smoke
+    & ./bin/gocode.exe -terminal-vsix-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Native VSIX terminal PID/cwd/env/input/events/process cleanup failed.' }
+    Invoke-CheckedGUI -terminal-vsix-smoke
     & ./bin/gocode.exe -extensions-dir .cache/extensions -filewatch-smoke -lsp=false
     if ($LASTEXITCODE -ne 0) { throw 'Native external file watch/VSIX acceptance failed.' }
 } finally {

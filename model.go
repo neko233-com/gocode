@@ -107,6 +107,12 @@ type model struct {
 	terminalHeight, panelDragY, panelDragHeight        float32
 	newTerminal                                        func()
 	killTerminal                                       func(*terminalTab)
+	requestTerminal                                    func(context.Context, string, terminalLaunchOptions, func(error))
+	closeTerminal                                      func(*terminalTab, int)
+	publishTerminals                                   func()
+	terminalGeneration                                 uint64
+	lastTerminalState                                  nativeTerminalState
+	closedTerminals                                    []nativeTerminalRecord
 	closeTerminalFocused                               bool
 	terminalAcceptance                                 bool
 	publishWatches                                     func()

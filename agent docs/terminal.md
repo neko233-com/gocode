@@ -1,5 +1,45 @@
 # Native terminal contract
 
+## Process-backed VSIX API candidate
+
+The optional native terminal capability now bridges real `createTerminal`,
+Terminal objects/processId/creationOptions/state/exitStatus, sendText/show/hide/
+dispose and open/close/active/state events. Shell path/array arguments, Windows raw
+arguments, string/file-Uri cwd, copied env/null deletion, strictEnv, hideFromUser,
+initial message, Panel and isTransient are supported. Defaults are applied before
+env overrides so null also removes TERM/COLORTERM/TERM_PROGRAM. strictEnv passes
+only explicit variables; callers must supply OS/runtime necessities themselves.
+
+Eight pending/live processes and 32 recent closure records bound the UI state.
+The Node API bounds queued operations at 128/1 MiB; input <=65,534 UTF-8 bytes,
+options <=64 KiB, arguments <=128 and env <=256 entries. Terminal metadata joins
+the acknowledged 128-entry document/editor synchronization FIFO; overflow stops
+the host instead of silently losing lifecycle events. Startup cancellation removes
+the pending tab, discards prepared shell files and never revives the old object.
+Session lifetime belongs to the app after startup. Actual process failure exposes
+undefined PID; natural exit, native close and extension disposal use real reasons.
+Closing an active terminal selects a visible survivor rather than a hidden tab.
+
+Local strict-cgo/three-repeat actual Node, real Windows raw-argument/terminal process
+tests and `-terminal-vsix-smoke` pass. The native gate installs a genuine VSIX,
+checks actual cwd and absence of inherited markers, split Unicode sendText/default
+execution, actual ANSI/emoji pixels, focus, stable objects/events, real exit 7,
+native owned-pointer user close, failure and process reaping. Editor/disk bytes
+remain unchanged; its local 150% output PNG was inspected. Windows console/GUI
+and both Mac architectures at normal/1.5/2 are now wired for source CI. Public
+core v0.13.0/965678a is independently imported with GOWORK=off/no replace; full
+Windows strict-cgo/three-repeat race/vet and console/GUI native regression pass.
+Source CI/package/release/install promotion is pending; v0.19.0 stays installed.
+
+Pseudoterminal, editor/split terminal locations, icons/color, shell integration,
+profiles/link providers, env collections, session persistence and shutdown-event
+delivery remain gaps. isTransient is retained metadata; sessions do not persist.
+State.shell and shellIntegration are undefined. Full API/Copilot VSIX is unfinished.
+The parent extension-terminals.md records the bridge protocol and exact bounds.
+
+API reference: official vscode.d.ts at main
+3f07e1aba32acacb8b08ae91bfdc954b580ad1fd (2026-10-07), stable 1.140.0.
+
 Theme reference (2026-10-07): VS Code main bf519293a7de013c7e3897185784065b0799c9f2,
 extensions/theme-defaults/themes/dark_modern.json and terminalColorRegistry.ts.
 Dark Modern terminal foreground is #CCCCCC; unset terminal.background inherits

@@ -120,6 +120,7 @@ func run() error {
 	editorSmoke := flag.Bool("editor-smoke", false, "Verify native versioned VSIX edits, save, undo/redo and completion in a disposable workspace")
 	closeSmoke := flag.String("close-smoke", "", "Verify native save/discard/cancel/external close protection in a disposable workspace")
 	terminalSmoke := flag.Bool("terminal-smoke", false, "Verify real shell input highlighting, ANSI colors, keyboard, resize, interrupt and exit in a native owned workspace")
+	terminalVSIXSmoke := flag.Bool("terminal-vsix-smoke", false, "Verify real VSIX-created native terminal processes, input, focus, pixels and lifecycle")
 	replaceSmoke := flag.Bool("replace-smoke", false, "Verify native workspace replacement preview, stale disk guards, actual saves and undo in owned files")
 	groupsSmoke := flag.Bool("groups-smoke", false, "Verify owned native editor splits, shared edits, independent caret/scroll, sash drag and scoped group saves")
 	groupsVSIXSmoke := flag.Bool("groups-vsix-smoke", false, "Verify real VSIX editor views, columns, focus, selection, reveal, disposal and native save")
@@ -146,6 +147,9 @@ func run() error {
 	copilotUISmoke := flag.Bool("copilot-ui-smoke", false, "Verify rendered Copilot suggestion, native Tab acceptance and chat in a disposable workspace")
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
+	if *terminalVSIXSmoke {
+		return runTerminalVSIXAcceptance()
+	}
 	if *groupsLargeSmoke {
 		return runLargeGroupsAcceptance(*groupsLargeMiB)
 	}

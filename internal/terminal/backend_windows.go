@@ -85,7 +85,11 @@ func startBackend(ctx context.Context, config Config, size Size) (_ *processTerm
 		return nil, err
 	}
 	arguments := append([]string{path}, config.Command[1:]...)
-	command, err := windows.UTF16PtrFromString(windows.ComposeCommandLine(arguments))
+	commandLine := windows.ComposeCommandLine(arguments)
+	if config.WindowsArguments != nil {
+		commandLine = windows.ComposeCommandLine([]string{path}) + " " + *config.WindowsArguments
+	}
+	command, err := windows.UTF16PtrFromString(commandLine)
 	if err != nil {
 		return nil, err
 	}

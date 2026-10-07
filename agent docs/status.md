@@ -1,5 +1,24 @@
 # Milestone ledger
 
+## Native VSIX terminal candidate (2026-10-07)
+
+Process-backed Terminal API and actual owned VSIX/native process acceptance are
+implemented with bounds and explicit remaining gaps in terminal.md. Three-repeat
+Node protocol/process/env/raw Windows arguments and native Windows API/cwd/env/
+Unicode/ANSI/color/focus/exit/dispose/user-close/failure/cleanup gates pass locally;
+the 150% output PNG was inspected. Existing source/editor/shell regression gates
+remain required. Windows console/GUI and both Mac architectures normal/1.5/2 are
+wired into CI. Public core v0.13.0/965678a passes all five jobs in CI 37599839423;
+ARM's first existing bitmap timeout after the grid passes unchanged job retry,
+without a claimed cause or relaxed checks. go.mod imports the public module with
+GOWORK=off/no replace. Independent full Windows strict-cgo/three-repeat race/vet
+and all console/GUI native gates pass, including the new real VSIX terminal gate
+and existing editor/groups/open/save/terminal/file-watch regressions. Model coverage
+is 30.6%, search 81.4%; native pixel gates provide separate evidence. Actionlint,
+Python channel policies and diff checks pass. App v0.20.0 source CI, packages and
+release/install promotion remain pending. Verified
+public/installed v0.19.0/core v0.12.0 remains the current baseline.
+
 ## Windows native color v0.19.0 promotion (2026-10-07)
 
 Immutable source/package `4616656105b0b0222b03524f207ee9d53ca335bb` passes all
