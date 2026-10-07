@@ -65,6 +65,42 @@ Full default-three Windows and exact-source five-platform CI remain required;
 the candidate source will be pushed for those gates without changing the parent
 gitlink, release tags or the user's installed selection.
 
+Candidate bd2f48c32d3b889ba53b31203612708ad01a6584 then passes the complete
+independent public-core16 Windows amd64 script, default Repeat=3: main 423.075s,
+model coverage 33.6%, every package race/strict-cgo, vet/build/PE and all sequential
+console/GUI native gates. Existing async-open now proves native focus 4->5 and
+rejects the stale VSIX request. Auto Save/Revert/actual minimized receipts,
+File/shell/two keymaps, real VSIX/groups/large pages/search/replace/editor/close/
+terminal/SCM/filewatch all pass. Owned validation scratch is empty; fixed PNGs
+and current.json are reused. Final minimized GUI report proves actual IsIconic,
+saveIds/didSave 1 and 2, dirty=false, views 2->2 and GPU Submitted 2->2; restore
+comes afterward. Actual 150% rounded Revert pixels were inspected. Log:
+.cache/auto-save-public-windows-final.log. Exact app CI 37676083407 remains
+in progress; publication and installed verification remain required.
+
+Initial source bd2f48c / CI 37676083407 is not published: Windows 2025
+job 112979831233 fails testing.M's cumulative 8m package alarm (480.231s),
+while TestNativeAutoSaveAcceptanceIsIdempotent has run only 4s. Its original
+65s owned-process guard has not fired; the active native phase is unavailable
+because output/PNG evidence is still inside the test's private root. Other
+packages pass, but standalone native/GiB/services/MSI steps there are skipped.
+This is not evidence of a native phase stall or a successful complete run.
+Raw job log and artifact 11508225494 are retained under
+.cache/ci-v023-37676083407-windows2025-*. The run ends with four successful
+jobs (Ubuntu, both Macs, Windows 2022) and that one failure. Windows 2022
+job 112979831113 passes the original complete default-three/native/services
+gates (main 413.372s/coverage 33.7%, job 18m11), including both new flags.
+Its artifact is 11508410899; ARM 11505964745 and Intel 11508740297 also match
+the exact source. Five complete logs and final results remain retained. No tag
+is created and no failed job is blindly retried.
+
+The corrected harness increases only the aggregate package alarm to 12m and
+Windows job budgets to 25m (2022) / 30m (2025). The prior successful Windows
+2025 baseline already took 19m35, while this local main-package run adds about
+180s plus new standalone native gates. Default-three race/shuffle/strict-cgo,
+per-scenario/process/dialog deadlines, pixel/state/cleanup/GiB/services/MSI
+assertions and product code stay unchanged. New exact-source CI is required.
+
 File/Auto Save now toggles off/afterDelay with native checked state; Settings
 configures all four VS Code modes and delay. One coalesced timer, 128 dirty records
 and the existing hash-checked frozen writer preserve Unicode/CRLF, newer edits,

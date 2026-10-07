@@ -113,3 +113,16 @@ only after both saved states are verified. Private scratch is empty, settings
 marker/entries are unchanged and repeated evidence has only current.json.
 Console/GUI flags and CI JSON artifact wiring preserve this actual native proof.
 Final full workspace/public-module/source CI/release/install remain pending.
+
+Final frozen bd2f48c candidate passes the whole independent published-core16
+Windows default-three script: all shuffled strict-cgo/race packages (main
+423.075s, model coverage 33.6%), vet/build/PE and every console/GUI native gate.
+The public minimized report proves two actual disk/clean/save receipts with
+View/GPU Submitted 2->2, followed by restoration. Current six GPU PNGs reuse the
+same names; actual 150% rounded Revert/checked File/Settings states were inspected.
+The script's private validation root is empty afterward. Auto Save and keyboard
+settings use a separate latest-error publisher so rejected UI admission does not
+delay the newest real config write; new selections/stop cancel late obsolete
+errors. Review also repairs real Save As/original-path save overlap, with frozen
+path checks before queued starts and receipts. Exact-source app CI 37676083407,
+public released bytes and installed selection still require confirmation.

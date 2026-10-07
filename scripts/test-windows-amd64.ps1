@@ -64,11 +64,11 @@ try {
     Invoke-CheckedGo run ./cmd/gocode-terminaltools -output (Join-Path $taskRoot '.cache/conpty-runtime')
     $env:GOCODE_CONPTY_DIR=Join-Path $taskRoot '.cache/conpty-runtime'
     & (Join-Path $PSScriptRoot 'build-windows-resources.ps1')
-    # Added repeatable 45-phase native/lifecycle suites need a larger aggregate
-    # package budget. Individual native dialog/window guards are unchanged.
+    # Default-three 45/66-phase lifecycle/minimized suites exceed the old 8m
+    # aggregate package alarm on CI. Keep each owned-process/dialog guard.
     # Keep actual shell/GPU fixtures away from simultaneous GiB/parser/process
     # package tests on small Windows runners. All package/repeat guards remain.
-    Invoke-CheckedGo test -p=1 -race -shuffle=on "-count=$Repeat" -timeout=8m '-coverprofile=coverage.out' ./...
+    Invoke-CheckedGo test -p=1 -race -shuffle=on "-count=$Repeat" -timeout=12m '-coverprofile=coverage.out' ./...
     Invoke-CheckedGo vet ./...
     New-Item -ItemType Directory -Path bin -Force | Out-Null
     Invoke-CheckedGo build -trimpath '-ldflags=-s -w' -o bin/gocode.exe .

@@ -19,9 +19,10 @@ jobs:
       matrix:
         os: [windows-2022, windows-2025]
     runs-on: ${{ matrix.os }}
-    # Three-repeat native workbench/lifecycle gates add real process/dialog work.
-    # Keep their per-test deadlines; allow existing GiB/services/MSI gates to run.
-    timeout-minutes: 20
+    # Default-three Auto Save/minimized gates add actual process/disk/UI work.
+    # The old Win25 baseline already took 19m35; keep per-scenario guards while
+    # allowing the larger package budget and all existing GiB/services/MSI gates.
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 30 || 25 }}
     env:
       CGO_ENABLED: '1'
       GOARCH: amd64
