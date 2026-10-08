@@ -1,11 +1,131 @@
 # Modern Windows UI and native VS Gallery protocol
 
-2026-10-08: application VERSION is 0.24.0; the unpublished candidate continues
-to consume immutable public core v0.16.0 with GOWORK=off/no replace. Native
-fixed-header extension details and exact-ID catalog lookup are implemented and
-pass the complete independent default-three Windows suite below. Exact-source
-CI, publication and released/installed-byte checks remain pending. The
-framework's local shadow/recovery candidate is not this dependency.
+2026-10-08: application VERSION is 0.24.0; the consolidated unpublished candidate
+now consumes immutable public core v0.17.0 with GOWORK=off/no replace. Its module
+sum is `h1:2NF49iSveCrnfJATCyc1KS46Yobp7L4jRtHFjSyg6Fk=`. The independent
+consumer verified the public source at `996b5ff`, after core's five-platform
+CI 37713329201 passed. Earlier complete application checks below used public16
+and do not validate this new dependency or popup integration. Local native,
+packaging and exact released/installed-byte checks for the consolidated source
+remain required; no application tag or automatic Action is made here.
+
+## Native popup shadow integration (candidate)
+
+File menus and submenus use one native `ShadowStyle` with black alpha .14,
+Blur12, zero offsets and zero spread. Quick Input, Revert/reload confirmation,
+dirty-close confirmation and grouped-history confirmation use black alpha .15,
+Blur20 and the same zero offsets/spread. Blur is twice the core's DIP Gaussian
+sigma. The measured source is stable MIT Code-OSS 1.141.0,
+`2a59476c9bfcb90b3ddc372c36762471b7dfad1c`: cached style.css lines60/61 define
+LG/XL and menu.ts lines1042/1266 select LG; immutable
+[quickInput.css](https://github.com/microsoft/vscode/blob/2a59476c9bfcb90b3ddc372c36762471b7dfad1c/src/vs/platform/quickinput/browser/media/quickInput.css)
+and
+[dialog.css](https://github.com/microsoft/vscode/blob/2a59476c9bfcb90b3ddc372c36762471b7dfad1c/src/vs/base/browser/ui/dialog/dialog.css)
+select XL. Latest pinned main `9a89cf962f1d34463974058e9ef2b59f2bc33f15`
+roundedCorners.css preserves the 8-DIP floating surfaces; shadows.css explicitly
+preserves LG/XL while suppressing main-part shadows. Native style values are
+implemented in Go; no CSS renderer, browser surface or copied blur asset is used.
+
+The floating body is a direct positioned child of its root Stack. This removes
+the artificial tight Row/Column ancestor clip while retaining the actual window
+and rounded ancestor clips. The existing menu clamp, layer order, widths,
+radii, body/row/button keys and callbacks are preserved. Quick Input remains
+at y6 with its existing centered width. Centering still clamps to zero in
+undersized windows. Revert keeps explicit height140 plus20 per error line,
+including its prior two-DIP spare bottom space; dirty-close keeps its existing
+114/22/20 formula, and history keeps height138. Each popup adds one GPU instance
+without changing its hit area, measurement or adding product workers/timers.
+The existing text wrapper preserves one blank status row for an empty string:
+the initial Revert body is160DIP with Cancel at body.y+96; single-document close
+is156DIP with Cancel at body.y+94. These are the pre-shadow product dimensions.
+
+`-popup-shadow-smoke` is a separate Windows/cgo acceptance, with three owned
+Window Runs, private files/configuration, actual native header/menu/cancel input,
+24 fixed GPU PNG captures and a version/commit-bound JSON report. It waits three
+actual completed frames per capture and checks the real HWND presentation/clock,
+GPU dimensions against DIP viewport and actual DPI, body/control bounds, outside
+halo input, real rounded/rectangular ancestor masks, scheduler/GPU idle and
+shutdown/context/worker closure. Overlapping submenu input probes must miss
+both panels. A separate uniform Simpson/Gaussian rounded-mask reference predicts
+halo RGB; per-channel tolerance1 plus aggregate darkening rejects an absent
+dark-theme halo. Synthetic negative checker tests are CPU admission evidence,
+not native GPU evidence. The helper clears diagnostic drawable scaling, never
+uses global desktop input/capture, preserves failed reports before reuse and
+requires private scratch removal before writing current.json. Original workbench
+45 phases and other native acceptance guards are unchanged.
+
+Independent public17/GOWORK=off strict-cgo2/race/shuffle/count3 popup style,
+Gaussian, absent-halo and overlapping-menu controls pass in 1.157s. Focused
+existing Quick Input/menu/Revert/dirty-close/history controls pass strict-cgo3
+in 36.577s and no-cgo3 in 36.888s. Full vet in both modes and race/no-cgo app
+builds exit0; git diff --check exits0. The initial stamped build was blocked by
+restricted child Git reads, then a peer's temporary duplicate transport method;
+neither ran a native window. The final stamped build succeeds after that peer
+source is compile-ready. Logs/owned-source receipt are in .cache/popup-shadow-cpu
+and .cache/popup-shadow-*-*.log. These are CPU/build checks; the new three-Run
+hardware/WARP popup gate, installed UI and packaging remain pending.
+The first owned hardware-policy native attempt at actual DPI144/scale1.5 passes
+base/File/submenu/Quick Input capture and halo/input gates, then fails phase4:
+the fixture incorrectly expects140DIP instead of the original160DIP Revert body.
+Its exact209-source snapshot, executable, failed JSON, four GPU PNGs and log are
+preserved in .cache/native-combined24/popup-first-failure; receipt SHA256 is
+40141eae23582fde6f6ca1cb0e7cc0b72420b4873548c6e47f4dbfcac7006a0b.
+The next two attempts correctly refuse to overwrite that failure. The owned
+process is gone and private TMP is empty. The correction changes only fixture
+expected row-derived dimensions/button offsets, asserts empty/nonbusy status and
+the exact one-document close plan, and preserves both product dialog sources.
+New blank/one-line/CRLF/trailing-line contracts and all popup CPU controls pass
+three strict-cgo/race/shuffle repeats in1.155s and no-cgo repeats in0.077s;
+strict vet/diff checks pass. Logs are .cache/popup-shadow-correction-r2.
+New-source full native proof is still required; the early captures do not prove
+the remaining modal/ancestor/idle/closure phases or the forced-WARP path.
+The second attempt passes all eight Run0 captures, including source-derived
+Revert/close bounds, real Cancel callbacks and rounded ancestor halo/hit gates,
+then rejects the original250ms idle check: S/C/T56→57 while Views stays57 and
+requests stays72. Its worker sampled before the current View's pending frame
+was submitted. Immutable209-source/EXE/log/eight-PNG/failed-JSON evidence is
+.cache/native-combined24/popup-second-failure, receipt SHA256
+53d1020a02fb0f20125faf2061939646928559c7fa2c19ba5a3d15fc45333907.
+The fixture now waits off UI, bounded2s, for S/C/T/Views and InFlight0 to remain
+stable50ms before starting the unchanged250ms zero-increment guard. It admits
+no extra frame during that guard and creates no product timer or GPU request.
+The former failure is retained; complete new-source native proof remains pending.
+The third source-bound repeat attempt passes three hardware-policy processes,
+each with three Runs/24captures, then the forced-WARP process expires phase4 at
+35420ms. Its first five captures pass pixels, but per-stage submissions grow
+749→1225→1658→2558→3520. The fixture requests another frame whenever InFlight
+is nonzero even after reaching the three-completion floor, producing a slow-GPU
+self-wake loop. All four owned PIDs are gone; private TMP/config are absent.
+The immutable209-source/program/log/31-artifact archive receipt is SHA256
+eb5c3cd24affab1e62e769f3cfffb695cd6807ab806799434ea658a47086b698
+at .cache/native-combined24/popup-third-failure. This is not a WARP/full pass.
+The next fixture requests drawing only below its completion floor. At that
+floor it enters the single existing worker, which waits for actual quiescence
+before every capture or native pointer job; the original capture InFlight0
+guard, RGB tolerance and250ms idle guard remain strict. CPU controls parse the
+actual source condition and prove that the former slow-completion loop fails
+to quiesce while the correction retains the three-frame floor. Three strict-cgo/
+race/shuffle CPU repeats pass1.190s and strict vet passes; real new-source WARP
+acceptance remains required. Product render scheduling and35/40s bounds are unchanged.
+The corrected public17/GOWORK=off native r4 gate passes three strict-cgo/race/
+shuffle repetitions in108.134s (whole command114.116s). Six owned processes
+execute18actual Window Runs and144GPU captures: hardware policy204088/182456/
+176800 and forced-WARP191440/232208/228488. Every process verifies24captures,
+three completed-frame floors, original RGB tolerance1/absence-sensitive halo,
+source-derived body/Cancel coordinates, unchanged dirty source, outside-body
+and rounded-ancestor native hits, original250ms zero-render idle and full HWND/
+old-Context/worker/GPU closure. Hardware is an adapter selection policy; the
+reports bind actual DXGI/committed-DIB presentation and actualDPI/drawable scale.
+Three private TMP/config/GOTMP directories are empty. The209-source hash map
+stays4419cbf9682b470ffc638d20742311acd53ff8b8ff6c65a27b9e1f320c493eea.
+Receipt .cache/native-combined24/popup-r4-receipt.json SHA256 is
+485acc5392ce97eda9e13c0cabdd5a629605f37ca62efbf047ea88c2e8dfb2fc;
+log SHA256 isdbcb8e61bc52af60203a05aede68ecdb18a6b003844688860f04ecba1f7cd31d.
+The three earlier failed archives remain unchanged. This proves the owned native
+floating-shadow integration, not complete IDE parity or final packaged/installed
+bytes; consolidated full-source and local signed-package gates remain required.
+This small integration addresses floating elevation and clipping. Full VS Code
+visual/API parity and official Marketplace access are not established by it.
 
 ## Public v0.23.0 baseline
 

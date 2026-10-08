@@ -99,3 +99,69 @@ existing acceptance, real signed automatic/direct/manual mirror integrity and
 actual prior-source GUI rollback. The user's actual installed 0.13.0 GUI passed
 the same search gate; selected-Unicode and Settings PNGs were visually reviewed
 at 1920×1230 / 150%. See status.md for exact package hashes and installation scope.
+
+## Current-navigation acceptance outcomes (2026-10-08, native pending)
+
+Immutable source 2d136492229d22fa502be4749d3048c1f256fbee fails the separate
+Windows 2025 native GiB gate in CI 37703702524/job113072954796 after about91.6s.
+Complete Windows validation and the actual GiB model test pass first. Its last
+artifact is a correct single large-file result at phase11; the subsequent
+large-navigated checkpoint is absent. No final phase/worker elapsed report was
+captured, so the actual CI timeout cause remains unconfirmed.
+
+Independent ignored diagnostics retain all165 pre-change non-test Go/module/
+version inputs and the source bytes. The pre-correction archive is
+.cache/search-smoke-audit-37703702524/before-acceptance-correction-r5/snapshot.json,
+SHA256af5f1b267c0eb27217b3de6b7349750359ceb18ee2131eecaae0f2664973dac9.
+They distinguish the failed immutable CI source from the later frozen three-file
+keymap-acknowledgement change. Actual non-race public16 local GiB diagnostics pass
+all six stages at144-DPI/1920x1230 in23.072s and, with a separately corrected
+owned-window coordinate helper,96-DPI/1024x720/Scale1 in23.039s. The latter uses
+the target HWND's actual awareness domain and real resize/GPU metadata; monitor
+DPI remains144. The earlier r3 small-window helper failure at693x506 remains
+preserved and is not rebadged as1024x720 proof. All owned Job descendants/PIDs
+and private program/config/TMP are absent. These are pre-correction binaries,
+not native evidence for the new acceptance source or proof of the CI cause.
+
+A real-file CPU negative control proves an acceptance defect: the original
+actor's30.0015612s request context expires, the original Verify closure returns
+actual DeadlineExceeded at30.0125489s, and original phase12 stays12/failure=nil.
+A real asynchronous NotExist open clears busy and also leaves that branch
+pending. Exact original phase12 statement tokens/pixel/offset/quit guards are
+independently checked. This control gates before invoking the original Verify;
+it is not a slow-disk benchmark or a native90s reproduction. Held successful real
+Verify receipts are correctly discarded after a newer model focus/query gesture,
+and fresh actual query/Verify/file-backed Bytes succeeds. Original ignored
+negative logs/receipts and r3/r4 source/binary/artifacts remain immutable.
+
+The acceptance-only correction forwards existing requestOpen/validate/work/done
+exactly once and observes the armed current path/query generation/navigation/
+document/focus. Definitive current open/Verify errors are reported directly;
+superseded receipts retain their existing protections and get a distinct cause.
+It does not infer failure from the deliberately retained phase9 stale message.
+Page errors belong to the matching acknowledged byte page; old errors before
+replacement or while loading are ignored. Production model/actors/page APIs,
+their queues/shutdown and30s/15s worker limits are unchanged. All thirteen native
+phases, clicks, match counts, UTF-16/offset checks, completed GPU pixels/targets
+and actual source-byte/hash checks remain. Checkpoint metadata adds elapsed time.
+
+The90s watchdog now reads immutable atomic scalar/string progress and calls the
+actual thread-safe Context.Quit, allowing normal actor/document/workspace defers
+to run. The publisher checks timeout after storing its Context, covering a timer
+that fires before the first View. The final source hash remains mandatory;
+timedOut or elapsed>=90s rejects PASS afterward, including delayed timers. This
+is a logical acceptance deadline and cooperative close: it does not prove a hard
+90s exit if native startup never returns/publishes a Context or an OS hash read
+never returns. The separate owned-process runner's120s Job bound is independent.
+
+Focused public16/GOWORK=off/GOPROXY=off strict-cgo/race/shuffle/count3 passes
+104.487s; no-cgo/count3 passes91.767s, including the original real30s deadline in
+each repetition. Actual private9,437,197-byte files supply Run/Verify/Bytes,
+NotExist and changed-file page errors. Tests count real forwarding boundaries,
+hold focus/query/rearmed/cancelled receipts, verify fresh positive recovery,
+ignore old messages/page errors, prove detached snapshots and exercise1000
+concurrent timer/publication interleavings per repetition. Both complete vet
+modes pass. No UI Run/GPU/native gesture is executed by these CPU checks.
+New-source real GiB/default/96-DPI/WARP acceptance, exact-source full CI and
+promotion remain pending; this fixture improvement does not declare the original
+CI timeout fixed or alter public core v0.16.0/installed app v0.23.0.

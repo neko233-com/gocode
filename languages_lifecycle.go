@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/neko233-com/gocode/internal/copilotservice"
+	"github.com/neko233-com/gocode/internal/languageextension"
 	"github.com/neko233-com/gocode/internal/languageserver"
 	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
@@ -23,6 +24,147 @@ type languageBinding struct {
 	session  *languageserver.Session
 	state    string
 	notice   string
+	cancel   context.CancelFunc
+}
+
+// The actor's binding inventory is UI-owned; only its cancellation and worker
+// set are shared. Hooks are composed once even if no server is installed yet.
+type languageActor struct {
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	dispatch            func(func()) bool
+	workers             sync.WaitGroup
+	closed              bool
+	suppressAutomaticGo bool // UI-owned, monotonic after an installed-Go/marker receipt.
+}
+
+func (m *model) newLanguageBinding(actor *languageActor, config languageserver.Config) *languageBinding {
+	ctx, cancel := context.WithCancel(actor.ctx)
+	config.ClientVersion = appVersion()
+	b := &languageBinding{lifetime: ctx, config: config, state: "starting", cancel: cancel}
+	b.service = languageserver.Supervise(ctx, m.workspace, config)
+	actor.workers.Go(func() {
+		defer b.service.Close()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case event, ok := <-b.service.Events():
+				if !ok {
+					return
+				}
+				if event.Diagnostics != nil {
+					path, err := languageserver.PathFromURI(event.Diagnostics.URI)
+					if err != nil {
+						continue
+					}
+					physical, err := canonicalPath(path)
+					if err != nil {
+						continue
+					}
+					copy := *event.Diagnostics
+					copy.URI = copilotservice.FileURI(physical)
+					event.Diagnostics = &copy
+				}
+				ack := make(chan struct{})
+				if !uidispatch.Retry(ctx, actor.dispatch, func() {
+					defer close(ack)
+					if ctx.Err() == nil {
+						m.applyLanguageEvent(b, event)
+					}
+				}) {
+					return
+				}
+				select {
+				case <-ack:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+	})
+	return b
+}
+
+// UI-only: stop removed identities before spawning replacements; no old
+// generation can publish a diagnostic, completion or edit into a new binding.
+func (m *model) reconcileLanguageExtensionConfigs(configs []languageserver.Config, installedGo bool) error {
+	a := m.languageActor
+	if a == nil || a.closed || a.ctx.Err() != nil {
+		return nil
+	}
+	suppressAutomaticGo := a.suppressAutomaticGo || installedGo
+	for _, config := range configs {
+		if config.Name == "extension:golang.go" {
+			suppressAutomaticGo = true
+		}
+	}
+	independent := 0
+	for _, b := range m.languageBindings {
+		if !strings.HasPrefix(b.config.Name, "extension:") && !(suppressAutomaticGo && b.config.AutomaticGoFallback) {
+			independent++
+		}
+	}
+	if independent+len(configs) > 16 {
+		return fmt.Errorf("at most 16 language servers can be active, including native VSIX adapters")
+	}
+	a.suppressAutomaticGo = suppressAutomaticGo
+	retained := make([]*languageBinding, 0, len(m.languageBindings)+len(configs))
+	var independentBindings []*languageBinding
+	for _, b := range m.languageBindings {
+		if suppressAutomaticGo && b.config.AutomaticGoFallback {
+			m.clearLanguage(b)
+			b.cancel()
+			continue
+		}
+		if !strings.HasPrefix(b.config.Name, "extension:") {
+			independentBindings = append(independentBindings, b)
+			continue
+		}
+		keep := false
+		for _, config := range configs {
+			if config.Name == b.config.Name && languageextension.EqualConfig(config, b.config) {
+				keep = true
+				break
+			}
+		}
+		if keep {
+			retained = append(retained, b)
+		} else {
+			m.clearLanguage(b)
+			b.cancel()
+		}
+	}
+	m.languageBindings = retained
+	for _, config := range configs {
+		if !strings.HasPrefix(config.Name, "extension:") {
+			continue
+		}
+		found := false
+		for _, b := range m.languageBindings {
+			if b.config.Name == config.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			m.languageBindings = append(m.languageBindings, m.newLanguageBinding(a, config))
+		}
+	}
+	// Requests scan backwards: preserve the startup policy and independent
+	// provider order without replacing any retained session identity.
+	m.languageBindings = append(m.languageBindings, independentBindings...)
+	m.refreshLanguageStatus()
+	return nil
+}
+
+func (m *model) currentLanguageBinding(b *languageBinding) bool {
+	for _, current := range m.languageBindings {
+		if current == b {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *model) startLanguages(parent context.Context, cx *ui.Context, configs []languageserver.Config) func() {
@@ -31,52 +173,10 @@ func (m *model) startLanguages(parent context.Context, cx *ui.Context, configs [
 
 func (m *model) bindLanguages(parent context.Context, dispatch func(func()) bool, configs []languageserver.Config) func() {
 	ctx, cancel := context.WithCancel(parent)
-	var workers sync.WaitGroup
+	actor := &languageActor{ctx: ctx, cancel: cancel, dispatch: dispatch}
+	m.languageActor = actor
 	for _, config := range configs {
-		config.ClientVersion = appVersion()
-		b := &languageBinding{lifetime: ctx, config: config, state: "starting"}
-		b.service = languageserver.Supervise(ctx, m.workspace, config)
-		m.languageBindings = append(m.languageBindings, b)
-		workers.Go(func() {
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				case event, ok := <-b.service.Events():
-					if !ok {
-						return
-					}
-					if event.Diagnostics != nil {
-						path, err := languageserver.PathFromURI(event.Diagnostics.URI)
-						if err != nil {
-							continue
-						}
-						physical, err := canonicalPath(path)
-						if err != nil {
-							continue
-						}
-						copy := *event.Diagnostics
-						copy.URI = copilotservice.FileURI(physical)
-						event.Diagnostics = &copy
-					}
-					ack := make(chan struct{})
-					if !uidispatch.Retry(ctx, dispatch, func() {
-						defer close(ack)
-						if ctx.Err() == nil {
-							m.applyLanguageEvent(b, event)
-						}
-					}) {
-						return
-					}
-					// One pending UI dispatch per configured server, including floods.
-					select {
-					case <-ack:
-					case <-ctx.Done():
-						return
-					}
-				}
-			}
-		})
+		m.languageBindings = append(m.languageBindings, m.newLanguageBinding(actor, config))
 	}
 	previousDocument := m.onDocument
 	m.onDocument = func(kind string, d *document, change textbuffer.ChangeEvent) {
@@ -146,12 +246,13 @@ func (m *model) bindLanguages(parent context.Context, dispatch func(func()) bool
 	}
 	m.refreshLanguageStatus()
 	return func() {
-		cancel()
-		for _, b := range m.languageBindings {
-			workers.Go(func() { _ = b.service.Close() })
+		if actor.closed {
+			return
 		}
+		actor.closed = true
+		cancel()
 		done := make(chan struct{})
-		go func() { workers.Wait(); close(done) }()
+		go func() { actor.workers.Wait(); close(done) }()
 		select {
 		case <-done:
 		case <-time.After(3 * time.Second):
@@ -176,7 +277,7 @@ func (m *model) clearLanguage(b *languageBinding) {
 	m.publishCompletions("lsp:"+b.config.Name, nil)
 }
 func (m *model) applyLanguageEvent(b *languageBinding, e languageserver.Event) {
-	if !b.service.Valid(e) {
+	if !m.currentLanguageBinding(b) || !b.service.Valid(e) {
 		return
 	}
 	switch e.State {
@@ -266,7 +367,7 @@ func (m *model) requestLanguage(b *languageBinding, d *document, method string, 
 		err := client.Request(ctx, path, snapshot, position, method, &raw)
 		uidispatch.Retry(b.lifetime, dispatch, func() {
 			current := m.findDocument(path)
-			if b.session != session || !session.Valid() || current != d || !current.serviceEligible() || current.buffer.Version() != snapshot.Version {
+			if !m.currentLanguageBinding(b) || b.session != session || !session.Valid() || current != d || !current.serviceEligible() || current.buffer.Version() != snapshot.Version {
 				return
 			}
 			if method != "textDocument/formatting" && (current != m.current() || current.cursor() != position || generation != m.inlineGeneration) {

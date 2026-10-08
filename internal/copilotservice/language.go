@@ -56,8 +56,12 @@ func LanguageID(path string) string {
 		return "go"
 	case ".js", ".cjs", ".mjs":
 		return "javascript"
-	case ".ts", ".tsx":
+	case ".ts", ".mts", ".cts":
 		return "typescript"
+	case ".tsx":
+		return "typescriptreact"
+	case ".jsx":
+		return "javascriptreact"
 	case ".json":
 		return "json"
 	case ".md":

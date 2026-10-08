@@ -132,6 +132,7 @@ func (m *model) workbenchCommands() []workbenchCommand {
 			commands[i].Checked = m.autoSaveConfig().Mode != "off"
 		}
 	}
+	commands = append(commands, m.languageExtensionCommands()...)
 	for _, command := range m.commands {
 		id := command.ID
 		commands = append(commands, c("extension:"+id, command.Title, "", m.execute != nil, func() { m.execute(id) }))

@@ -2,7 +2,8 @@ param(
     [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version,
     [string]$OutputDirectory='',
     [switch]$AllowDirty,
-    [switch]$SkipMSI
+    [switch]$SkipMSI,
+    [string]$WorkDirectory=''
 )
 $ErrorActionPreference='Stop'
 $taskRoot=Split-Path -Parent $PSScriptRoot
@@ -10,6 +11,10 @@ if(-not $Version){$Version=(Get-Content -LiteralPath (Join-Path $taskRoot 'VERSI
 if (-not $OutputDirectory) {$OutputDirectory=Join-Path $taskRoot 'dist'}
 $taskOutput=[IO.Path]::GetFullPath($OutputDirectory)
 $taskStage=Join-Path $taskRoot ('.cache/package-'+$Version+'-'+[Guid]::NewGuid().ToString('N'))
+if ($WorkDirectory) {
+    . (Join-Path $PSScriptRoot 'local-release-functions.ps1')
+    $taskStage = Initialize-ReleaseWorkDirectory $WorkDirectory
+}
 $taskPayload=Join-Path $taskStage 'payload'
 $taskVersion=Join-Path $taskPayload ('versions/'+$Version)
 New-Item -ItemType Directory -Path $taskVersion,$taskOutput -Force | Out-Null
@@ -61,7 +66,11 @@ try {
     if($LASTEXITCODE -ne 0){throw 'Generated updater archive extraction/health failed.'}
     & (Join-Path $taskPayload 'gocode.exe') -version
     if($LASTEXITCODE -ne 0){throw 'Packaged command launcher failed.'}
-    if(-not $SkipMSI){& (Join-Path $PSScriptRoot 'build-msi.ps1') -PayloadDirectory $taskPayload -Version $Version -OutputPath (Join-Path $taskOutput "gocode-$Version-windows-amd64.msi")}
+    if(-not $SkipMSI){
+        $taskMSIArguments = @{PayloadDirectory=$taskPayload; Version=$Version; OutputPath=(Join-Path $taskOutput "gocode-$Version-windows-amd64.msi")}
+        if ($WorkDirectory) { $taskMSIArguments.WorkDirectory = Join-Path (Split-Path -Parent $taskStage) 'msi-work' }
+        & (Join-Path $PSScriptRoot 'build-msi.ps1') @taskMSIArguments
+    }
     Write-Output "Payload: $taskPayload"
     Get-FileHash -Algorithm SHA256 -LiteralPath $taskZip
 } finally {

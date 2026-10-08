@@ -111,6 +111,11 @@ func TestRuntimePathsAreExplicitAndURIsEscaped(t *testing.T) {
 	if LanguageID("a.go") != "go" || LanguageID("a.json") != "json" || LanguageID("a.xyz") != "plaintext" {
 		t.Fatal("language mapping")
 	}
+	for path, want := range map[string]string{"a.tsx": "typescriptreact", "a.JSX": "javascriptreact", "a.mts": "typescript", "a.cts": "typescript", "a.mjs": "javascript"} {
+		if got := LanguageID(path); got != want {
+			t.Fatalf("language %s: %s, want %s", path, got, want)
+		}
+	}
 	t.Setenv("GOCODE_COPILOT_CLI", "")
 	if _, err := CLIPath(t.TempDir()); err == nil {
 		t.Fatal("missing runtime falsely accepted")

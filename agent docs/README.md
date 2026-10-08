@@ -1,5 +1,11 @@
 # Product engineering harness
 
+The 2026-10-08 publication policy requires local builds, validation and uploads
+with immutable tags. Do not dispatch Actions without a new explicit budget
+decision. Consolidate common Windows IDE workflows and actual Go/TypeScript
+LSP extension installation/activation into one verified stable version;
+full VS Code parity remains future work. Preserve exact-source local receipts.
+
 Current objective: a native Go alternative inspired by Zed/GPUI and VS Code,
 with GB file browsing, language/extension/AI services, free installation/update
 channels, local deployment and visual validation. The workbench stays native.

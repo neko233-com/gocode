@@ -255,7 +255,7 @@ func (m *model) diskBanner(d *document) *ui.Element {
 	}
 	return ui.Row(actions...).PaddingXY(8, 0).Height(38).Background(ui.RGB(0x332b00))
 }
-func (m *model) reloadOverlay(base *ui.Element) *ui.Element {
+func (m *model) reloadOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 	d := m.reloadPrompt
 	items := []*ui.Element{label("Reload from disk?").FontSize(17).Height(30), label(fmt.Sprintf("Unsaved changes in %s will be discarded.", filepath.Base(d.path))).Height(24)}
 	for _, line := range wrapChatText(m.reloadError, 390) {
@@ -267,8 +267,9 @@ func (m *model) reloadOverlay(base *ui.Element) *ui.Element {
 		reload = func(*ui.Context) { m.requestDiskReload(d) }
 	}
 	items = append(items, ui.Row(spacer(), button("Reload", "reload-confirm", reload).Width(100).Height(30).Background(ui.RGB(accent)), button("Cancel", "reload-cancel", cancel).Width(90).Height(30)).Gap(8).Height(40))
-	popup := ui.Column(items...).Padding(22).Width(460).Radius(8).ClipRounded(8).Background(ui.RGB(0x252526)).Key("reload-dialog")
+	popup := ui.Column(items...).Padding(22).Width(460).Radius(8).ClipRounded(8).Background(ui.RGB(0x252526)).Shadow(modalPopupShadow()).Key("reload-dialog")
 	shade := ui.Column().Background(ui.RGBA(0, .65)).OnClick(func(*ui.Context) {})
-	center := ui.Column(spacer(), ui.Row(spacer(), popup, spacer()).Height(float32(140+20*len(wrapChatText(m.reloadError, 390)))), spacer())
+	w, h := cx.WindowSize()
+	center := centeredPopup(popup, 460, float32(140+20*len(wrapChatText(m.reloadError, 390))), w, h)
 	return ui.Stack(base, shade, center)
 }

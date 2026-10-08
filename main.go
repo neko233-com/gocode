@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -118,6 +119,8 @@ func run() (runErr error) {
 	windowHeight := flag.Int("window-height", 820, "Initial native window height in DIP")
 	extensionDir := flag.String("extensions-dir", "", "Local VSIX installation directory")
 	install := flag.String("install-extension", "", "Install a trusted local VSIX and exit")
+	installLanguageKind := flag.String("install-language-extension", "", "Install pinned genuine Go or TypeScript VSIX and its native LSP dependency (go/typescript)")
+	checkLanguageKind := flag.String("language-extension-check", "", "Verify installed Go/TypeScript VSIX, real LSP features and owned server shutdown (go/typescript)")
 	catalogCheck := flag.String("extension-catalog-check", "", "Verify actual Open VSX search and Windows x64/universal version metadata without installing")
 	smoke := flag.Bool("smoke", false, "Verify a native frame and a real extension command, then exit")
 	editorSmoke := flag.Bool("editor-smoke", false, "Verify native versioned VSIX edits, save, undo/redo and completion in a disposable workspace")
@@ -138,9 +141,11 @@ func run() (runErr error) {
 	lspConfig := flag.String("lsp-config", "", "User-owned JSON array of language server configurations")
 	lspEnabled := flag.Bool("lsp", true, "Run configured standard language servers")
 	lspSmoke := flag.Bool("lsp-smoke", false, "Verify real LSP formatting/hover/definition/completion/diagnostics in a native disposable workspace")
+	typescriptSmoke := flag.Bool("typescript-lsp-smoke", false, "Verify real installed TypeScript extension formatting/hover/definition/completion/diagnostics and restart in a native disposable workspace")
 	openSmoke := flag.Bool("open-smoke", false, "Verify native typing/resize/cancel and awaited VSIX opens during delayed disk workers")
 	uiSmoke := flag.Bool("ui-smoke", false, "Verify owned native workbench logo, complete tab captions and tab controls")
 	extensionDetailSmoke := flag.Bool("extension-detail-smoke", false, "Verify native extension detail scrolling, measured fonts, real VSIX commands and management in an owned workspace")
+	popupShadowSmoke := flag.Bool("popup-shadow-smoke", false, "Verify native popup shadows, clipping, unchanged pointer bounds and completed frames in an owned workspace")
 	windowsWorkbenchSmoke := flag.Bool("windows-workbench-smoke", false, "Verify real Windows File menus, shell dialogs, quick input and VSIX management")
 	autoSaveSmoke := flag.Bool("auto-save-smoke", false, "Verify native Auto Save modes, real disk writes, activation, conflicts and Revert File")
 	autoSaveMinimizedSmoke := flag.Bool("auto-save-minimized-smoke", false, "Verify real Auto Save writes and UI receipts while an owned native window stays minimized")
@@ -157,6 +162,46 @@ func run() (runErr error) {
 	copilotUISmoke := flag.Bool("copilot-ui-smoke", false, "Verify rendered Copilot suggestion, native Tab acceptance and chat in a disposable workspace")
 	copilotEnabled := flag.Bool("copilot", true, "Connect installed official Copilot sidecars in the native workbench")
 	flag.Parse()
+	if *typescriptSmoke {
+		if *lspSmoke {
+			return errors.New("choose one Go or TypeScript native LSP acceptance per owned process")
+		}
+		*lspSmoke = true
+	}
+	if *installLanguageKind != "" || *checkLanguageKind != "" {
+		if *installLanguageKind != "" && *checkLanguageKind != "" {
+			return errors.New("install and check language extensions in separate invocations")
+		}
+		root := *extensionDir
+		if root == "" {
+			config, err := os.UserConfigDir()
+			if err != nil {
+				return err
+			}
+			root = filepath.Join(config, "gocode", "extensions")
+		}
+		ctx, stop := context.WithTimeout(context.Background(), 120*time.Second)
+		defer stop()
+		if *installLanguageKind != "" {
+			receipt, err := installLanguageExtension(ctx, root, *installLanguageKind)
+			if err != nil {
+				return err
+			}
+			settings, err := readExtensionSettings(root)
+			if err != nil {
+				return err
+			}
+			if _, err := finishLanguageExtensionInstall(root, settings, receipt); err != nil {
+				return err
+			}
+			return json.NewEncoder(os.Stdout).Encode(receipt)
+		}
+		report, err := checkLanguageExtension(ctx, root, *checkLanguageKind)
+		if err != nil {
+			return err
+		}
+		return json.NewEncoder(os.Stdout).Encode(report)
+	}
 	if *catalogCheck != "" {
 		return checkLiveExtensionCatalog(*catalogCheck)
 	}
@@ -165,6 +210,9 @@ func run() (runErr error) {
 	}
 	if *extensionDetailSmoke {
 		return runExtensionDetailAcceptance()
+	}
+	if *popupShadowSmoke {
+		return runPopupShadowAcceptance()
 	}
 	if *autoSaveSmoke {
 		return runAutoSaveAcceptance()
@@ -333,20 +381,36 @@ func run() (runErr error) {
 		*copilotEnabled = false
 	}
 	if *lspSmoke {
-		fixture, err := os.MkdirTemp("", "gocode-lsp-native-")
-		if err != nil {
-			return err
+		if *typescriptSmoke {
+			fixture, err := os.MkdirTemp("", "gocode-typescript-native-")
+			if err != nil {
+				return err
+			}
+			defer os.RemoveAll(fixture)
+			if err := os.WriteFile(filepath.Join(fixture, "tsconfig.json"), []byte(`{"compilerOptions":{"strict":true,"target":"ES2022"},"files":["main.ts"]}`), 0600); err != nil {
+				return err
+			}
+			if err := os.WriteFile(filepath.Join(fixture, "main.ts"), []byte("// 原生 TypeScript 世界😀\nexport function greeting(): string{return \"hello\";}\nexport const value = greeting();\nexport const missingValue = missing;\n"), 0600); err != nil {
+				return err
+			}
+			*workspace, paths = fixture, []string{filepath.Join(fixture, "main.ts")}
+			*copilotEnabled = false
+		} else {
+			fixture, err := os.MkdirTemp("", "gocode-lsp-native-")
+			if err != nil {
+				return err
+			}
+			defer os.RemoveAll(fixture)
+			if err := os.WriteFile(filepath.Join(fixture, "go.mod"), []byte("module example.com/gocode-acceptance\n\ngo 1.27.0\n"), 0600); err != nil {
+				return err
+			}
+			if err := os.WriteFile(filepath.Join(fixture, "main.go"), []byte("package main\nfunc greeting() string{return \"hello\"}\nfunc main(){\n_ = greeting()\n_ = missing\n}\n"), 0600); err != nil {
+				return err
+			}
+			*workspace = fixture
+			paths = nil
+			*copilotEnabled = false
 		}
-		defer os.RemoveAll(fixture)
-		if err := os.WriteFile(filepath.Join(fixture, "go.mod"), []byte("module example.com/gocode-acceptance\n\ngo 1.27.0\n"), 0600); err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(fixture, "main.go"), []byte("package main\nfunc greeting() string{return \"hello\"}\nfunc main(){\n_ = greeting()\n_ = missing\n}\n"), 0600); err != nil {
-			return err
-		}
-		*workspace = fixture
-		paths = nil
-		*copilotEnabled = false
 	}
 	if *copilotUISmoke {
 		fixture, err := os.MkdirTemp("", "gocode-copilot-ui-")
@@ -464,18 +528,6 @@ func run() (runErr error) {
 		gotoQuery = fmt.Sprint(*goLine)
 	}
 	var languageConfigs []languageserver.Config
-	if *lspEnabled {
-		languageConfigs, err = languageserver.LoadConfig(*lspConfig)
-		if err != nil {
-			return err
-		}
-	}
-	if *lspSmoke && len(languageConfigs) == 0 {
-		return errors.New("LSP native acceptance requires installed gopls or -lsp-config")
-	}
-	if *filewatchSmoke && *lspEnabled && len(languageConfigs) == 0 {
-		return errors.New("native file watch LSP acceptance requires installed gopls; use -lsp=false for VSIX-only acceptance")
-	}
 	m.readClipboard, m.writeClipboard = ui.ReadClipboard, ui.WriteClipboard
 	if *extensionGalleryURL != "" {
 		if _, err = galleryURL(*extensionGalleryURL); err != nil {
@@ -531,8 +583,42 @@ func run() (runErr error) {
 	}
 	m.extensionsView.settings = extensionState
 	m.extensionsView.contributions = extensionContributions(installed)
+	if *lspEnabled {
+		var issues []string
+		languageConfigs, issues, err = loadWorkbenchLanguageConfigs(*lspConfig, *extensionDir, installed, extensionState)
+		if err != nil {
+			return err
+		}
+		if len(issues) > 0 {
+			m.message = "Language extensions: " + strings.Join(issues, "; ")
+		}
+	}
+	if *lspSmoke {
+		fixtureName := "main.go"
+		if *typescriptSmoke {
+			fixtureName = "main.ts"
+		}
+		var selected []languageserver.Config
+		for _, config := range languageConfigs {
+			if config.Supports(fixtureName) && (!*typescriptSmoke || config.Name == "extension:vscode.typescript-language-features") {
+				selected = append(selected, config)
+			}
+		}
+		if len(selected) == 0 {
+			return errors.New("native language acceptance requires its installed/enabled language server; TypeScript requires the pinned native VSIX adapter")
+		}
+		languageConfigs = selected[len(selected)-1:]
+	}
+	if *filewatchSmoke && *lspEnabled && len(languageConfigs) == 0 {
+		return errors.New("native file watch LSP acceptance requires installed gopls; use -lsp=false for VSIX-only acceptance")
+	}
 	m.extensionsView.running = map[string]bool{}
 	activeExtensions := enabledExtensions(installed, extensionState)
+	hostExtensions := languageHostExtensions(activeExtensions)
+	hostIDs := map[string]bool{}
+	for _, e := range hostExtensions {
+		hostIDs[strings.ToLower(e.ID())] = true
+	}
 	for _, e := range activeExtensions {
 		m.extensionsView.running[strings.ToLower(e.ID())] = true
 	}
@@ -542,8 +628,8 @@ func run() (runErr error) {
 		if name == "" {
 			name = e.ID()
 		}
-		m.installed = append(m.installed, extensionInfo{name, e.ID(), e.Manifest.Description, e.Manifest.Version})
-		if !m.extensionsView.running[strings.ToLower(e.ID())] {
+		m.installed = append(m.installed, extensionInfo{name, e.ID(), languageExtensionDescription(e), e.Manifest.Version})
+		if !hostIDs[strings.ToLower(e.ID())] {
 			continue
 		}
 		for _, c := range e.Manifest.Contributes.Commands {
@@ -566,7 +652,7 @@ func run() (runErr error) {
 			runErr = errors.Join(runErr, m.afterWindowClosed())
 		}
 	}()
-	host, hostErr := extensions.Start(hostCtx, m.workspace, activeExtensions)
+	host, hostErr := extensions.Start(hostCtx, m.workspace, hostExtensions)
 	if hostErr != nil {
 		m.message = hostErr.Error()
 		if *smoke {
@@ -682,7 +768,7 @@ func run() (runErr error) {
 	}
 	var aiAcceptance copilotAcceptance
 	var largeAcceptance largefileAcceptance
-	var languageAcceptance lspAcceptance
+	languageAcceptance := lspAcceptance{typescript: *typescriptSmoke}
 	closingAcceptance := closeAcceptance{mode: *closeSmoke}
 	var shellAcceptance terminalAcceptance
 	watchingAcceptance := filewatchAcceptance{requireLSP: *filewatchSmoke && *lspEnabled}
@@ -751,7 +837,7 @@ func run() (runErr error) {
 			if *copilotEnabled && !*smoke {
 				closeCopilot = m.startCopilot(hostCtx, viewContext, *copilotRoot)
 			}
-			if len(languageConfigs) > 0 {
+			if *lspEnabled {
 				closeLanguages = m.startLanguages(hostCtx, viewContext, languageConfigs)
 			}
 			var scan func(context.Context, string) workspaceScan
@@ -918,7 +1004,11 @@ func run() (runErr error) {
 		if !languageAcceptance.verified {
 			return fmt.Errorf("LSP native acceptance: %s", languageAcceptance.failure)
 		}
-		fmt.Println("gocode LSP acceptance passed: real formatting + hover + definition + completion + diagnostics + owned gopls crash/reinitialize + unsaved replay + recovered hover/completion")
+		if *typescriptSmoke {
+			fmt.Println("gocode TypeScript LSP acceptance passed: installed native VSIX adapter + real formatting + hover + definition + completion + diagnostics + owned server crash/reinitialize + unsaved replay + recovered hover/completion")
+		} else {
+			fmt.Println("gocode LSP acceptance passed: real formatting + hover + definition + completion + diagnostics + owned gopls crash/reinitialize + unsaved replay + recovered hover/completion")
+		}
 	}
 	if *copilotUISmoke {
 		if !aiAcceptance.verified {

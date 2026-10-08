@@ -1,5 +1,95 @@
 # Free distribution contract
 
+## Local publication policy and verifier (2026-10-08, implementation pending release proof)
+
+Future stable releases are built, validated, signed and uploaded locally at one
+clean immutable source commit. The user has retired remote publication and
+automatic Actions spending. The original release workflow is preserved byte for
+byte in workflow-history/release-actions-retired-2026-10-08.yml.txt
+(SHA256 2d1cfdbeffbd70eb5770d7ac60dfd83cd8c985a075fd3a972cc51734c57da72f).
+The historical file is outside .github/workflows and cannot execute.
+Public/installed v0.23.0 and all historical exact-source proofs below are retained.
+
+The new cmd/gocode-localreleasecheck/internal/localrelease path performs no
+signing, tag creation, asset upload or public-network update discovery. Its plan
+defines ordered console/GUI native gates, separate real Go/TypeScript installed
+adapter checks and an independent genuine prior-release rollback check. Exact
+arguments exclude accidental -version early exits. Actual captured fixture
+success strings and strict typed service reports are required; an exit code or
+gate count alone cannot seal a release.
+
+Framework verification queries the real GOWORK=off consumer graph, refuses
+replace, checks cached Origin against the published tag's immutable source and
+recomputes Info/module/ZIP hashes plus go mod verify. Missing Origin is a failed
+check with an explicit fresh official-proxy cache route; claimed checksum text
+does not substitute for the absent source provenance. The intended dependency
+is public godesktop v0.17.0/source 996b5ff16189d95ea72298ee48bd03366b27757e.
+
+Local staging calls the production PublisherKey/Verify/Stage/Probe APIs against
+the actual local signed envelope and ZIP. It never uses a public latest-release
+Check response as local proof. Each native launch hashes the exact full staged
+console or GUI executable before Start and after reaping, retains the frozen
+owned-process supervisor report/output, and binds those bytes to the signed ZIP
+entry. The original fixture deadlines remain unchanged. Long source-suite/MSI
+checks use separately owned external process receipts, not the 120s native
+supervisor; receipts include actual elapsed time, PID, exit, root reaping/tree
+closure, captured log hashes and the digest of actual tracked source inputs.
+
+Prior rollback stages the genuine older production-signed archive, performs
+actual health and Activate/Rollback selection, verifies exact before/after
+source/version, and starts its real native editor/installed VSIX with the same
+extension root under an owned 60s process. Its archive, signed envelope, payload,
+native report and output are independent of the new release's ZIP. A prior
+-version check alone cannot satisfy this gate.
+
+The complete receipt is bounded to 512KiB, persisted atomically and skips an
+identical write. Verification recomputes all artifact/log/signature/module/source
+digests and requires actual private-stage/TMP/config absence. The verifier
+cannot make a fabricated complete receipt from a roadmap or placeholder command.
+The PowerShell orchestrator and final real native/MSI/signed-byte proof remain
+pending; CPU unit fixtures use ephemeral test keys solely inside tests, never
+the production publisher identity or installed trust.
+
+MSI evidence must consume and bind both original final MSI and ZIP hashes.
+The existing test-msi synthetic 0.0.1/0.0.2 transaction remains a source behavior
+check, not proof of the final candidate installer bytes. The candidate path
+uses isolated Windows Installer identities/transforms and an owned root while
+preserving the original MSI hash/payload and the user's stable install.
+This real candidate transaction has not yet run.
+
+Focused CPU validation of the verifier passes strict-cgo/race/shuffle/count3
+(3.033s), no-cgo/count3 (1.892s), both focused vet modes and five real-file
+metadata-generator tests (0.027s). Tests start only nongraphical pure-Go health
+programs and exercise the actual production health probe/owned process guard,
+signed staging/integrity rejection, real file mutation, exact full executable
+path, early-exit negatives, pinned language-report shape, bounded JSON and
+idempotent persistence. They do not establish real native package acceptance.
+Remaining workflow actionlint/ShellCheck and read-only diff --check exit 0.
+Evidence is .cache/local-publication-tests/final-{strict-race,nocgo}.log,
+distribution-tests.log and final-framework-official.json. The actual verifier
+framework mode succeeds in 160.968ms against the already fetched official
+public17 standalone consumer/cache, with no network access. Applying that
+deliberately minimal cache to the full app correctly fails an absent unrelated
+colorprofile dependency; the first failure is retained. Final app verification
+requires its complete cache and actual Origin. An actual dirty-checkout negative
+refuses staging before creating the requested root. Eleven owned Go-tool
+telemetry files across two phases were inventoried and removed; private config
+is absent and temporary files are zero. User configuration was not used.
+
+The first consolidated release is honestly Windows/amd64 only. The metadata
+generator accepts an explicit platform subset, emits only its two Windows
+assets and one updater asset, and refuses to overwrite existing Mac channels
+from a Windows-only output. Use a fresh versioned ignored output for staging.
+Old Mac installer/cask paths remain at their actual previous release; do not
+advertise new Mac URLs or relabel old archives. A future Mac package requires
+new native build/test proof. The exact core17 native CI covers macOS15/Xcode16;
+macOS13/14 and older scoped-FP compilers are not established by those passes.
+
+Final signing requires the existing matching Ed25519 private-key file outside
+the checkout. No automatic generation, rotation, purchased OS certificate or
+notarization is part of this path. The production key's local path is currently
+pending user input. No new release/tag/upload or installed promotion is claimed.
+
 ## Public and installed v0.23.0 (2026-10-08)
 
 Immutable source 47623823dd88fbb45422d096b545631be7e6b77b passes all five
@@ -69,11 +159,12 @@ launch, icon shortcuts, remembered roots and cleanup. Old products are removed o
 after InstallExecute successfully copies the new files. Cleanup runs only for an
 installed maintenance component and never during a major upgrade.
 
-The release workflow requires a successful exact-main-source CI run and reuses those
-actual tested artifacts. It signs update-manifest.json with the Actions publisher
-secret, refuses existing releases, publishes artifacts, then maintains distribution
-metadata, bucket/ and Casks/. Private keys stay outside Git. The signature key is
-free Ed25519 integrity metadata, unrelated to OS certificate/notarization fees.
+Historically, the retired release workflow required successful exact-main-source
+CI and reused those tested artifacts. It signed update-manifest.json using the
+Actions publisher secret, then maintained distribution metadata, bucket/ and
+Casks/. The new local path above replaces remote publication while preserving
+the installed publisher identity. Private keys stay outside Git. This free
+Ed25519 integrity metadata is unrelated to OS certificate/notarization fees.
 
 Updater layout: baseline base.json, signed versions/V payloads, current.json and
 previous.json pointers. Health verifies version/platform/source before selection.

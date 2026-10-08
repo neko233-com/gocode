@@ -24,6 +24,7 @@ const MaxDocumentBytes = 2 << 20 // JSON escaping can expand each source byte si
 
 type Config struct {
 	ClientVersion         string         `json:"-"`
+	AutomaticGoFallback   bool           `json:"-"` // Set only by the automatic startup loader, never by user JSON.
 	Name                  string         `json:"name"`
 	Languages             []string       `json:"languages"`
 	Command               string         `json:"command"`
@@ -41,6 +42,7 @@ type Capabilities struct {
 }
 type Client struct {
 	RPC             *lsp.Client
+	process         *serverTransport
 	Config          Config
 	Capabilities    Capabilities
 	mu              sync.Mutex
@@ -88,16 +90,59 @@ func Start(ctx context.Context, workspace string, config Config) (*Client, error
 	if config.Command == "" || config.Name == "" || len(config.Languages) == 0 {
 		return nil, errors.New("LSP config requires name, command and languages")
 	}
-	rpc, err := lsp.Start(ctx, lsp.Command{Executable: config.Command, Arguments: config.Arguments, Directory: workspace})
+	rpc, owner, err := startOwned(ctx, lsp.Command{Executable: config.Command, Arguments: config.Arguments, Directory: workspace})
 	if err != nil {
 		return nil, err
 	}
 	c, err := Initialize(ctx, rpc, workspace, config)
 	if err != nil {
-		rpc.Close()
-		return nil, err
+		_ = rpc.Close()
+		return nil, errors.Join(err, owner.Close())
 	}
+	c.process = owner
 	return c, nil
+}
+
+func (c *Client) ProcessID() int {
+	if c.process == nil {
+		return 0
+	}
+	return c.process.child.PID()
+}
+
+// ProcessIDs observes this owned process tree on platforms with a native job
+// query. A platform without that query returns an error rather than a root-only
+// list that could be mistaken for complete descendant evidence. Call off UI.
+func (c *Client) ProcessIDs() ([]int, error) {
+	if c.process == nil {
+		return nil, errors.New("language client has no owned process transport")
+	}
+	if observer, ok := c.process.child.(interface{ ProcessIDs() ([]int, error) }); ok {
+		return observer.ProcessIDs()
+	}
+	return nil, errors.New("owned language process-tree observation is unavailable on this platform")
+}
+func (c *Client) ProcessClosed() bool {
+	if c.process == nil {
+		return false
+	}
+	select {
+	case <-c.process.closed:
+		return c.process.closeErr == nil
+	default:
+		return false
+	}
+}
+
+// Close reports both protocol shutdown and the owned process/worker join.
+// The transport's shared acknowledgement prevents repeated calls from starting
+// another three-second wait after a timed-out close.
+func (c *Client) Close() error {
+	err := c.RPC.Close()
+	if c.process != nil {
+		err = errors.Join(err, c.process.Close())
+	}
+	return err
 }
 func Initialize(ctx context.Context, rpc *lsp.Client, workspace string, config Config) (*Client, error) {
 	c := &Client{RPC: rpc, Config: config, versions: map[string]int{}}
@@ -290,11 +335,6 @@ func (c *Client) Request(ctx context.Context, path string, s editor.Snapshot, po
 		params["context"] = map[string]int{"triggerKind": 1}
 	}
 	return c.RPC.Call(ctx, method, params, out)
-}
-func (c *Client) Close() {
-	ctx, stop := context.WithTimeout(context.Background(), 2*time.Second)
-	defer stop()
-	_ = c.RPC.Shutdown(ctx)
 }
 func PathFromURI(raw string) (string, error) {
 	u, err := url.Parse(raw)

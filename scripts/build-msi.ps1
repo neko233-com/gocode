@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory)][string]$OutputPath,
     [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version='0.4.0',
     [ValidatePattern('^[A-Za-z0-9 -]{1,40}$')][string]$ProductName='gocode',
-    [Guid]$UpgradeCode='{EED33BE1-E465-4A97-A598-A29F430F9324}'
+    [Guid]$UpgradeCode='{EED33BE1-E465-4A97-A598-A29F430F9324}',
+    [string]$WorkDirectory=''
 )
 $ErrorActionPreference='Stop'
 $taskPayload=(Resolve-Path -LiteralPath $PayloadDirectory).Path
@@ -12,11 +13,19 @@ if(Test-Path -LiteralPath $taskMSI){throw "MSI already exists: $taskMSI"}
 $taskBase=Get-Content -LiteralPath (Join-Path $taskPayload 'base.json') -Raw|ConvertFrom-Json
 if($taskBase.owner -ne 'neko233-com/gocode' -or $taskBase.schema -ne 1 -or $taskBase.version -ne $Version){throw 'Payload ownership/version mismatch.'}
 $taskBuild=Join-Path (Split-Path -Parent $taskMSI) ('msi-work-'+[Guid]::NewGuid().ToString('N'))
+if ($WorkDirectory) {
+    . (Join-Path $PSScriptRoot 'local-release-functions.ps1')
+    $taskBuild = Initialize-ReleaseWorkDirectory $WorkDirectory
+}
 New-Item -ItemType Directory -Path $taskBuild -Force|Out-Null
 $taskInstaller=New-Object -ComObject WindowsInstaller.Installer
 $taskDB=$taskInstaller.GetType().InvokeMember('OpenDatabase','InvokeMethod',$null,$taskInstaller,@($taskMSI,3))
 function Invoke-MSI($Object,[string]$Name,[object[]]$Arguments=@()) {return $Object.GetType().InvokeMember($Name,'InvokeMethod',$null,$Object,$Arguments)}
-function Set-MSI($Object,[string]$Name,[object[]]$Arguments) {[void]$Object.GetType().InvokeMember($Name,'SetProperty',$null,$Object,$Arguments)}
+function Set-MSI {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification='Internal builder assigns only properties in its output MSI database, never installer registration.')]
+    param($Object,[string]$Name,[object[]]$Arguments)
+    [void]$Object.GetType().InvokeMember($Name,'SetProperty',$null,$Object,$Arguments)
+}
 function Invoke-SQL([string]$SQL,$Record=$null) {
     $taskView=Invoke-MSI $taskDB 'OpenView' @($SQL)
     try {[void](Invoke-MSI $taskView 'Execute' @($Record))}finally{[void](Invoke-MSI $taskView 'Close');[void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskView)}
@@ -41,7 +50,9 @@ function Add-Stream([string]$Table,[string]$Name,[string]$Path) {
         [void](Invoke-MSI $taskRecord 'SetStream' @(2,$Path));[void](Invoke-MSI $taskView 'Modify' @(1,$taskRecord))
     }finally{[void](Invoke-MSI $taskView 'Close');[void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskRecord);[void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskView)}
 }
-function New-StableGuid([string]$Name) {
+function New-StableGuid {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification='Pure deterministic GUID calculation allocates a value without modifying files or system state.')]
+    param([string]$Name)
     $taskHash=[Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($UpgradeCode.ToString()+':'+$Name))
     $taskBytes=New-Object byte[] 16;[Array]::Copy($taskHash,$taskBytes,16)
     return '{'+([Guid]::new($taskBytes)).ToString().ToUpperInvariant()+'}'

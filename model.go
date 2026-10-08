@@ -99,6 +99,7 @@ type model struct {
 	requestLSP                                         func(*document, string)
 	lspStatus                                          string
 	languageBindings                                   []*languageBinding
+	languageActor                                      *languageActor
 	restartLanguages                                   func()
 	completionSources                                  map[string][]completionSuggestion
 	updatesConfig                                      update.Config

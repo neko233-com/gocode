@@ -8,7 +8,9 @@ Go 1.27 的原生编辑器，以 [godesktop](https://github.com/neko233-com/gode
 
 当前公开并已完成本机安装验收的是 [v0.23.0](https://github.com/neko233-com/gocode/releases/tag/v0.23.0)，源码 `47623823dd88fbb45422d096b545631be7e6b77b`，使用公开 godesktop v0.16.0。五平台精确源码 CI、真实发布包更新/回滚及 Windows 安装后的 Auto Save、Revert、两种快捷键、原生终端/VSIX/Git 和实际 GiB 分屏均已通过。具体源码、日志和范围见 [工程记录](agent%20docs/status.md)。
 
-v0.24.0 候选补齐扩展详情的固定头部、独立滚动、真实字体换行和长贡献列表，并修复切换标签后立即按 End 丢失滚动的问题。`golang.go` / `@id:golang.go` 使用真实版本元数据查询；默认商店为 Open VSX。独立公开核心的完整 Windows 三轮严格 cgo/race 和全部 console/GUI 原生验收通过（833.454s），无 cgo 全套也通过；精确源码 CI、发布及安装验证继续进行。真实扩展图标、README 和浮层阴影继续完善。见 [扩展详情记录](agent%20docs/extension-details.md)。
+v0.24.0 Windows 候选使用公开核心 v0.17.0，补齐扩展详情滚动与真实字体布局、菜单和浮层的原生圆角阴影、配置写入完成确认，以及真实 Go/TypeScript VSIX 的原生 LSP 适配器。各阶段的源版本和实际测试见 [工程记录](agent%20docs/status.md)；最终组合源码、发布包及安装验证仍在进行，候选尚未发布。
+
+今后在本机测试、打包和上传 GitHub Release，配合不可变 tag 集中发布稳定版本。Actions 只保留手动触发，不再因 push/PR 自动运行。当前优先完成 Windows 常用 IDE 工作流与真实语言扩展，完整 VS Code API 覆盖仍按功能矩阵推进。
 
 ## 安装与更新
 
@@ -57,7 +59,7 @@ JetBrains 支持 Ctrl+Shift+A 查找动作、Ctrl+Shift+N 打开文件、Ctrl+E 
 Ctrl+B 跳转定义、Alt+F12 终端和 Ctrl+Alt+S 设置。尚未实现完整重构/调试快捷键。
 验收在独立临时目录重复运行并检查清理，详见 [快捷键与幂等测试](agent%20docs/keymaps-and-idempotence.md)。
 
-go.mod 固定依赖公开发布的 godesktop v0.16.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
+go.mod 固定依赖公开发布的 godesktop v0.17.0，没有本地 replace，可以独立 clone/build。开发两个仓库时，可用父目录的 go.work；独立验收必须设置 GOWORK=off。更新子仓库后，在父仓库提交新的 gitlink。
 
 ## 编辑与扩展
 
@@ -107,6 +109,17 @@ BSD 授权的 zsh-syntax-highlighting 0.8.0，在现有用户配置后加载。�
 IME/完整字形样式仍待实现。详见 [终端契约](agent%20docs/terminal.md)。
 
 ## 通用语言服务
+
+Windows 候选可通过命令面板的 Install Go/TypeScript Language Support 安装，或运行：
+
+```powershell
+gocode -install-language-extension go
+gocode -install-language-extension typescript
+gocode -language-extension-check go
+gocode -language-extension-check typescript
+```
+
+这两条安装路径使用原始 VSIX：golang.Go 0.50.0 与 vscode.typescript-language-features 1.95.3。Go 使用固定 gopls，TypeScript 使用扩展内置 tsserver 和固定语言服务器包装器；支持补全、诊断、格式化、悬停和定义跳转。启用、禁用、卸载会更新原生服务绑定并回收进程。重复安装会校验已有文件，无需重复下载。原扩展的 JS、调试和测试命令尚未运行；其他 VSIX 仍受已实现 API 范围限制。具体版本、原始包校验和限制见 [语言扩展记录](agent%20docs/language-extensions.md)。
 
 `go run . -install-gopls` 在 gocode 的用户工具目录安装固定版本的官方 gopls；下次启动自动连接。也可以通过 `-lsp-config <JSON>` 配置其他标准语言服务器，或用 `-lsp=false` 关闭。支持原生补全、版本化诊断、Shift+Alt+F 格式化、F12 定义跳转、Ctrl/Cmd+K 悬停信息。[配置与策略](docs/language-servers.md) 说明协议边界和配置格式。
 

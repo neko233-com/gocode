@@ -73,6 +73,7 @@ try {
     New-Item -ItemType Directory -Path bin -Force | Out-Null
     Invoke-CheckedGo build -trimpath '-ldflags=-s -w' -o bin/gocode.exe .
     Invoke-CheckedGo build -trimpath '-ldflags=-s -w -H=windowsgui' -o bin/gocode-gui.exe .
+    Invoke-CheckedGo build -trimpath '-ldflags=-s -w' -o bin/gocode-nativeguard.exe ./cmd/gocode-nativeguard
     & ./bin/gocode.exe -workspace . -extensions-dir $taskExtensions -smoke
     if ($LASTEXITCODE -ne 0) { throw 'Workbench smoke failed.' }
     Invoke-CheckedGUI -workspace . -extensions-dir $taskExtensions -smoke
@@ -103,7 +104,7 @@ try {
     & ./bin/gocode.exe -groups-large-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native shared-index/independent large split failed.' }
     Invoke-CheckedGUI -groups-large-smoke
-    & ./bin/gocode.exe -search-smoke
+    & ./bin/gocode-nativeguard.exe -report .cache/nativeguard/search-default.json -timeout 120s -- ./bin/gocode.exe -search-smoke
     if ($LASTEXITCODE -ne 0) { throw 'Native workspace search/UTF-16/stale/large-file navigation failed.' }
     Invoke-CheckedGUI -search-smoke
     & ./bin/gocode.exe -replace-smoke

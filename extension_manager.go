@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/languageextension"
+	"github.com/neko233-com/gocode/internal/languageserver"
 	"github.com/neko233-com/gocode/internal/uidispatch"
 	ui "github.com/neko233-com/godesktop"
 	"github.com/neko233-com/godesktop/extensions"
@@ -157,6 +159,9 @@ func extensionInfos(installed []extensions.Extension) []extensionInfo {
 			name = e.ID()
 		}
 		result = append(result, extensionInfo{name, e.ID(), e.Manifest.Description, e.Manifest.Version})
+		if languageextension.Kind(e.ID()) != "" {
+			result[len(result)-1].Description = languageExtensionDescription(e)
+		}
 	}
 	return result
 }
@@ -204,10 +209,21 @@ func (m *model) bindExtensionManager(parent context.Context, dispatch func(func(
 		workers.Go(func() {
 			var err error
 			var installed []extensions.Extension
+			var nativeConfigs []languageserver.Config
+			var languageIssues []string
+			var suppressAutomaticGo bool
 			if ctx.Err() != nil {
 				err = ctx.Err()
 			} else {
 				switch action {
+				case "languageInstall":
+					c, stop := context.WithTimeout(ctx, 120*time.Second)
+					var receipt languageextension.Receipt
+					receipt, err = installLanguageExtension(c, root, id)
+					if err == nil {
+						settings, err = finishLanguageExtensionInstall(root, settings, receipt)
+					}
+					stop()
 				case "catalogInstall":
 					c, stop := context.WithTimeout(ctx, 60*time.Second)
 					archive, cleanup, failure := downloadCatalogVSIX(c, newCatalogClient(), root, *catalog)
@@ -243,11 +259,22 @@ func (m *model) bindExtensionManager(parent context.Context, dispatch func(func(
 			if err == nil {
 				installed, err = workbenchExtensions(root)
 			}
+			if err == nil {
+				suppressAutomaticGo, err = suppressImplicitGoFallback(root, installed)
+			}
+			if err == nil {
+				tools, failure := languageextension.ManagedTools()
+				if failure != nil {
+					err = failure
+				} else {
+					nativeConfigs, languageIssues = nativeLanguageExtensionConfigs(installed, settings, tools)
+				}
+			}
 			uidispatch.Retry(ctx, dispatch, func() {
-				m.extensionsView.busy = false
 				if ctx.Err() != nil {
 					return
 				}
+				m.extensionsView.busy = false
 				if err != nil {
 					m.message = err.Error()
 					return
@@ -256,7 +283,10 @@ func (m *model) bindExtensionManager(parent context.Context, dispatch func(func(
 				m.extensionsView.contributions = extensionContributions(installed)
 				m.extensionsView.settings = settings
 				m.extensionsView.reload = true
-				m.message = ""
+				if failure := m.reconcileLanguageExtensionConfigs(nativeConfigs, suppressAutomaticGo); failure != nil {
+					languageIssues = append(languageIssues, failure.Error())
+				}
+				m.message = strings.Join(languageIssues, "; ")
 				// Publish only data. A late installation/settings acknowledgement
 				// must not close a newer palette or steal editor/sidebar focus.
 			})
@@ -275,6 +305,9 @@ func (m *model) bindExtensionManager(parent context.Context, dispatch func(func(
 func extensionContributions(installed []extensions.Extension) map[string][]extensionCommand {
 	result := map[string][]extensionCommand{}
 	for _, e := range installed {
+		if languageextension.Kind(e.ID()) != "" {
+			continue
+		}
 		for _, c := range e.Manifest.Contributes.Commands {
 			result[e.ID()] = append(result[e.ID()], extensionCommand{c.Command, c.Title})
 		}

@@ -11,6 +11,15 @@ import (
 // drains the latest immutable value without waiting for error UI admission; one
 // separate publisher retains the latest failure under temporary queue pressure.
 func startSettingsWriter[T any](parent context.Context, dispatch func(func()) bool, write func(T) error, report func(T, error)) (func(T), func()) {
+	persist, stop, _ := startSettingsWriterWithDrain(parent, dispatch, write, report)
+	return persist, stop
+}
+
+// The finished channel closes only after the real writer has returned. The
+// existing bounded stop may return while an OS write remains blocked; callers
+// requiring quiescence must check finished rather than treating cancellation
+// or the three-second stop deadline as a completed write.
+func startSettingsWriterWithDrain[T any](parent context.Context, dispatch func(func()) bool, write func(T) error, report func(T, error)) (func(T), func(), <-chan struct{}) {
 	writerCtx, stopWriter := context.WithCancel(parent)
 	receiptCtx, stopReceipts := context.WithCancel(parent)
 	type request struct {
@@ -85,7 +94,7 @@ func startSettingsWriter[T any](parent context.Context, dispatch func(func()) bo
 			}
 		}
 	}
-	return persist, stop
+	return persist, stop, writerDone
 }
 
 func replacePendingSetting[T any](queue chan T, value T) {

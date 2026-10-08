@@ -4,10 +4,12 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"image/png"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,6 +77,7 @@ func runWindowsWorkbenchAcceptance() error {
 	defer cancel()
 	defer m.closeDocuments()
 	var stopSaves, stopOpens, stopFiles, stopManager, stopKeyboard func()
+	var keyboardWriterFinished <-chan struct{}
 	defer func() {
 		cancel()
 		for _, stop := range []func(){stopKeyboard, stopManager, stopFiles, stopOpens, stopSaves} {
@@ -89,7 +92,12 @@ func runWindowsWorkbenchAcceptance() error {
 	var native *ui.Context
 	watchdog := time.AfterFunc(60*time.Second, func() { fmt.Fprintf(os.Stderr, "Windows workbench acceptance timed out\n"); os.Exit(2) })
 	defer watchdog.Stop()
-	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(root), Width: 1280, Height: 820, CustomTitlebar: true, Input: m.input, Background: ui.RGB(editor)}, func(cx *ui.Context) *ui.Element {
+	width, height := float32(1280), float32(820)
+	smallWindow := os.Getenv("GOCODE_TEST_SMALL_WINDOW") == "1"
+	if smallWindow {
+		width, height = 1024, 728
+	}
+	err = ui.Run(ui.WindowOptions{Title: "gocode — " + filepath.Base(root), Width: width, Height: height, CustomTitlebar: true, Input: m.input, Background: ui.RGB(editor)}, func(cx *ui.Context) *ui.Element {
 		if native == nil {
 			native = cx
 			m.native = cx
@@ -97,7 +105,23 @@ func runWindowsWorkbenchAcceptance() error {
 			stopSaves = m.startDocumentSaves(ctx, cx)
 			stopFiles = m.startFileActions(ctx, cx)
 			stopManager = m.startExtensionManager(ctx, cx, extRoot)
-			stopKeyboard = m.startKeyboardSettings(cx, filepath.Join(root, "keyboard.json"))
+			stopKeyboard, keyboardWriterFinished = m.bindKeyboardSettingsWithDrain(context.Background(), cx.Dispatch, filepath.Join(root, "keyboard.json"))
+			window, probeErr := winprobe.Find("gocode — "+filepath.Base(root), uint32(os.Getpid()))
+			if probeErr == nil {
+				var clientWidth, clientHeight int
+				clientWidth, clientHeight, probeErr = window.ClientSize()
+				if probeErr == nil {
+					dpi := window.DPI()
+					fmt.Printf("native workbench condition pid=%d requested_dip=%.0fx%.0f window_dpi=%d client_px=%dx%d small=%t\n", os.Getpid(), width, height, dpi, clientWidth, clientHeight, smallWindow)
+					if os.Getenv("GOCODE_TEST_DPIUNAWARE") == "1" && dpi != 96 {
+						probeErr = fmt.Errorf("owned workbench DPI is %d, expected actual 96", dpi)
+					}
+				}
+			}
+			if probeErr != nil {
+				failure = fmt.Errorf("owned workbench native condition: %w", probeErr)
+				cx.Quit()
+			}
 		}
 		advance := func(err error) {
 			busy = false
@@ -465,12 +489,6 @@ func runWindowsWorkbenchAcceptance() error {
 					cx.Quit()
 					break
 				}
-				profile, e := readKeymap(filepath.Join(root, "keyboard.json"))
-				if e != nil || profile != "vscode" {
-					failure = errors.New("native keymap changes did not persist exact final preset")
-					cx.Quit()
-					break
-				}
 				phase++
 				cx.Quit()
 			}
@@ -486,6 +504,17 @@ func runWindowsWorkbenchAcceptance() error {
 	}
 	if phase != 45 {
 		return fmt.Errorf("incomplete workbench acceptance phase=%d", phase)
+	}
+	// Preset selection and palette input are UI acknowledgements, not disk
+	// acknowledgements. Drain the existing bounded writer after ui.Run ends,
+	// then read the real file off the UI thread. A concurrent read here used to
+	// accept the old preset or obstruct its Windows atomic replacement.
+	if stopKeyboard != nil {
+		stopKeyboard()
+		stopKeyboard = nil
+	}
+	if err = verifyWindowsWorkbenchKeymapAfterDrain(keyboardWriterFinished, filepath.Join(root, "keyboard.json")); err != nil {
+		return err
 	}
 	body, err := os.ReadFile(saved)
 	if err != nil || string(body) != "// 原生 File 世界 😀" {
@@ -507,6 +536,34 @@ func runWindowsWorkbenchAcceptance() error {
 		return errors.New("deferred uninstall did not remove owned VSIX")
 	}
 	fmt.Println("Windows native File/shell/Unicode save/Quick Input/VSIX management and persistent VS Code/JetBrains keymaps including real double Shift passed")
+	return nil
+}
+
+func verifyWindowsWorkbenchKeymapAfterDrain(finished <-chan struct{}, path string) error {
+	select {
+	case <-finished:
+		return verifyWindowsWorkbenchKeymap(path)
+	default:
+		return errors.New("native keymap writer did not finish within the existing 3s shutdown limit")
+	}
+}
+
+func verifyWindowsWorkbenchKeymap(path string) error {
+	profile, readErr := readKeymap(path)
+	file, openErr := os.Open(path)
+	if openErr != nil {
+		return fmt.Errorf("native keymap changes did not persist exact final preset: actual=%q read=%v file=%w", profile, readErr, openErr)
+	}
+	info, statErr := file.Stat()
+	if statErr != nil || !info.Mode().IsRegular() || info.Size() > 4096 {
+		_ = file.Close()
+		return fmt.Errorf("native keymap changes did not persist exact final preset: actual=%q read=%v invalid regular/bounded file stat=%v", profile, readErr, statErr)
+	}
+	body, rawErr := io.ReadAll(io.LimitReader(file, 4097))
+	rawErr = errors.Join(rawErr, file.Close())
+	if readErr != nil || profile != "vscode" || rawErr != nil || !bytes.Equal(body, []byte("{\"keymap\":\"vscode\"}\n")) {
+		return fmt.Errorf("native keymap changes did not persist exact final preset: actual=%q read=%v bytes=%d raw=%v", profile, readErr, len(body), rawErr)
+	}
 	return nil
 }
 func chooseOwnedWindowsDialog(workspace, path string, cancel bool) error {

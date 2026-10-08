@@ -115,8 +115,8 @@ func (m *model) quickOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 		}
 		children = append(children, ui.Row(label(item.Title), label(item.Detail).FontSize(11).Foreground(ui.RGB(muted)).Flex(1), label(item.Binding).FontSize(11).Foreground(ui.RGB(muted))).Gap(8).PaddingXY(8, 0).Height(24).ClipRounded(4).Background(bg).Key(fmt.Sprintf("quick-item-%d", i)).OnClick(func(*ui.Context) { m.chooseQuickItem(item) }))
 	}
-	popup := ui.Column(children...).Gap(4).Padding(6).Width(width).ClipRounded(8).Background(ui.RGB(0x222222)).Key("quick-popup")
-	return ui.Stack(base, ui.Column().OnClick(func(*ui.Context) { m.closeQuickInput() }), ui.Column(ui.Column().Height(6), ui.Row(spacer(), popup, spacer()), spacer()))
+	popup := ui.Column(children...).Gap(4).Padding(6).Width(width).ClipRounded(8).Background(ui.RGB(0x222222)).Shadow(modalPopupShadow()).Key("quick-popup")
+	return ui.Stack(base, ui.Column().OnClick(func(*ui.Context) { m.closeQuickInput() }), popup.Position(max(0, (w-width)/2), 6))
 }
 func (m *model) quickInput(e ui.InputEvent) (bool, bool) {
 	if !m.palette {

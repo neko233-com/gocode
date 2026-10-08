@@ -13,6 +13,7 @@ import (
 )
 
 type lspAcceptance struct {
+	typescript     bool
 	phase          int
 	frame          uint64
 	tick, verified bool
@@ -25,6 +26,18 @@ type lspAcceptance struct {
 
 func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 	d := m.current()
+	declaration, call, hover, sourceMarker := "func greeting", "_ = greeting()", "greeting() string", "func main()"
+	missingLine, restartText := "_ = missing", "\t_ = missingRestart\n"
+	if a.typescript {
+		declaration, call, hover, sourceMarker = "export function greeting", "const value = greeting()", "greeting(): string", "export function greeting"
+		missingLine, restartText = "const missingValue = missing", "export const restartValue = missingRestart;\n"
+	}
+	diagnosticMatches := func(message, symbol string) bool {
+		if a.typescript {
+			return strings.Contains(message, "Cannot find name '"+symbol+"'")
+		}
+		return strings.Contains(message, "undefined: "+symbol)
+	}
 	if !a.logged || a.phase != a.loggedPhase {
 		fmt.Fprintf(os.Stderr, "gocode LSP acceptance phase=%d status=%q message=%q open-documents=%d\n", a.phase, m.lspStatus, m.message, len(m.docs))
 		a.loggedPhase = a.phase
@@ -38,7 +51,7 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 	find := func(token string, definition bool) (int, int) {
 		for i := 0; i < d.buffer.LineCount(); i++ {
 			line := d.buffer.Line(i)
-			if strings.Contains(line, token) && strings.HasPrefix(line, "func greeting") == definition {
+			if strings.Contains(line, token) && strings.HasPrefix(line, declaration) == definition {
 				return i, strings.Index(line, token)
 			}
 		}
@@ -67,7 +80,7 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 			a.phase = 3
 		}
 	}
-	if a.phase == 3 && strings.Contains(strings.Join(m.output, "\n"), "greeting() string") {
+	if a.phase == 3 && strings.Contains(strings.Join(m.output, "\n"), hover) {
 		line, column := find("greeting", false)
 		r := textbuffer.Range{Start: d.buffer.PositionFromRunes(line, column), End: d.buffer.PositionFromRunes(line, column+8)}
 		if err := m.applyDocumentEdits(d.path, d.buffer.Version(), []textbuffer.Edit{{Range: r, Text: "greet"}}); err != nil {
@@ -93,14 +106,14 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 		for key, items := range m.diagnostics {
 			if strings.HasPrefix(key, "lsp:") {
 				for _, p := range items {
-					if strings.Contains(p.Message, "undefined: missing") {
+					if diagnosticMatches(p.Message, "missing") {
 						found = true
 					}
 				}
 			}
 		}
 		if found {
-			line, _ := find("_ = missing", false)
+			line, _ := find(missingLine, false)
 			if line < 0 {
 				a.failure = "completion damaged source"
 				cx.Quit()
@@ -129,7 +142,7 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 		}
 	}
 	if a.phase == 7 && cx.RenderedFrames() > a.frame {
-		if !strings.Contains(d.buffer.Text(), "func main()") || !strings.Contains(d.buffer.Text(), "_ = greeting()") || strings.Contains(d.buffer.Text(), "missing") || !d.dirty() {
+		if !strings.Contains(d.buffer.Text(), sourceMarker) || !strings.Contains(d.buffer.Text(), call) || strings.Contains(d.buffer.Text(), "missing") || !d.dirty() {
 			a.failure = "versioned unsaved source was not retained"
 			cx.Quit()
 			return
@@ -145,8 +158,14 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 			return
 		}
 		a.previous = m.languageBindings[0].session
-		// Close kills and reaps this owned real gopls process outside the UI.
-		go a.previous.Client.RPC.Close()
+		// Close kills and reaps the actual selected server outside the UI.
+		previous := a.previous
+		go func() {
+			ids, observeErr := previous.Client.ProcessIDs()
+			fmt.Fprintf(os.Stderr, "native LSP old server pid=%d owned-processes=%v observation=%v\n", previous.Client.ProcessID(), ids, observeErr)
+			closeErr := previous.Client.Close()
+			fmt.Fprintf(os.Stderr, "native LSP old server closed=%t error=%v\n", previous.Client.ProcessClosed(), closeErr)
+		}()
 		a.phase = 8
 	}
 	if a.phase == 8 && m.languageBindings[0].session == nil {
@@ -157,14 +176,14 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 				return
 			}
 		}
-		line, _ := find("_ = greeting()", false)
+		line, _ := find(call, false)
 		if line < 0 {
 			a.failure = "source missing during recovery"
 			cx.Quit()
 			return
 		}
 		position := textbuffer.Position{Line: line}
-		if err := m.applyDocumentEdits(d.path, d.buffer.Version(), []textbuffer.Edit{{Range: textbuffer.Range{Start: position, End: position}, Text: "\t_ = missingRestart\n"}}); err != nil {
+		if err := m.applyDocumentEdits(d.path, d.buffer.Version(), []textbuffer.Edit{{Range: textbuffer.Range{Start: position, End: position}, Text: restartText}}); err != nil {
 			a.failure = err.Error()
 			cx.Quit()
 			return
@@ -175,7 +194,7 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 		for key, items := range m.diagnostics {
 			if strings.HasPrefix(key, "lsp:") {
 				for _, item := range items {
-					if strings.Contains(item.Message, "undefined: missingRestart") {
+					if diagnosticMatches(item.Message, "missingRestart") {
 						line, column := find("greeting", true)
 						m.moveCursor(d, line, column+2, false)
 						m.output = nil
@@ -186,7 +205,7 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 			}
 		}
 	}
-	if a.phase == 10 && strings.Contains(strings.Join(m.output, "\n"), "greeting() string") {
+	if a.phase == 10 && strings.Contains(strings.Join(m.output, "\n"), hover) {
 		line, column := find("greeting", false)
 		r := textbuffer.Range{Start: d.buffer.PositionFromRunes(line, column), End: d.buffer.PositionFromRunes(line, column+8)}
 		if err := m.applyDocumentEdits(d.path, d.buffer.Version(), []textbuffer.Edit{{Range: r, Text: "greet"}}); err != nil {
@@ -211,7 +230,7 @@ func (a *lspAcceptance) step(cx *ui.Context, m *model) {
 		}
 	}
 	if a.phase == 12 && cx.RenderedFrames() >= a.frame+3 {
-		if !strings.Contains(d.buffer.Text(), "_ = greeting()") || !strings.Contains(d.buffer.Text(), "missingRestart") || !d.dirty() || a.previous.Valid() {
+		if !strings.Contains(d.buffer.Text(), call) || !strings.Contains(d.buffer.Text(), "missingRestart") || !d.dirty() || a.previous.Valid() || !a.previous.Client.ProcessClosed() {
 			a.failure = "recovered unsaved document or old generation invalidation failed"
 			cx.Quit()
 			return

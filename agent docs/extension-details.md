@@ -389,3 +389,181 @@ failure and passing logs, four fixed artifacts and actual cleanup. The final
 owned detail PID and all workspace-bin/private-temp gocode/Node/gopls candidates
 are absent; private settings/temp are empty. New exact-source CI is the next
 gate; no tag/release or installed v0.24.0 success is inferred from this local pass.
+
+## Corrected immutable source and new CI
+
+The corrected candidate is immutable source
+2d136492229d22fa502be4749d3048c1f256fbee. Its parent is the failed 1549cac2
+candidate; the change contains only six Windows native acceptance/test files
+and these two engineering records. Independent read-only Git-blob comparison
+against the completed local source manifest finds all nine bound files
+byte-identical, zero CRLF/LF-only substitutions. All 316 other tracked blobs
+match 1549cac2, including 160 non-test product Go files. Production main.go,
+extension_detail.go and extension_detail_view.go are unchanged; the correction
+therefore preserves the actual UI/keyboard implementation described above.
+
+go.mod and go.sum are unchanged, consuming public godesktop v0.16.0 at
+5178f551a179351391af6eaab62f3f5cf150350e, with module sum
+h1:OKJYTXhzfV1Vr5uVsYdgx9FrOiyYnZGVtHMXOaS73yc= and no replace. The parent
+repository's committed and staged gitlink both remain bad4e20f9b59a833e0e00bfd9288758925f4c5b8.
+The source-bound receipt is .cache/app24-ci-fix-immutable-verification.json,
+SHA256 28feb422083cdb526b74d3e68a0d7c1542b7fa8379dcbae2b0a5a4a626d53877.
+It retains the original .cache/app24-ci-fix-validation.json SHA256 and does not
+overwrite its dirty-base identity, old failed source logs or native artifacts.
+
+[CI 37703702524](https://github.com/neko233-com/gocode/actions/runs/37703702524)
+attempt 1 targets this exact source on all five platforms. The initial captured
+jobs are Windows 2022/113072955012, Windows 2025/113072954796, macOS ARM/
+113072954987, Intel/113072954980 and Ubuntu/113072955099; all are in progress
+in .cache/ci-v024-37703702524-initial.json. This is an initial state, not a final
+CI result. The failed 1549cac2 run is not rerun to conceal its failures.
+
+Read-only GitHub tag-ref and release-by-tag requests both return HTTP 404 for
+v0.24.0 at verification time. Publication, the prepared 27 released-byte gates
+and installed promotion remain pending. No native window, release, Git state
+or product source is changed during this verification; only these subsequent
+engineering-record additions are prepared for the later evidence commit.
+
+## Subsequent native preset persistence failure
+
+CI 37703702524/source 2d136492229d22fa502be4749d3048c1f256fbee subsequently
+fails Windows 2022/job 113072955012. Detail resize/capture, bounded geometry
+mailboxes and both-keymap detail navigation pass. Its sole main failure is the
+separate 45-phase workbench idempotence fixture: second native run reports
+"native keymap changes did not persist exact final preset" after 31.33s;
+main is 442.279s/34.7%. The complete job log is retained under
+.cache/ci-v024-37703702524-windows-2022-job.log. The completed Windows 2025/
+job 113072954796 independently fails a later native GiB search gate: its
+complete Windows validation and real GiB search model (36.97s) pass, but
+-search-smoke -search-smoke-mib 1024 times out after approximately 91.6s.
+Subsequent GiB split/services/MSI/package steps are skipped; its full retained
+log is .cache/ci-v024-37703702524-windows-2025-job.log. These are distinct
+failures, and the keyboard fixture correction is not GiB search proof.
+No rerun of that source, tag, release or installed promotion erases either.
+
+The phase-44 final disk assertion ran in View after rendered preset/Command
+Palette success, while the real capacity-one settings writer was independent.
+Its existing close-and-drain was deferred until after the assertion. The fix
+keeps the actual native palette/key check, ends ui.Run, explicitly invokes the
+same bounded 3s keyboard drain, then clears its deferred handle and performs
+the final disk assertion outside the UI. The file must exist, be regular and
+<=4KiB, and contain exact vscode configuration; readKeymap's absent-file default
+alone is insufficient. Failure reports retain actual profile and read error.
+
+A nongui test uses the production settings actor, selectKeymap and real
+writeKeymap, holds only the final actual write, observes the correct vscode
+model with a still-jetbrains file, and verifies that the existing drain waits
+and yields the exact final file without extra staging files. Missing default,
+extra fields, bad JSON and oversized real files are rejected. Together with
+existing actual settings-failure/cancellation tests, three strict-cgo/race/
+shuffle repeats pass 1.504s (.cache/app24-keymap-drain-nongui.log). This proves
+the required ordering; the original terse CI diagnostic does not reveal which
+specific read/share race occurred. Product persistence and key dispatch code
+remain untouched.
+
+The corrected native repeat passes strict-cgo/race/shuffle/count3 in 83.711s,
+whole 89.823s, with six actual owned runs under debug1/default adapter. Every
+run records requested 1024x728 DIP separately from actual window DPI 96 and
+client 1024x728 pixels, completes all 45 unchanged phases, and verifies exact
+final vscode bytes after shutdown drain. Private settings/scratch/temp are
+empty; the retained log is .cache/app24-keymap-drain-native-final.log. The
+earlier 92.173s default-size pass is separately preserved and is not claimed
+as small-window evidence.
+
+The complete default-three Windows script subsequently passes 819.360s,
+main 487.831s/34.7%, with public16/GOWORK=off, debug0/default adapter and
+normal-window policy against the frozen dirty source;
+.cache/app24-keymap-drain-full-windows.log. All original native console/GUI,
+pixel, command, source-byte, disk and keymap checks remain. The default
+workbench independently records DPI 144/client 1920x1230 pixels for its
+1280x820 DIP request. Package 12m, owned process 60s and writer drain 3s are
+unchanged. This script's native search is 16MiB; the separate CI 1024MiB
+timeout remains an unresolved distinct gate.
+
+The final fixed detail report is .cache/extension-detail/current.json,
+PID 177484/version 0.24.0/base source 2d13649 with dirty fixture correction.
+Its ten gates, 50 measured description rows, 2000 commands/actual command1999,
+font width 51.149414 and maximum line 932.9214 below viewport width 988 all
+pass. Real completed capture floors are 6/13/18; actual completed frames
+match each floor, with 1920x1230 and two 1372x1196 images and zero resize
+retries. Direct3D12 submits 38 frames and original disk SHA256 remains
+d79793cb0662042ea31b20a1f6d7c1189035f41975190a2bb3368c194527e52b.
+
+The fixed artifacts and SHA256 are current.json/1443B
+eda9d7be3d752d8439bcfe9b3d2c2d88c8b5caf2074721fa489ea2d0482762c3,
+details.png/620542B b652b2edb0738f7ec1f6cb961ca430c4f0e9b78308eea603c3f8f8f5f803b5f4,
+narrow.png/429880B 264ed67ac25f21e210bad4600a5fd71fafe89d0355ed0c5d601fcbbdbefd74be,
+contributions-bottom.png/201598B
+4fa8694871e71ff8763a77db34f0099acfa338c62edc6b425e07c7542066c956.
+At 08:24:07+08, all six targeted PIDs and final detail PID are absent; owned
+process candidates and private settings/temp are empty. Fourteen frozen
+source hashes are unchanged. The new source-bound receipt is
+.cache/app24-keymap-drain-validation.json, SHA256
+9562b573ce614081d3c4d85400551231752fff68150c4b8f480f3b102c12d45c.
+Earlier failure/pass receipts are retained. Formal release source is null;
+new immutable CI, the separate GiB search correction, publication and
+installed promotion remain pending.
+
+## Subsequent completion acknowledgement
+
+The 819.360s record is preserved with all eighteen tested sources under
+.cache/app24-keymap-drain-before-ack before a subsequent CPU-only correction.
+A real-file probe seeds vscode, holds the old JetBrains write and queues final
+vscode: the original void stop returns at 3.0001667s, so the existing vscode
+file passes, then the late old actual write commits JetBrains. Its retained
+strict-cgo/race probe is .cache/app24-keymap-drain-stop-timeout-negative.log,
+4.085s. Normal native passes remain valid; they do not establish a completed
+writer after an arbitrary three-second shutdown timeout.
+
+The shared WithDrain variant exposes the existing writerDone channel, with
+the writer loop/error publisher/queues/timers and legacy void API behavior
+unchanged. The native workbench fixture checks actual completion after stop
+without any additional wait: missing/open completion fails before reading,
+and completion still requires the exact real file. No OS cancellation is
+treated as I/O completion.
+
+New public16/GOWORK=off strict-cgo/race/shuffle/count3 CPU regressions pass
+10.656s; no-cgo count3 passes 0.457s, and both full vets exit 0. Actual old-write
+timeout/coincidental-file rejection, final-write completion, late error
+cancellation, both keymaps and idempotent stop/storage are covered. Private
+settings/temp are empty. The new nineteen-source CPU receipt is
+.cache/app24-keymap-drain-ack-cpu-validation.json, SHA256
+3e64f5faca8cbac9cea9316ee6038549ed008774a72213c832d558c5dec06fe9.
+This is new dirty source, not the old native-pass source or an immutable CI
+result. Its subsequent actual native strict-cgo/race/shuffle/count3 passes
+85.305s (whole 87.765s): six owned processes each record actual DPI 96 and
+1024x728 client pixels, complete all 45 phases and require true writer
+completion plus exact final file. Private directories are empty and nineteen
+source hashes remain frozen. The separate log/receipt are
+.cache/app24-keymap-drain-ack-native.log and
+.cache/app24-keymap-drain-ack-native-receipt.json. A new default-window/debug0
+complete Repeat3 script subsequently passes 829.761s, main 505.467s/34.8%;
+.cache/app24-keymap-drain-ack-full-windows.log. All original console/GUI,
+pixel, real Node/VSIX, source-byte, disk and preset guards remain, with
+package 12m/owned process 60s/writer 3s unchanged. The complete native/full
+source-bound receipt is .cache/app24-keymap-drain-ack-validation.json,
+11210B/SHA256 a9c61a6aee0eeaf1048c4d4d45b7f8c2e5ca44558a9efc25c66bc9728dd618ad.
+At 09:25:58+08 all six targeted PIDs and latest detail PID 222592 are absent;
+owned process candidates and private settings/temp are empty. Nineteen bound
+source hashes remain frozen, and the GUI slot is explicitly handed back.
+The default script's native search remains 16MiB; exact immutable CI and the
+independent CI 1024MiB gate remain pending.
+The original writer body SHA256 after newline normalization is
+c2ed7ac181bac070c72e7b153af8d7e35a208eab465767db66109aa3a0ad8d35,
+identical to the newly exposed implementation body.
+
+The latest fixed detail report belongs to PID 222592/version 0.24.0/base2d13649
+with the new dirty ack source. Its ten gates, 50 description rows, native font
+width 51.149414, maximum measured line 932.9214 below viewport 988, 2000
+commands and actual command1999 pass. Completed capture floors/actual counts
+are 6/12/17 with 1920x1230 and two 1372x1196 images, zero resize retries,
+37 Direct3D12 submissions and unchanged source disk SHA256
+d79793cb0662042ea31b20a1f6d7c1189035f41975190a2bb3368c194527e52b.
+The final four artifact SHA256s are current.json/1443B
+f75cfc4d6c06aa1bddeb34767a60e54d254537c1c69ec017b430785de222d58e,
+details.png/620371B 2808f227ebdc1706bff2e31379a1690ac4175533f89e1444562767299596fd89,
+narrow.png/429596B 8345629fa1a98ee27a8efd1e0ec90c7b4a6597e995d5891e538713ef7149becf,
+contributions-bottom.png/201313B
+934e4c138d46fec130edd730a28802ab53a5d500990f60c4a35d0980962f8ab4.
+The earlier 819s source/archive/receipt remain unchanged; publication and
+installed v0.24.0 promotion are not inferred from the newer local pass.

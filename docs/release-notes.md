@@ -1,47 +1,40 @@
-gocode v0.24.0 gives extension details a native editor with a fixed metadata/actions
-header, 36-DIP navigation bar and independently clipped, measured, virtualized
-content. It continues to use public Go/godesktop v0.16.0.
+# gocode v0.24.0 Windows candidate
 
-Details and Feature Contributions keep their header/navigation visible while the
-body scrolls. Native proportional-font measurement controls Unicode wrapping and
-narrow-window reflow. Content is bounded to 64 KiB of description, 512 wrapped
-description rows, 4096 commands and 1024 materialized visible rows with bounded
-overscan. Immediate tab-switch followed by End now prepares the actual viewport
-extent before handling the key. Pointer/wheel, page/home/end navigation and the
-existing VS Code Ctrl+W/JetBrains Ctrl+F4 close paths operate on the detail editor
-without editing the underlying document.
+This candidate consolidates the native Windows workbench and real Go/TypeScript
+language extensions on public godesktop v0.17.0. Future releases are tested,
+packaged and uploaded locally against immutable tags. Automatic push/PR Actions
+and remote release packaging are retired.
 
-Real native acceptance installs a private generated VSIX, registers 2000 Node
-command callbacks and navigates to and executes its final details.command.1999
-callback. Enable/disable operations use the existing cancellable worker and real
-private settings. Repeated acceptance reuses exactly four fixed report/PNG names,
-leaves private scratch empty and preserves pre-existing settings.
+File/submenus, Quick Input and confirmation dialogs now use native rounded
+shadows, clipping and body hit testing. Extension details keep their metadata
+and actions visible while measured, virtualized content scrolls. Built-in VS Code
+and JetBrains shortcuts persist only after the settings writer acknowledges the
+actual final write. Existing editing, tabs/splits, search/replace, Git, terminal,
+file watching and large-file workflows remain part of acceptance.
 
-Catalog searches accept both publisher.extension and @id:publisher.extension.
-Open VSX named metadata checks Windows x64/latest, falls back to universal and
-rereads the selected immutable version with identity/platform bounds. Actual
-read-only queries golang.go and @id:GoLang.Go resolve golang.Go 0.56.1/universal;
-ordinary search and installed/enabled/disabled filters retain their behavior.
-These metadata checks did not install the live extension. Authorized/private
-Gallery services use the upstream exact-name query criterion while retaining
-native gocode identity, HTTPS/host/size/version/archive guards and cancellation.
+Install language support from the command palette or
+`-install-language-extension go|typescript`. Pinned original VSIX packages use
+native LSP adapters for completion, diagnostics, formatting, hover and definition.
+Go uses golang.Go 0.50.0 and gopls v0.23.0; TypeScript uses
+vscode.typescript-language-features 1.95.3, tsserver 5.6.3 and
+typescript-language-server 6.0.1 with Node.js 24. Reinstallation verifies existing
+files. Disable/uninstall releases the owned server tree, and recovery replays
+unsaved content while rejecting results from obsolete sessions.
 
-Quick Input now applies native rounded descendant clipping to its input, result
-rows and popup. Save All is disabled while a save or file action is busy.
+The current catalog's Go 0.56.1 manifest exceeds the published framework's
+manifest bound. Explicit native installation selects its documented pinned
+version; an arbitrary catalog request is never silently substituted. Open VSX
+is the default catalog. A separately authorized Gallery endpoint can be
+configured. Original language-extension JavaScript activation, debugger/testing
+APIs, full VSIX compatibility and full VS Code parity remain unfinished.
+Copilot follows the accepted official SDK/Language Server path.
 
-Publication requires independent public-module strict-cgo/race repeated tests,
-the complete native Windows suite, successful exact-source CI and signed
-released-byte/installed validation. The release checker runs 27 ordered native
-gates, including separate console/GUI detail reports bound to actual completed
-PID/version/source; the final ordered marker also binds both payload hashes.
-Existing process deadlines, complete archive integrity, genuine prior-version
-rollback and preservation of user
-settings, PATH and shortcuts remain requirements. Detailed capabilities,
-limitations and exact validation evidence are in the
-[milestone ledger](../agent%20docs/status.md).
-
-Actual per-extension VSIX icons, README/CHANGELOG rendering, overlay shadows,
-complete VS Code UI/API/debug/tasks and official Copilot VSIX parity remain open.
-The accepted Copilot integration uses the official SDK/Language Server path.
-Default live catalog access is Open VSX; Microsoft's official Marketplace still
-requires separate authorization, which is absent here.
+Windows amd64 MSI and ZIP are this candidate's distribution target. macOS
+continues to use its previous v0.23.0 artifacts and channels. Clean committed
+source must pass repeated strict-cgo/race native tests, no-cgo tests, vet,
+workflow lint and distribution checks. The local publication runner then checks
+the signed package, 35 ordered native gates, actual MSI lifecycle and genuine
+prior-release rollback before uploading a draft and verifying every downloaded
+asset's bytes. Source-specific native passes are recorded in the
+[milestone ledger](../agent%20docs/status.md); final package/signing/installation
+and publication remain pending until their real receipts exist.

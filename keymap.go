@@ -173,7 +173,12 @@ func (m *model) startKeyboardSettings(cx *ui.Context, path string) func() {
 }
 
 func (m *model) bindKeyboardSettings(parent context.Context, dispatch func(func()) bool, path string) func() {
-	persist, stop := startSettingsWriter(parent, dispatch,
+	stop, _ := m.bindKeyboardSettingsWithDrain(parent, dispatch, path)
+	return stop
+}
+
+func (m *model) bindKeyboardSettingsWithDrain(parent context.Context, dispatch func(func()) bool, path string) (func(), <-chan struct{}) {
+	persist, stop, finished := startSettingsWriterWithDrain(parent, dispatch,
 		func(value string) error { return writeKeymap(path, value) },
 		func(value string, err error) {
 			if m.keymapProfile() == value {
@@ -184,5 +189,5 @@ func (m *model) bindKeyboardSettings(parent context.Context, dispatch func(func(
 	return func() {
 		m.keyboard.persist = nil
 		stop()
-	}
+	}, finished
 }

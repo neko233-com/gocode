@@ -1,8 +1,5 @@
 name: CI
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
@@ -68,7 +65,7 @@ jobs:
         run: |
           go test -race -run '^TestStreamingLimitCancellationAndGiB$' -v -timeout 3m ./internal/search
           if ($LASTEXITCODE -ne 0) { throw 'Actual GiB search failed.' }
-          & ./bin/gocode.exe -search-smoke -search-smoke-mib 1024
+          & ./bin/gocode-nativeguard.exe -report .cache/nativeguard/search-gib.json -timeout 120s -- ./bin/gocode.exe -search-smoke -search-smoke-mib 1024
           if ($LASTEXITCODE -ne 0) { throw 'Native GiB search/navigation failed.' }
       - name: Verify actual GiB independent split pages and source hash
         if: matrix.os == 'windows-2025'
@@ -142,6 +139,7 @@ jobs:
             .cache/search-native/*.json
             .cache/search-gib-native/*.png
             .cache/search-gib-native/*.json
+            .cache/nativeguard/
             .cache/replace-native/*.png
             .cache/replace-native/*.json
             .cache/copilot-health.json
@@ -180,6 +178,7 @@ jobs:
         run: |
           mkdir -p bin
           go build -trimpath -ldflags="-s -w" -o bin/gocode .
+          go build -trimpath -ldflags="-s -w" -o bin/gocode-nativeguard ./cmd/gocode-nativeguard
           ./bin/gocode -workspace . -extensions-dir .cache/extensions -smoke
           ./bin/gocode -ui-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_UI_SCREENSHOTS=.cache/workbench-ui-150 ./bin/gocode -ui-smoke
@@ -196,9 +195,9 @@ jobs:
           ./bin/gocode -groups-large-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-large-150 ./bin/gocode -groups-large-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_GROUPS_SCREENSHOTS=.cache/editor-groups-large-200 ./bin/gocode -groups-large-smoke
-          ./bin/gocode -search-smoke
-          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-150 ./bin/gocode -search-smoke
-          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-200 ./bin/gocode -search-smoke
+          ./bin/gocode-nativeguard -report .cache/nativeguard/search-default.json -timeout 120s -- ./bin/gocode -search-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-150 ./bin/gocode-nativeguard -report .cache/nativeguard/search-150.json -timeout 120s -- ./bin/gocode -search-smoke
+          GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_SEARCH_SCREENSHOTS=.cache/search-native-200 ./bin/gocode-nativeguard -report .cache/nativeguard/search-200.json -timeout 120s -- ./bin/gocode -search-smoke
           ./bin/gocode -replace-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=1.5 GOCODE_REPLACE_SCREENSHOTS=.cache/replace-native-150 ./bin/gocode -replace-smoke
           GODESKTOP_TEST_DRAWABLE_SCALE=2 GOCODE_REPLACE_SCREENSHOTS=.cache/replace-native-200 ./bin/gocode -replace-smoke
@@ -266,6 +265,7 @@ jobs:
             .cache/search-native-150/*.json
             .cache/search-native-200/*.png
             .cache/search-native-200/*.json
+            .cache/nativeguard/
             .cache/replace-native/*.png
             .cache/replace-native/*.json
             .cache/replace-native-150/*.png

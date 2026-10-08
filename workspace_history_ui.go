@@ -5,7 +5,7 @@ import (
 	ui "github.com/neko233-com/godesktop"
 )
 
-func (m *model) historyOverlay(base *ui.Element) *ui.Element {
+func (m *model) historyOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 	p := m.history.prompt
 	if p == nil {
 		return base
@@ -30,8 +30,9 @@ func (m *model) historyOverlay(base *ui.Element) *ui.Element {
 				}
 			}).Width(80).Height(30),
 		).Gap(8).Height(40),
-	).Padding(22).Width(440).Radius(8).ClipRounded(8).Background(ui.RGB(0x252526)).Key("history-dialog")
+	).Padding(22).Width(440).Radius(8).ClipRounded(8).Background(ui.RGB(0x252526)).Shadow(modalPopupShadow()).Key("history-dialog")
 	shade := ui.Column().Background(ui.RGBA(0, .65)).Key("history-backdrop").OnClick(func(*ui.Context) {})
-	center := ui.Column(spacer(), ui.Row(spacer(), popup, spacer()).Height(138), spacer())
+	w, h := cx.WindowSize()
+	center := centeredPopup(popup, 440, 138, w, h)
 	return ui.Stack(base, shade, center)
 }

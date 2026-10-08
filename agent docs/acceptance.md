@@ -63,6 +63,43 @@
   actual owned native query/control/result input and GPU highlighting, disk-stale
   rejection and long-line byte navigation with unchanged source. Mac normal/1.5/2
   and Windows console/GUI/actual GiB gates retain evidence; see search.md for scope.
+  Existing console search gates use the validation-only `cmd/gocode-nativeguard`:
+  default Windows, actual GiB on Windows 2025, and all three existing Mac densities. Its
+  independent process ceiling is 120s; fixture work stays 90s, real Verify stays
+  30s and the existing Windows GUI guard stays 60s. This also covers startup with
+  no published Context and a blocked final fixture hash. Windows creates the
+  child suspended, inherits only the three explicit standard handles, assigns a
+  kill-on-close Job, then resumes it. Unix creates a separate owned process group.
+  Combined raw stdout/stderr is capped at 512 KiB; overflow fails instead of
+  allowing truncated success. The root is waited/reaped, the tree is closed and
+  pipe/cancellation workers are joined. Fixed `.cache/nativeguard/search-*.json`
+  and adjacent stdout/stderr logs replace prior evidence; a pending/error report
+  prevents a previous success from representing an unfinished new invocation.
+  The helper is not included in installers or portable payloads. A forced kill
+  does not prove normal fixture cleanup; the caller owns its private TMP cleanup.
+  Unix ownership covers descendants that remain in the process group, not hostile
+  processes deliberately escaping it. Actual new-source native search remains
+  required for local promotion; process tests do not validate GPU pixels or
+  explain the earlier GiB navigation timeout.
+
+The nativeguard's Windows console-only controls use actual success/exit7 children,
+an actual held-process deadline, real descendant termination while a separate
+sibling stays alive, combined output overflow, and fresh fixed reports replacing
+an older success. GOWORK=off strict-cgo/race/shuffle/count3 passes 18.748s for the
+process package and 4.268s for the CLI; no-cgo count3 passes 11.541s/0.191s.
+Focused vet passes in both modes, and actionlint with ShellCheck plus PowerShell
+syntax validation pass. Evidence is `.cache/nativeguard-cpu/`; this is local
+Windows process evidence with no native window/GPU execution. The first Windows
+test build rejected the typed WAIT_TIMEOUT constant; its log is retained before
+the explicit uint32 correction. The cached supervisor is built with VCS stamping
+disabled because sandbox Git reads were unavailable; explicit source/binary hashes
+bind it instead. Validation builds keep ordinary VCS stamping and all original
+scenario counts and job/package/native deadlines. GitHub Actions has exhausted
+the available budget: this child workflow now retains `workflow_dispatch` only;
+push and pull-request triggers are removed and no Action is dispatched. Future
+release verification/build/upload runs locally against immutable source, tags
+and consolidated stable versions. Local new-source native search through the
+guard is still pending.
 - Replacement: -replace-smoke uses actual preview typing/pixels, disk-stale
   rejection, real saved unsaved/closed UTF-16/EOL sources and blank-click Undo.
   It also checks native confirmation Cancel/All/current-file split, grouped redo

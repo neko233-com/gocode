@@ -119,10 +119,10 @@ func (m *model) menuPanel(name string, level int) *ui.Element {
 		}
 		items = append(items, ui.Row(label(check).Width(18), label(entry.Title).Flex(1).Foreground(ui.RGB(fg)), label(binding).Foreground(ui.RGB(fg))).PaddingXY(8, 0).Height(24).Radius(4).Background(bg).FocusRing(false).Key(menuRowKey(level, i)).OnClick(func(c *ui.Context) { m.selectMenuItem(c, level, i, true) }))
 	}
-	return ui.Column(ui.Column(items...).Padding(4).Background(ui.RGB(0x1f1f1f)).ClipRounded(7)).Padding(1).Background(ui.RGB(0x454545)).ClipRounded(8).Width(324).Key(fmt.Sprintf("menu-panel-%d", level))
+	return ui.Column(ui.Column(items...).Padding(4).Background(ui.RGB(0x1f1f1f)).ClipRounded(7)).Padding(1).Background(ui.RGB(0x454545)).ClipRounded(8).Shadow(menuPopupShadow()).Width(324).Key(fmt.Sprintf("menu-panel-%d", level))
 }
 func positionedPopup(popup *ui.Element, x, y float32) *ui.Element {
-	return ui.Column(ui.Column().Height(max(0, y)), ui.Row(ui.Column().Width(max(0, x)), popup, spacer()), spacer())
+	return popup.Position(max(0, x), max(0, y))
 }
 func (m *model) menuOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 	w, h := cx.WindowSize()

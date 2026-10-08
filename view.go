@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/neko233-com/gocode/internal/copilotservice"
 	ui "github.com/neko233-com/godesktop"
 	textbuffer "github.com/neko233-com/godesktop/editor"
 )
@@ -159,10 +160,10 @@ func (m *model) view(cx *ui.Context) *ui.Element {
 		return m.closeOverlay(cx, base)
 	}
 	if m.reloadPrompt != nil {
-		return m.reloadOverlay(base)
+		return m.reloadOverlay(cx, base)
 	}
 	if m.history.prompt != nil {
-		return m.historyOverlay(base)
+		return m.historyOverlay(cx, base)
 	}
 	if m.menu.name != "" {
 		return m.menuOverlay(cx, base)
@@ -478,11 +479,41 @@ func (m *model) statusbar() *ui.Element {
 			language = "Large file"
 			lineEnding = d.large.stats.EOL
 		}
-		if strings.HasSuffix(d.path, ".go") {
-			language = "Go"
+		if d.large == nil {
+			language = documentLanguageLabel(d.path)
 		}
 	}
-	return ui.Column(rule(), ui.Row(label(" >< ").Width(34).Background(ui.RGB(accent)), label(fmt.Sprintf("  × %d   ⚠ %d", errors, warnings)).Width(180).Key("status-problems").OnClick(func(*ui.Context) { m.panel = "PROBLEMS"; m.showPanel = true }), label(strings.TrimSpace(m.status+"  "+m.lspStatus)).Flex(1), label(position).Width(105), label("Spaces: 4").Width(80), label("UTF-8").Width(55), label(lineEnding).Width(42), label(language).Width(60), icon("terminal", "status-panel", func(*ui.Context) { m.togglePanel() }).Width(28)).Height(21)).Height(22).Background(ui.RGB(outer))
+	languageWidth, _ := ui.MeasureText(language, 13, "")
+	return ui.Column(rule(), ui.Row(label(" >< ").Width(34).Background(ui.RGB(accent)), label(fmt.Sprintf("  × %d   ⚠ %d", errors, warnings)).Width(180).Key("status-problems").OnClick(func(*ui.Context) { m.panel = "PROBLEMS"; m.showPanel = true }), label(strings.TrimSpace(m.status+"  "+m.lspStatus)).Flex(1), label(position).Width(105), label("Spaces: 4").Width(80), label("UTF-8").Width(55), label(lineEnding).Width(42), label(language).Width(max(60, languageWidth+12)).Key("status-language"), icon("terminal", "status-panel", func(*ui.Context) { m.togglePanel() }).Width(28)).Height(21)).Height(22).Background(ui.RGB(outer))
+}
+
+func documentLanguageLabel(path string) string {
+	switch copilotservice.LanguageID(path) {
+	case "go":
+		return "Go"
+	case "typescript":
+		return "TypeScript"
+	case "typescriptreact":
+		return "TypeScript React"
+	case "javascript":
+		return "JavaScript"
+	case "javascriptreact":
+		return "JavaScript React"
+	case "json":
+		return "JSON"
+	case "markdown":
+		return "Markdown"
+	case "python":
+		return "Python"
+	case "rust":
+		return "Rust"
+	case "c":
+		return "C"
+	case "cpp":
+		return "C++"
+	default:
+		return "Plain Text"
+	}
 }
 
 func hitColumn(line string, x float32) int {

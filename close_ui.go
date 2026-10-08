@@ -126,12 +126,13 @@ func (m *model) closeOverlay(cx *ui.Context, base *ui.Element) *ui.Element {
 		cancel = func(*ui.Context) { m.cancelClose() }
 	}
 	items = append(items, ui.Row(button("Save", "close-save", save).Width(100).Height(30).Background(ui.RGB(accent)), spacer(), button("Don't Save", "close-discard", discard).Width(120).Height(30), button("Cancel", "close-cancel", cancel).Width(90).Height(30)).Gap(8).Height(40))
-	popup := ui.Column(items...).Padding(22).Width(460).Radius(8).ClipRounded(8).Background(ui.RGB(0x252526)).Key("close-dialog")
+	popup := ui.Column(items...).Padding(22).Width(460).Radius(8).ClipRounded(8).Background(ui.RGB(0x252526)).Shadow(modalPopupShadow()).Key("close-dialog")
 	shade := ui.Column().Background(ui.RGBA(0, .65)).Key("close-backdrop").OnClick(func(*ui.Context) {})
 	height := 114 + min(len(plans), 4)*22 + len(wrapChatText(m.closeError, 390))*20
 	if len(plans) > 4 {
 		height += 22
 	}
-	center := ui.Column(spacer(), ui.Row(spacer(), popup, spacer()).Height(float32(height)), spacer())
+	w, h := cx.WindowSize()
+	center := centeredPopup(popup, 460, float32(height), w, h)
 	return ui.Stack(base, shade, center)
 }

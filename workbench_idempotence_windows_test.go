@@ -3,16 +3,25 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
+	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 func TestNativeWorkbenchAcceptanceIsIdempotent(t *testing.T) {
 	root := t.TempDir()
 	exe := filepath.Join(root, "gocode-idempotence.exe")
-	if data, err := exec.Command("go", "build", "-race", "-o", exe, ".").CombinedOutput(); err != nil {
+	buildCtx, stopBuild := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer stopBuild()
+	build := exec.CommandContext(buildCtx, "go", "build", "-race", "-o", exe, ".")
+	build.WaitDelay = 3 * time.Second
+	if data, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build: %v %s", err, data)
 	}
 	scratch, settings, evidence := filepath.Join(root, "scratch"), filepath.Join(root, "settings"), filepath.Join(root, "evidence")
@@ -27,11 +36,58 @@ func TestNativeWorkbenchAcceptanceIsIdempotent(t *testing.T) {
 	}
 	var evidenceCount int
 	for run := 0; run < 2; run++ {
-		cmd := exec.Command(exe, "-windows-workbench-smoke")
+		nativeCtx, stopNative := context.WithTimeout(context.Background(), 60*time.Second)
+		cmd := exec.CommandContext(nativeCtx, exe, "-windows-workbench-smoke")
+		cmd.WaitDelay = 3 * time.Second
 		cmd.Env = append(os.Environ(), "TMP="+scratch, "TEMP="+scratch, "APPDATA="+settings, "GOCODE_WINDOWS_WORKBENCH_SCREENSHOTS="+evidence)
-		if data, err := cmd.CombinedOutput(); err != nil {
-			t.Fatalf("repeated native run %d: %v %s", run, err, data)
+		var output safeOutput
+		cmd.Stdout, cmd.Stderr = &output, &output
+		if err := cmd.Start(); err != nil {
+			stopNative()
+			t.Fatal(err)
 		}
+		job, err := windows.CreateJobObject(nil, nil)
+		if err == nil {
+			limits := windows.JOBOBJECT_EXTENDED_LIMIT_INFORMATION{}
+			limits.BasicLimitInformation.LimitFlags = windows.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+			_, err = windows.SetInformationJobObject(job, windows.JobObjectExtendedLimitInformation, uintptr(unsafe.Pointer(&limits)), uint32(unsafe.Sizeof(limits)))
+		}
+		if err == nil {
+			var process windows.Handle
+			process, err = windows.OpenProcess(windows.PROCESS_SET_QUOTA|windows.PROCESS_TERMINATE, false, uint32(cmd.Process.Pid))
+			if err == nil {
+				err = windows.AssignProcessToJobObject(job, process)
+				windows.CloseHandle(process)
+			}
+		}
+		if err != nil {
+			if job != 0 {
+				windows.CloseHandle(job)
+			}
+			stopNative()
+			_ = cmd.Process.Kill()
+			_ = cmd.Wait()
+			t.Fatalf("own repeated native process tree: %v", err)
+		}
+		finished := make(chan error, 1)
+		go func() { finished <- cmd.Wait() }()
+		select {
+		case err = <-finished:
+		case <-nativeCtx.Done():
+			windows.CloseHandle(job)
+			job = 0
+			_ = cmd.Process.Kill()
+			<-finished
+			err = nativeCtx.Err()
+		}
+		stopNative()
+		if job != 0 {
+			windows.CloseHandle(job)
+		}
+		if err != nil {
+			t.Fatalf("repeated native run %d: %v %s", run, err, output.String())
+		}
+		t.Logf("repeated native run %d ownedPID=%d: %s", run, cmd.Process.Pid, output.String())
 		entries, err := os.ReadDir(scratch)
 		if err != nil || len(entries) != 0 {
 			t.Fatalf("run %d left temporary workspaces/VSIX/files: %v %v", run, entries, err)

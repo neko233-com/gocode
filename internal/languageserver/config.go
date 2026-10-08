@@ -40,7 +40,7 @@ func LoadConfig(path string) ([]Config, error) {
 			if command == "" {
 				return nil, nil
 			}
-			return []Config{{Name: "gopls", Languages: []string{"go"}, Command: command}}, nil
+			return []Config{{Name: "gopls", Languages: []string{"go"}, Command: command, AutomaticGoFallback: true}}, nil
 		}
 	}
 	f, err := os.Open(path)

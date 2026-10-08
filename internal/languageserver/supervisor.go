@@ -138,7 +138,7 @@ func (s *Session) stop() {
 	s.stopped = true
 	s.cancel()
 	s.mu.Unlock()
-	_ = s.Client.RPC.Close()
+	_ = s.Client.Close()
 	s.workers.Wait()
 }
 func (s *Supervisor) state(state string, err error, session *Session) bool {
