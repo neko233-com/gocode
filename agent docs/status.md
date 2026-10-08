@@ -1,5 +1,25 @@
 # Milestone ledger
 
+## Exact294 local Windows source and final packages passed (2026-10-08)
+
+Application source2940765dea14483a4678cfe515a574bcc1168d1a passes all five
+local source checks (Windows Repeat3 strict/race1042.096s/no-cgo3 297.592s),
+actual final ZIP35 native gates111.793s and same-batch MSI lifecycle12.757s.
+Original ZIP entries, actual process/tree closure, unchanged source/module/
+profile/user state and private-directory cleanup pass independent CPU review.
+Root inspects actual final File, extension detail and TypeScript captures.
+The separate protected rollback preflight passes real enabled-adapter rejection
+and owned-disabled prior23 native selection. Exact files, hashes, limits and
+production boundary are in [local candidate294](local-candidate-294.md).
+
+This documentation-only milestone preserves tested source294; its new commit
+does not acquire294 test evidence. Future Validate uses clean294 at the original
+path with its original prepared MSI/ZIP/checker. The matching production key is
+still missing, so no new trusted signature, full release, tag24 or user promotion
+is claimed. Source changes/evidence are consolidated for one push; Actions remain
+manual only. Public/installed23 and Mac23 channels are preserved. Full VS Code,
+Debug/Testing/Remote and arbitrary/official Copilot VSIX compatibility remain open.
+
 ## Older native-adapter rollback protection (2026-10-08, focused passed)
 
 The genuine prior23 enabled/disabled native control exposes a real incompatible
