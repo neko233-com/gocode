@@ -95,3 +95,19 @@ existing key and genuine prior artifacts for `Validate`. Final source-suite,
 production ZIP/MSI, signed envelope, all packaged native gates, real installer
 transactions, rollback and remote publication remain pending until their actual
 source/byte-bound receipts exist. Free distribution tools are used throughout.
+
+The first actual clean-source Prepare at
+`249b057d60f66d715fba49ec863285e1254147cd` completes all five ordered source checks.
+Packaging then exits1 after389ms before any app/package build: importing the
+WorkDirectory helpers enables StrictMode Latest, and clean `git status` emits
+no object whose `.Count` can be read. Its original package failed JSON/stderr,
+five successful checks and incomplete marker remain in the immutable
+`.cache/local-release/0.24.0-249b057d60f6-r1/` root; private roots were cleaned.
+The packager now counts `@(& git status --porcelain)` and explicitly checks Git's
+exit status. Real unchanged clean249 status reproduces the original null error
+and validates the array count0 under Windows PowerShell5.1, without executing
+packaging. The other builder Count/index sites use explicit arrays or typed
+object[] arguments; no additional scalar/null change was needed. A new clean
+source commit and fresh Prepare must rerun the exact five checks; the successful
+249 receipts cannot be relabeled for the corrected packager source. The ignored
+candidate249 MSI runner remains bound to249 and is not revised or executed here.

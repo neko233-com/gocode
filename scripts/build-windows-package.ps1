@@ -24,7 +24,8 @@ Push-Location -LiteralPath $taskRoot
 try {
     $taskCommit=(& git rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0) {throw 'A Git source revision is required.'}
-    $taskDirty=(& git status --porcelain).Count -gt 0
+    $taskDirty=@(& git status --porcelain).Count -gt 0
+    if ($LASTEXITCODE -ne 0) {throw 'A successful Git source status is required.'}
     if($taskDirty -and -not $AllowDirty){throw 'Release packaging requires a clean committed source; use -AllowDirty only for disposable development acceptance.'}
     if($taskDirty){$taskCommit+='-dirty'}
     $env:GOWORK='off';$env:CGO_ENABLED='1';$env:GOARCH='amd64';$env:GOAMD64='v1';$env:GOEXPERIMENT='cgocheck2'
