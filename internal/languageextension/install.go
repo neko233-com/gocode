@@ -121,32 +121,51 @@ func VerifyInstalled(root, kind string) (Receipt, error) {
 	if err = readJSON(root, filepath.Join(".gocode-language", kind+".json"), 1<<20, &receipt); err != nil {
 		return receipt, fmt.Errorf("install %s language support to create a verified native adapter: %w", kind, err)
 	}
-	if receipt.Kind != kind || receipt.ID != pin.ID || receipt.Version != pin.Version || receipt.ArchiveSHA256 != pin.SHA256 || len(receipt.Files) == 0 || len(receipt.Files) > 4096 {
-		return Receipt{}, errors.New("language installation receipt identity mismatch")
+	if receipt.Kind != kind {
+		return Receipt{}, errors.New("language installation kind mismatch")
 	}
-	if inventory(receipt.Files) != expectedInventory(kind) {
-		return Receipt{}, errors.New("language receipt differs from pinned complete file inventory")
+	if err := ValidateReceipt(receipt); err != nil {
+		return Receipt{}, err
 	}
-	seen := map[string]bool{}
-	var total int64
 	for _, expected := range receipt.Files {
-		if !filepath.IsLocal(expected.Path) || seen[strings.ToLower(expected.Path)] || expected.Bytes < 0 || expected.Bytes > 16<<20 || len(expected.SHA256) != 64 {
-			return Receipt{}, errors.New("invalid language installation file receipt")
-		}
-		seen[strings.ToLower(expected.Path)] = true
-		total += expected.Bytes
-		if total > 64<<20 {
-			return Receipt{}, errors.New("language installation exceeds extraction limit")
-		}
 		actual, err := hashFile(installedPath(root, pin), expected.Path, 16<<20)
 		if err != nil || actual != expected {
 			return Receipt{}, errors.Join(err, fmt.Errorf("installed language package changed: %s", expected.Path))
 		}
 	}
-	if !seen["package.json"] {
-		return Receipt{}, errors.New("language receipt has no manifest")
-	}
 	return receipt, nil
+}
+
+// ValidateReceipt checks the compiled, hash-pinned complete upstream inventory.
+// It is also used to verify retained observations after an owned stage is gone;
+// only VerifyInstalled observes the actual on-disk package bytes.
+func ValidateReceipt(receipt Receipt) error {
+	pin, err := Package(receipt.Kind)
+	if err != nil {
+		return err
+	}
+	if receipt.ID != pin.ID || receipt.Version != pin.Version || receipt.ArchiveSHA256 != pin.SHA256 || len(receipt.Files) == 0 || len(receipt.Files) > 4096 {
+		return errors.New("language installation receipt identity mismatch")
+	}
+	if inventory(receipt.Files) != expectedInventory(receipt.Kind) {
+		return errors.New("language receipt differs from pinned complete file inventory")
+	}
+	seen := map[string]bool{}
+	var total int64
+	for _, expected := range receipt.Files {
+		if !filepath.IsLocal(expected.Path) || seen[strings.ToLower(expected.Path)] || expected.Bytes < 0 || expected.Bytes > 16<<20 || len(expected.SHA256) != 64 {
+			return errors.New("invalid language installation file receipt")
+		}
+		seen[strings.ToLower(expected.Path)] = true
+		total += expected.Bytes
+		if total > 64<<20 {
+			return errors.New("language installation exceeds extraction limit")
+		}
+	}
+	if !seen["package.json"] {
+		return errors.New("language receipt has no manifest")
+	}
+	return nil
 }
 
 func writeJSON(path string, value any) error {

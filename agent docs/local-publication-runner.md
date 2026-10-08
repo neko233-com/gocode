@@ -186,3 +186,37 @@ Workflow
 actionlint/ShellCheck and pinned PSScriptAnalyzer Warning/Error checks pass.
 New-source whole regression, trusted signing, final complete-release verification,
 tag/upload and user installation remain pending; no Actions are dispatched.
+
+## Explicit older-host language compatibility
+
+Public23's genuine production-signed native smoke fails with the newly installed
+native Go/TypeScript packages enabled (535ms/exit1, document-sync/command failure)
+and passes with only those exact IDs disabled in a separate owned copy
+(497ms/exit0). Actual A/B receipt SHA256 is
+0ac2f7b0cb4c533f1ca399937776c055906988e7b64830c0f96ae13791215012 under
+`.cache/prior23-native-compat-2ff-r1/execution/current.json`. Original signed ZIP,
+package inventories, profile and source2ff are preserved; both process trees
+close and disposable directories are removed. No new-signed Activate/Rollback
+is performed in this control.
+
+The subsequent rollback producer uses the production rollback function with an
+explicit extension root. It writes only the two native IDs to Disabled in its
+disposable acceptance store, preserving other Disabled/Uninstall preferences.
+Its required compatibility observation names this limited scope and binds three
+retained files under rollback-compatibility/: original-state.json,
+applied-state.json and final-state.json. It records complete original pinned
+Go/TypeScript receipts from actual byte verification before and after the old
+native run. The publisher preserves these three files before removing private
+stage; strict verification requires their exact paths/hashes, actual narrow
+Disabled state, unchanged preferences during the run and compiled upstream
+archive/inventory identities. Missing/old compatibility evidence cannot complete
+a release. Original program-byte, production-signature, ordered native/service,
+MSI,60s old-smoke and cleanup guards are unchanged.
+
+This owned compatibility state is deliberately distinct from user rollback:
+production CLI rejects an older-host selection while verified native adapters
+are enabled and asks the user to disable them. It never silently changes the
+user's store. Actual package acceptance for the new producer remains Root-owned
+and requires a fresh immutable source/Prepare; prior2ff proof does not cover
+this later change. The production signing key is still missing, and there is no
+new tag, Actions dispatch, upload, complete receipt or installed promotion.

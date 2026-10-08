@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/neko233-com/gocode/internal/installlayout"
+	"github.com/neko233-com/gocode/internal/languageextension"
 )
 
 type boundedOutput struct {
@@ -86,7 +87,7 @@ func (m *Manager) Apply(ctx context.Context, root, platform string) (Result, err
 	}
 	return result, nil
 }
-func Rollback(ctx context.Context, root string, key ed25519.PublicKey) error {
+func Rollback(ctx context.Context, root string, key ed25519.PublicKey, extensionRoot string) error {
 	base, err := installlayout.ValidateRoot(root)
 	if err != nil {
 		return err
@@ -109,7 +110,18 @@ func Rollback(ctx context.Context, root string, key ed25519.PublicKey) error {
 			return errors.New("rollback source does not match signed metadata")
 		}
 	}
+	if err := languageextension.CheckRollback(ctx, extensionRoot, previous.Version); err != nil {
+		return err
+	}
 	if err := Probe(ctx, root, previous); err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	// Health probing can take seconds. Re-read preferences and package identity
+	// immediately before selection, under the same update lock.
+	if err := languageextension.CheckRollback(ctx, extensionRoot, previous.Version); err != nil {
 		return err
 	}
 	return installlayout.Activate(root, previous)

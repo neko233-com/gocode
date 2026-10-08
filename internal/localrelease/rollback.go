@@ -16,13 +16,14 @@ import (
 )
 
 type Rollback struct {
-	Version  string                 `json:"version"`
-	Source   string                 `json:"source"`
-	Archive  File                   `json:"archive"`
-	Envelope File                   `json:"envelope"`
-	Before   installlayout.Manifest `json:"before"`
-	After    installlayout.Manifest `json:"after"`
-	Native   Gate                   `json:"native"`
+	Version       string                 `json:"version"`
+	Source        string                 `json:"source"`
+	Archive       File                   `json:"archive"`
+	Envelope      File                   `json:"envelope"`
+	Before        installlayout.Manifest `json:"before"`
+	After         installlayout.Manifest `json:"after"`
+	Native        Gate                   `json:"native"`
+	Compatibility *RollbackCompatibility `json:"compatibility"`
 }
 
 func priorGate(stageRoot string) GateSpec {
@@ -31,8 +32,9 @@ func priorGate(stageRoot string) GateSpec {
 
 // RunRollback stages both genuine signed versions in the same owned root,
 // uses the production rollback selection, then starts the real prior editor
-// with the same extension root. The caller retains the actual owned-process
-// report and captured outputs; no public update discovery is involved.
+// with the same original packages, but deliberately disables native adapters
+// only in this disposable root. The caller retains that compatibility state,
+// actual owned-process report and outputs; no public discovery is involved.
 func RunRollback(ctx context.Context, stageRoot, archive, envelopePath string, current Staged, environment []string) (Rollback, nativeguard.Result, error) {
 	var result Rollback
 	key, err := update.PublisherKey()
@@ -83,7 +85,12 @@ func RunRollback(ctx context.Context, stageRoot, archive, envelopePath string, c
 	if err != nil || result.Before != newManifest {
 		return result, nativeguard.Result{}, errors.New("new selection is not the actual staged release")
 	}
-	if err := update.Rollback(ctx, stageRoot, key); err != nil {
+	compatibility, err := prepareRollbackCompatibility(ctx, stageRoot, prior.Version)
+	result.Compatibility = &compatibility
+	if err != nil {
+		return result, nativeguard.Result{}, err
+	}
+	if err := update.Rollback(ctx, stageRoot, key, compatibility.ExtensionRoot); err != nil {
 		return result, nativeguard.Result{}, err
 	}
 	_, result.After, err = installlayout.Resolve(stageRoot, false)
@@ -100,7 +107,7 @@ func RunRollback(ctx context.Context, stageRoot, archive, envelopePath string, c
 	captured, bound, runErr := RunGate(ctx, stageRoot, prior.Version, prior.Source, priorGate(stageRoot), environment)
 	result.Version, result.Source = prior.Version, prior.Source
 	result.Native = Gate{ID: "prior-rollback", Program: File{Path: bound.Launch.ArchiveEntry, Bytes: bound.Launch.Bytes, SHA256: bound.Launch.SHA256}, Result: bound.Report, Launch: bound.Launch}
-	return result, captured, runErr
+	return result, captured, errors.Join(runErr, finishRollbackCompatibility(ctx, stageRoot, result.Compatibility))
 }
 
 func verifyRollback(ctx context.Context, root, version, source string, prior *Rollback) error {
@@ -139,6 +146,9 @@ func verifyRollback(ctx context.Context, root, version, source string, prior *Ro
 	}
 	gate := prior.Native
 	stageRoot, _ := Within(root, "private-stage")
+	if err := verifyRollbackCompatibility(ctx, root, stageRoot, prior.Version, prior.Compatibility); err != nil {
+		return err
+	}
 	spec := priorGate(stageRoot)
 	entry := "versions/" + prior.Version + "/gocode-app.exe"
 	expected, _ := Within(stageRoot, filepath.FromSlash(entry))

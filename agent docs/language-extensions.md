@@ -357,3 +357,62 @@ cleanup-and-validation.json SHA256 is
 523f78e848ddc987eeecdffd9845c5d557f189333a9ea0eecf8de400ae3040e7;
 TMP/local-cache are absent and compiler TMP is empty. This additive receipt
 does not alter the before-cleanup receipt or claim a signed released package.
+
+## Older-host rollback compatibility
+
+The genuine signed public23 executable is tested against two copies of the same
+verified original Go0.50.0/TypeScript1.95.3 packages and private profile. With
+both enabled, the actual process exits1 in535ms; its102-byte stderr reports
+`extension document synchronization stopped` and `extension command was not
+verified`. Disabling only the two exact IDs in the other owned copy passes the
+original native rendering/installed VSIX activation/command smoke in497ms.
+Both trees are reaped, original VSIX/profile bytes stay unchanged, and all three
+private roots per case are gone. The actual receipt is
+`.cache/prior23-native-compat-2ff-r1/execution/current.json`, SHA256
+0ac2f7b0cb4c533f1ca399937776c055906988e7b64830c0f96ae13791215012.
+The production-signed prior source is47623823dd88fbb45422d096b545631be7e6b77b;
+the contemporary source2ff837bb2253c483e9fba6e2a990aa75a23fe1fb remains
+unchanged during that control. This is actual prior-host compatibility evidence,
+not execution of newly signed Activate/Rollback. The missing older JavaScript
+API classes are a source-level explanation; no first-exception Node stack was
+captured by this smoke.
+
+The later unpublished product protection reads the user's actual explicit
+`-extensions-dir`, or the same UserConfigDir/gocode/extensions default as normal
+startup. Rollback to a version below0.24.0 checks verified native adapter
+packages before the real health probe and again immediately before changing the
+selection, inside the existing update lock. An enabled original package and
+native receipt require the user to disable that language support first. A
+corrupt/linked native package or receipt fails verification. Disabled and
+pending-Uninstall entries retain existing activation semantics; orphaned markers
+without a package and ordinary VSIX installs without a native receipt do not
+trigger this migration guard. Preference reads retain128KiB/512-entry bounds.
+It never rewrites user preferences or changes selection on rejection. The update
+lock does not make unrelated cross-process preference writes atomic; the final
+fresh check closes the real health-probe interval rather than claiming a global
+extension-state transaction.
+
+Local publication's disposable root explicitly disables only golang.go and
+vscode.typescript-language-features for the genuine older-host native smoke. It
+retains the actual original/applied/final preference files, exact original
+archive identities and full verified package inventories before/after. The
+final verifier checks those files, narrow preference change, unchanged pinned
+inventories and the real old executable/process/output independently. This
+scope proves ordinary old-host VSIX startup with language adapters disabled;
+it does not claim old-host Go/TypeScript adapter support. New protection source
+requires fresh clean-source preparation and Root-owned package/native validation;
+production signing, publication and installed promotion remain pending.
+
+Focused CPU/process checks with the actual original verified Go/TypeScript
+profile pass three shuffle rounds against public17/GOWORK=off: no-cgo package
+times0.044/0.799/3.186/0.947s and strict-cgo2/race times
+1.094/2.230/10.164/2.741s for app/languageextension/update/localrelease.
+The real non-GUI health process hands off before preferences change from
+disabled to enabled; the final check rejects and all three selection files plus
+the newly enabled user state remain unchanged. Retained-file verification also
+passes after actual private-stage removal and rejects changed mode/root/IDs,
+missing after-inventory, modified original hashes/files and tampered final state.
+Both affected-package vet modes and actionlint/ShellCheck/PowerShell AST exit0.
+Fixed logs are under `.cache/rollback-protection-r1`; original unused-import and
+sandbox-loopback build/test failures are preserved separately. These are CPU and
+owned health-process controls, not a new native editor or signed rollback run.

@@ -1,5 +1,52 @@
 # Milestone ledger
 
+## Older native-adapter rollback protection (2026-10-08, focused passed)
+
+The genuine prior23 enabled/disabled native control exposes a real incompatible
+selection. The next candidate adds a read-only product guard inside the update
+lock, both before real health probing and immediately before pointer selection.
+Actual installed native receipts/packages identify Go/TypeScript adapters;
+disabled/pending-uninstall support is excluded, ordinary VSIX without a native
+receipt and isolated uninstall markers do not block. Corrupt present receipts
+fail closed with an explicit disable-before-rollback message. The CLI resolves
+the same default/explicit extension root only for rollback; apply/check retain
+their old dependencies. No user preference is silently changed.
+
+Owned prior acceptance explicitly disables the two exact adapters, retaining
+original/applied/final state files and original complete pinned inventories.
+Its verifier requires compiled pins, original packages, exact state semantics,
+paths and file hashes after stage cleanup. It does not claim old23 can run these
+adapters. Focused real-disk/actual health-process controls prove re-enabling during
+Probe is rejected at the final check without changing base/current/previous or
+the user's enabled preference. Three no-cgo and strict-cgo/race repeats of the
+four affected packages pass; both vets, workflow lint, gofmt and diff checks pass.
+The16-file source/log receipt is `.cache/rollback-protection-r1/current.json`,
+SHA2563856cb40a9bf65143a4e2bb0f11bb605fa7d1790153db3d7813635e9b7ab17e1.
+Only owned Go-generated cache/config is removed; private TMP is empty. Actual
+new-code native selection/rollback evidence, new clean-source Prepare and the
+existing production private-key path remain pending. All2ff/f4a/old failures
+remain source-specific; no tag24/release24/Actions/source push is claimed.
+
+## Exact 2ff source, ZIP and MSI passed; rollback boundary found (2026-10-08)
+
+Unpublished source2ff837bb2253c483e9fba6e2a990aa75a23fe1fb passes the full
+local five-check Prepare (Windows3 strict/race1038.844s/no-cgo3 298.540s),
+actual final ZIP35 gates112.846s and actual same-batch MSI lifecycle12.425s
+including real space/Chinese paths, prior install/failed rollback/upgrade/
+rejected downgrade/native/uninstall and source/module/file/user preservation.
+All private roots and owned processes close. Production signature and release
+remain false. Exact assets/hashes/receipts are in
+[local candidate 2ff](local-candidate-2ff.md).
+
+An independent actual signed prior23 native control fails with enabled new
+Go/TypeScript adapters (535ms/exit1) and passes when only those exact IDs are
+disabled in an owned root (497ms/exit0). It preserves original packages/profile
+and does not execute signed-new Activate/Rollback. The next product correction
+must reject incompatible older selection before mutation and record explicit
+owned compatibility policy in rollback acceptance. New source checks and the
+matching production private-key path are still required. No source push, tag24,
+release24 or new Actions is claimed.
+
 ## Exact f4a clean-source and unsigned package acceptance (2026-10-08)
 
 Unpublished source f4a795d4a4cc09ce67f72a93364f15363c077d48 now passes

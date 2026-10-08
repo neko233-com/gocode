@@ -214,6 +214,7 @@ try {
     $taskNativeEvidence = Join-Path $taskStage '.cache/native-gates'
     if (Test-Path -LiteralPath $taskNativeEvidence) { Copy-Item -LiteralPath $taskNativeEvidence -Destination (Join-Path $taskRoot 'native-gates') -Recurse }
     Copy-Item -LiteralPath (Join-Path $taskStage 'msi-validation') -Destination (Join-Path $taskRoot 'msi-validation') -Recurse
+    Copy-Item -LiteralPath (Join-Path $taskStage 'rollback-compatibility') -Destination (Join-Path $taskRoot 'rollback-compatibility') -Recurse
     foreach ($taskPrivate in @($taskStage, $taskTemporary, $taskConfig)) { Remove-ReleasePrivateDirectory $taskPrivate $taskRoot }
     $taskReceipt = [ordered]@{ schema = 1; version = $Version; source = $Source; platforms = @($taskPlan.platforms); artifacts = $taskFinalArtifacts; envelope = Get-ReleaseFile $taskEnvelope $taskRoot; framework = Read-ReleaseJSON $taskFrameworkPath; checks = $taskChecks; gates = $taskGates; privateTMPAbsent = $true; privateConfigAbsent = $true; stageAbsent = $true; complete = $true; inputDigest = $taskDigest }
     $taskPendingReceipt = Join-Path $taskRoot 'receipt.pending.json'

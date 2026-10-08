@@ -138,7 +138,7 @@ func TestApplyUsesRealHealthCheckAndRollback(t *testing.T) {
 	if err != nil || active.Version != "0.5.0" {
 		t.Fatal(active, err)
 	}
-	if err := Rollback(context.Background(), root, key); err != nil {
+	if err := Rollback(context.Background(), root, key, t.TempDir()); err != nil {
 		t.Fatal(err)
 	}
 	_, active, err = installlayout.Resolve(root, false)

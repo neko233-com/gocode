@@ -28,13 +28,22 @@ func updatePaths() (string, string, error) {
 	root, rootErr := update.InstalledRoot(exe)
 	return root, filepath.Join(config, "gocode", "updates.json"), rootErr
 }
-func updateCommand(ctx context.Context, root string, config update.Config, apply, rollback bool) error {
+
+func extensionDirectory(explicit string) (string, error) {
+	if explicit != "" {
+		return explicit, nil
+	}
+	config, err := os.UserConfigDir()
+	return filepath.Join(config, "gocode", "extensions"), err
+}
+
+func updateCommand(ctx context.Context, root, extensionRoot string, config update.Config, apply, rollback bool) error {
 	key, err := update.PublisherKey()
 	if err != nil {
 		return err
 	}
 	if rollback {
-		return update.Rollback(ctx, root, key)
+		return update.Rollback(ctx, root, key, extensionRoot)
 	}
 	manager := &update.Manager{Key: key, Config: config}
 	if !apply {

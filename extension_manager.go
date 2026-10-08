@@ -19,10 +19,7 @@ import (
 	"github.com/neko233-com/godesktop/extensions"
 )
 
-type extensionSettings struct {
-	Disabled  []string `json:"disabled"`
-	Uninstall []string `json:"uninstall"`
-}
+type extensionSettings = languageextension.State
 type extensionViewState struct {
 	catalog                              extensionCatalog
 	detailUI                             extensionDetailState
@@ -56,29 +53,7 @@ func setExtension(ids []string, id string, enabled bool) []string {
 	return result
 }
 func readExtensionSettings(root string) (extensionSettings, error) {
-	var settings extensionSettings
-	f, err := os.Open(filepath.Join(root, ".gocode-state.json"))
-	if os.IsNotExist(err) {
-		return settings, nil
-	}
-	if err != nil {
-		return settings, err
-	}
-	defer f.Close()
-	b, err := io.ReadAll(io.LimitReader(f, (128<<10)+1))
-	if err != nil {
-		return settings, err
-	}
-	if len(b) > 128<<10 {
-		return settings, errors.New("extension state exceeds limit")
-	}
-	if err = json.Unmarshal(b, &settings); err != nil {
-		return settings, err
-	}
-	if len(settings.Disabled) > 512 || len(settings.Uninstall) > 512 {
-		return settings, errors.New("too many extension state entries")
-	}
-	return settings, nil
+	return languageextension.ReadState(root)
 }
 func writeExtensionSettings(root string, settings extensionSettings) error {
 	if len(settings.Disabled) > 512 || len(settings.Uninstall) > 512 {

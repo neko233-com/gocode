@@ -296,7 +296,14 @@ func run() (runErr error) {
 		}
 		ctx, stop := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer stop()
-		return updateCommand(ctx, updateRoot, updateConfig, *applyUpdate, *rollbackUpdate)
+		if *rollbackUpdate && *extensionDir == "" {
+			resolved, err := extensionDirectory("")
+			if err != nil {
+				return err
+			}
+			*extensionDir = resolved
+		}
+		return updateCommand(ctx, updateRoot, *extensionDir, updateConfig, *applyUpdate, *rollbackUpdate)
 	}
 	if *installGopls {
 		ctx, stop := context.WithTimeout(context.Background(), 10*time.Minute)
