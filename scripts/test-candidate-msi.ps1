@@ -171,8 +171,7 @@ function Invoke-CandidateTransaction {
     param([string[]]$Arguments, [string]$Name, [switch]$ExpectedFailure)
     $taskEnvironment = [Collections.Generic.Dictionary[string,string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($taskKey in [Environment]::GetEnvironmentVariables('Process').Keys) { $taskEnvironment[$taskKey] = [Environment]::GetEnvironmentVariable($taskKey, 'Process') }
-    $taskMSIExec = Join-Path ([Environment]::GetFolderPath('System')) 'msiexec.exe'
-    $taskResult = [GocodeReleaseProcess]::Run($taskMSIExec, $Arguments + @('/qn', '/norestart', '/L*v', (Join-Path $script:CandidateRoot ($Name + '.msi.log'))), $script:ReleaseProject, $taskEnvironment, 120000)
+    $taskResult = [GocodeReleaseProcess]::RunMSI($Arguments + @('/qn', '/norestart', '/L*v', (Join-Path $script:CandidateRoot ($Name + '.msi.log'))), $script:ReleaseProject, $taskEnvironment, 120000)
     Write-ReleaseJSON (Join-Path $script:CandidateRoot ($Name + '.process.json')) ([ordered]@{ pid = $taskResult.PID; exitCode = $taskResult.ExitCode; elapsedMS = $taskResult.ElapsedMS; rootReaped = $taskResult.RootReaped; treeClosed = $taskResult.TreeClosed; error = $taskResult.Error })
     if ($taskResult.Error -or -not $taskResult.RootReaped -or -not $taskResult.TreeClosed -or ($ExpectedFailure -and $taskResult.ExitCode -eq 0) -or (-not $ExpectedFailure -and $taskResult.ExitCode -ne 0)) { throw "Actual MSI transaction $Name failed its expected outcome." }
 }

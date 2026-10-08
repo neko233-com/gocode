@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([switch]$ProcessControls)
+param([switch]$ProcessControls, [switch]$MSIControls, [string]$MSIEvidenceDirectory)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'local-release-functions.ps1')
@@ -19,6 +19,59 @@ function Assert-ReleaseRejected {
     $taskRejected = $false
     try { & $Action } catch { $taskRejected = $true }
     Assert-ReleaseControl $taskRejected $Name
+}
+function Invoke-ParserMSIObject {
+    param($Object, [string]$Method, [object[]]$Arguments = @())
+    $taskNativeArguments = @($Arguments | ForEach-Object { if ($null -eq $_) { $null } else { $_.PSObject.BaseObject } })
+    return $Object.GetType().InvokeMember($Method, 'InvokeMethod', $null, $Object.PSObject.BaseObject, $taskNativeArguments)
+}
+function Invoke-ParserMSISQL {
+    param($Installer, $Database, [string]$SQL, [object[]]$Values = @())
+    $taskView = Invoke-ParserMSIObject $Database 'OpenView' @($SQL)
+    $taskRecord = $null
+    try {
+        if ($Values.Count) {
+            $taskRecord = Invoke-ParserMSIObject $Installer 'CreateRecord' @([int]$Values.Count)
+            for ($taskIndex = 0; $taskIndex -lt $Values.Count; $taskIndex++) {
+                if ($null -eq $Values[$taskIndex]) { continue }
+                $taskField = [int]($taskIndex + 1)
+                $taskValue = $Values[$taskIndex].PSObject.BaseObject
+                $taskProperty = 'StringData'
+                if ($taskValue -is [int]) { $taskProperty = 'IntegerData' }
+                [void]$taskRecord.GetType().InvokeMember($taskProperty, 'SetProperty', $null, $taskRecord.PSObject.BaseObject, [object[]]@($taskField, $taskValue))
+            }
+        }
+        [void](Invoke-ParserMSIObject $taskView 'Execute' @($taskRecord))
+    } finally {
+        [void](Invoke-ParserMSIObject $taskView 'Close')
+        if ($null -ne $taskRecord) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskRecord) }
+        [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskView)
+    }
+}
+function New-ParserMSIPackage {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Creates only a fresh owner-validated parser fixture file with a sequence1 Type19 abort and no transaction/file/registry actions.')]
+    param($Installer, [string]$Path, [string]$ProductCode)
+    $taskDatabase = Invoke-ParserMSIObject $Installer 'OpenDatabase' @($Path, [int]3)
+    $taskSummary = $null
+    try {
+        Invoke-ParserMSISQL $Installer $taskDatabase 'CREATE TABLE `Property` (`Property` CHAR(72) NOT NULL, `Value` CHAR(0) LOCALIZABLE PRIMARY KEY `Property`)'
+        Invoke-ParserMSISQL $Installer $taskDatabase 'CREATE TABLE `CustomAction` (`Action` CHAR(72) NOT NULL, `Type` SHORT NOT NULL, `Source` CHAR(72), `Target` CHAR(255) LOCALIZABLE PRIMARY KEY `Action`)'
+        Invoke-ParserMSISQL $Installer $taskDatabase 'CREATE TABLE `InstallExecuteSequence` (`Action` CHAR(72) NOT NULL, `Condition` CHAR(255), `Sequence` SHORT PRIMARY KEY `Action`)'
+        foreach ($taskEntry in @(@('ProductCode', $ProductCode), @('ProductName', 'Gocode MSI parser control'), @('ProductVersion', '0.0.1'), @('ProductLanguage', '1033'), @('Manufacturer', 'Gocode diagnostic'), @('GOCODECONTROL', 'initial'))) {
+            Invoke-ParserMSISQL $Installer $taskDatabase 'INSERT INTO `Property` (`Property`,`Value`) VALUES (?,?)' $taskEntry
+        }
+        Invoke-ParserMSISQL $Installer $taskDatabase 'INSERT INTO `CustomAction` (`Action`,`Type`,`Source`,`Target`) VALUES (?,?,?,?)' @('ParserAbort', [int]19, $null, 'MSI parser abort before transaction; parsed [GOCODECONTROL]')
+        Invoke-ParserMSISQL $Installer $taskDatabase 'INSERT INTO `InstallExecuteSequence` (`Action`,`Condition`,`Sequence`) VALUES (?,?,?)' @('ParserAbort', $null, [int]1)
+        $taskSummary = $taskDatabase.GetType().InvokeMember('SummaryInformation', 'GetProperty', $null, $taskDatabase.PSObject.BaseObject, [object[]]@([int]20))
+        foreach ($taskEntry in @(@([int]1,[int]1252), @([int]2,'Installation Database'), @([int]3,'MSI parser control'), @([int]4,'Gocode diagnostic'), @([int]7,'x64;1033'), @([int]9,('{' + [Guid]::NewGuid().ToString().ToUpperInvariant() + '}')), @([int]14,[int]500), @([int]15,[int]10), @([int]19,[int]2))) {
+            [void]$taskSummary.GetType().InvokeMember('Property', 'SetProperty', $null, $taskSummary.PSObject.BaseObject, [object[]]@([int]$taskEntry[0], $taskEntry[1].PSObject.BaseObject))
+        }
+        [void](Invoke-ParserMSIObject $taskSummary 'Persist')
+        [void](Invoke-ParserMSIObject $taskDatabase 'Commit')
+    } finally {
+        if ($null -ne $taskSummary) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskSummary) }
+        [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskDatabase)
+    }
 }
 $script:ReleaseControlCount = 0
 $taskValid = '{"platforms":["windows/amd64"],"checks":["first","second"],"gates":[{"id":"first","args":["-one"],"gui":false,"timeoutNanoseconds":60000000000},{"id":"second","args":["-two","1024"],"gui":true,"timeoutNanoseconds":120000000000}],"pendingCommands":null}'
@@ -80,6 +133,29 @@ try {
     Assert-ReleaseRejected { Get-ReleaseMissingAsset @($taskAssets[0], $taskAssets[0]) $taskFiles | Out-Null } 'duplicate draft asset'
     Assert-ReleaseRejected { [GocodeReleaseProcess]::Quote("bad$([char]0)argument") | Out-Null } 'NUL argument'
     Assert-ReleaseControl ([GocodeReleaseProcess]::Quote('one "two"\') -ceq '"one \"two\"\\"') 'Windows backslash/quote convention'
+    $taskUnicode = [string][char]0x4E16 + [char]0x754C
+    $taskMSIPath = 'C:\owned ' + $taskUnicode + '\package.msi'
+    $taskMSILog = 'C:\owned ' + $taskUnicode + '\parser.log'
+    $taskMSIArguments = @('/i', $taskMSIPath, 'PROP=Embedded "Quotes" White Space', 'EMPTY=', '_PUBLIC.NAME=value=equals', '/qn', '/norestart', '/L*v', $taskMSILog)
+    $taskMSIExpected = '/i "' + $taskMSIPath + '" PROP="Embedded ""Quotes"" White Space" EMPTY="" _PUBLIC.NAME="value=equals" /qn /norestart /L*v "' + $taskMSILog + '"'
+    Assert-ReleaseControl ([GocodeReleaseProcess]::SerializeMSI($taskMSIArguments) -ceq $taskMSIExpected) 'MSI raw switches/value quotes/Unicode-space paths/literal quote doubling'
+    foreach ($taskBadName in @('private', '9PUBLIC', '.PUBLIC', 'BAD-NAME', ([string][char]0x00C9 + 'NAME'))) {
+        Assert-ReleaseRejected { [GocodeReleaseProcess]::SerializeMSI(@('/i', $taskMSIPath, ($taskBadName + '=value'), '/qn', '/norestart', '/L*v', $taskMSILog)) | Out-Null } 'MSI rejects non-public ASCII identifier'
+    }
+    foreach ($taskBadValue in @("value$([char]0)", "value`r", "value`n")) {
+        Assert-ReleaseRejected { [GocodeReleaseProcess]::SerializeMSI(@('/i', $taskMSIPath, ('PROP=' + $taskBadValue), '/qn', '/norestart', '/L*v', $taskMSILog)) | Out-Null } 'MSI rejects NUL/CR/LF value'
+    }
+    foreach ($taskBadArguments in @(
+        @('/i', 'relative.msi', '/qn', '/norestart', '/L*v', $taskMSILog),
+        @('/i', 'C:relative.msi', '/qn', '/norestart', '/L*v', $taskMSILog),
+        @('/i', $taskMSIPath, '/qb', '/norestart', '/L*v', $taskMSILog),
+        @('/i', $taskMSIPath, 'PROP=first', 'PROP=second', '/qn', '/norestart', '/L*v', $taskMSILog),
+        @('/i', $taskMSIPath, '/qn', '/norestart', '/L*v'),
+        @('/i', $taskMSIPath, '/x', '{EED33BE1-E465-4A97-A598-A29F430F9324}', '/qn', '/norestart', '/L*v', $taskMSILog),
+        @('/i', $taskMSIPath, ('PROP=' + ('x' * 4096)), '/qn', '/norestart', '/L*v', $taskMSILog)
+    )) { Assert-ReleaseRejected { [GocodeReleaseProcess]::SerializeMSI($taskBadArguments) | Out-Null } 'MSI rejects unsupported/ambiguous/unbounded syntax' }
+    Assert-ReleaseControl ([GocodeReleaseProcess]::SerializeMSI(@('/x', '{EED33BE1-E465-4A97-A598-A29F430F9324}', '/qn', '/norestart', '/L*v', $taskMSILog)).StartsWith('/x "{EED33BE1-E465-4A97-A598-A29F430F9324}" ', [StringComparison]::Ordinal)) 'MSI owned uninstall GUID accepted'
+    Assert-ReleaseRejected { [GocodeReleaseProcess]::RunMSI($taskMSIArguments, $script:ReleaseProject, [Collections.Generic.Dictionary[string,string]]::new(), 120001) | Out-Null } 'MSI rejects an enlarged deadline before any process creation'
     $taskEnvironment = [Collections.Generic.Dictionary[string,string]]::new([StringComparer]::Ordinal)
     $taskEnvironment['TMP'] = 'old'; $taskEnvironment['tMp'] = 'private'; $taskEnvironment['é'] = 'first'; $taskEnvironment['É'] = 'last'; $taskEnvironment['=C:'] = 'C:\owned'
     $taskBlock = [GocodeReleaseProcess]::EnvironmentBlock($taskEnvironment)
@@ -187,7 +263,41 @@ switch($Mode){
         $taskDescendantPID = [int][IO.File]::ReadAllText($taskPIDFile)
         Assert-ReleaseControl ($taskResult.Error -eq '' -and $taskResult.RootReaped -and $taskResult.TreeClosed -and -not (Get-Process -Id $taskDescendantPID -ErrorAction SilentlyContinue)) 'real descendant retirement before tree proof'
     }
-    Write-Output "Local-release CPU parser/process controls passed: $script:ReleaseControlCount. Native/install/sign/upload were not executed."
+    if ($MSIControls) {
+        # Root-only opt-in: actual msiexec parsing, with no product transaction.
+        # This separate fresh directory preserves actual MSI logs and proof.
+        if (-not $MSIEvidenceDirectory) { $MSIEvidenceDirectory = Join-Path $script:ReleaseProject '.cache/local-release-msi-parser-proof' }
+        $taskMSIRoot = Initialize-ReleaseWorkDirectory $MSIEvidenceDirectory
+        $taskMSIEnvironment = [Collections.Generic.Dictionary[string,string]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($taskEntry in (Get-ReleaseEnvironment $taskRoot).GetEnumerator()) { $taskMSIEnvironment[$taskEntry.Key] = [string]$taskEntry.Value }
+        $taskMissingMSI = Join-Path $taskMSIRoot ('missing ' + $taskUnicode + ' package.msi')
+        $taskMissingLog = Join-Path $taskMSIRoot 'missing-parser.log'
+        Assert-ReleaseControl (-not (Test-Path -LiteralPath $taskMissingMSI)) 'real MSI missing input is absent'
+        $taskMissingResult = [GocodeReleaseProcess]::RunMSI(@('/i', $taskMissingMSI, 'GOCODECONTROL=private value', '/qn', '/norestart', '/L*v', $taskMissingLog), $script:ReleaseProject, $taskMSIEnvironment, 10000)
+        Write-ReleaseJSON (Join-Path $taskMSIRoot 'missing-process.json') $taskMissingResult
+        Assert-ReleaseControl ($taskMissingResult.Error -eq '' -and $taskMissingResult.ExitCode -eq 1619 -and $taskMissingResult.PID -gt 0 -and $taskMissingResult.JobAssignedBeforeResume -and $taskMissingResult.RootReaped -and $taskMissingResult.TreeClosed -and (Test-Path -LiteralPath $taskMissingLog) -and (Get-Item -LiteralPath $taskMissingLog).Length -gt 0 -and -not (Get-Process -Id $taskMissingResult.PID -ErrorAction SilentlyContinue)) 'real missing MSI reaches engine1619/log and owned process retires'
+        $taskInstaller = New-Object -ComObject WindowsInstaller.Installer
+        try {
+            $taskParserProduct = '{' + [Guid]::NewGuid().ToString().ToUpperInvariant() + '}'
+            $taskBeforeState = [int]$taskInstaller.GetType().InvokeMember('ProductState', 'GetProperty', $null, $taskInstaller.PSObject.BaseObject, [object[]]@($taskParserProduct))
+            Assert-ReleaseControl ($taskBeforeState -lt 1) 'parser-only product identity is unregistered'
+            $taskParserMSI = Join-Path $taskMSIRoot ('parser ' + $taskUnicode + ' package.msi')
+            New-ParserMSIPackage $taskInstaller $taskParserMSI $taskParserProduct
+            $taskParserLog = Join-Path $taskMSIRoot 'property-parser.log'
+            $taskParserValue = 'Embedded "Quotes" = White Space ' + $taskUnicode
+            $taskParserResult = [GocodeReleaseProcess]::RunMSI(@('/i', $taskParserMSI, ('GOCODECONTROL=' + $taskParserValue), '/qn', '/norestart', '/L*v', $taskParserLog), $script:ReleaseProject, $taskMSIEnvironment, 10000)
+            Write-ReleaseJSON (Join-Path $taskMSIRoot 'property-process.json') $taskParserResult
+            Assert-ReleaseControl ($taskParserResult.Error -eq '' -and $taskParserResult.ExitCode -eq 1603 -and $taskParserResult.PID -gt 0 -and $taskParserResult.JobAssignedBeforeResume -and $taskParserResult.RootReaped -and $taskParserResult.TreeClosed -and -not (Get-Process -Id $taskParserResult.PID -ErrorAction SilentlyContinue)) 'real Type19 pre-transaction abort and owned process retires'
+            $taskLogInfo = Get-Item -LiteralPath $taskParserLog
+            Assert-ReleaseControl ($taskLogInfo.Length -gt 0 -and $taskLogInfo.Length -le 4194304) 'actual property parser log is nonempty and bounded'
+            $taskLogText = [IO.File]::ReadAllText($taskParserLog)
+            Assert-ReleaseControl ($taskLogText.Contains('MSI parser abort before transaction; parsed ' + $taskParserValue)) 'actual MSI engine formatted property preserves embedded quotes/equals/Unicode/spaces'
+            $taskAfterState = [int]$taskInstaller.GetType().InvokeMember('ProductState', 'GetProperty', $null, $taskInstaller.PSObject.BaseObject, [object[]]@($taskParserProduct))
+            Assert-ReleaseControl ($taskAfterState -eq $taskBeforeState) 'parser-only abort leaves product unregistered'
+            Write-ReleaseJSON (Join-Path $taskMSIRoot 'proof.json') ([ordered]@{ schema=1; transactionExecuted=$false; missingExitCode=$taskMissingResult.ExitCode; propertyExitCode=$taskParserResult.ExitCode; productStateBefore=$taskBeforeState; productStateAfter=$taskAfterState; parsedValue=$taskParserValue; missingLog=(Get-ReleaseFile $taskMissingLog $taskMSIRoot); propertyLog=(Get-ReleaseFile $taskParserLog $taskMSIRoot); parserMSI=(Get-ReleaseFile $taskParserMSI $taskMSIRoot); missingProcess=(Get-ReleaseFile (Join-Path $taskMSIRoot 'missing-process.json') $taskMSIRoot); propertyProcess=(Get-ReleaseFile (Join-Path $taskMSIRoot 'property-process.json') $taskMSIRoot) })
+        } finally { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($taskInstaller) }
+    }
+    Write-Output "Local-release parser/process controls passed: $script:ReleaseControlCount. Native GPU/product-install/sign/upload were not executed."
 } finally {
     foreach ($taskName in @('plan.json', 'console-child.ps1', 'descendant.pid')) { $taskFile = Join-Path $taskRoot $taskName; if (Test-Path -LiteralPath $taskFile) { Remove-Item -LiteralPath $taskFile -Force } }
     if (Test-Path -LiteralPath (Join-Path $taskRoot 'work')) { Remove-ReleasePrivateDirectory (Join-Path $taskRoot 'work') $taskRoot }

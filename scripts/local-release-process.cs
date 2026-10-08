@@ -63,6 +63,44 @@ public static class GocodeReleaseProcess {
         }
         return result.Append('\\', 2 * slashes).Append('"').ToString();
     }
+    // Windows Installer parses its raw command line rather than the generic
+    // Windows argv grammar. Keep switches/property names bare, quote values,
+    // and double literal quotes as documented by Microsoft MSI command options.
+    public static string SerializeMSI(string[] arguments) {
+        if (arguments == null || arguments.Length < 1 || arguments.Length > 64) throw new ArgumentException("invalid bounded MSI arguments");
+        var encoded = new List<string>(); string operand = null;
+        bool action = false, quiet = false, noRestart = false, log = false;
+        var properties = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string value in arguments) {
+            if (value == null || value.Length > 4096 || value.IndexOfAny(new[]{'\0','\r','\n'}) >= 0) throw new ArgumentException("invalid MSI token");
+            if (operand != null) {
+                Guid product;
+                bool productCode = operand != "log" && value.Length == 38 && value[0] == '{' && value[37] == '}' && Guid.TryParse(value, out product);
+                if (!productCode && (value.Length == 0 || !Path.IsPathRooted(value) || value.IndexOf('"') >= 0 || !string.Equals(Path.GetFullPath(value), value, StringComparison.OrdinalIgnoreCase))) throw new ArgumentException("MSI operand must be a canonical absolute path or product GUID");
+                encoded.Add("\"" + value + "\""); operand = null; continue;
+            }
+            if (value == "/i" || value == "/x") {
+                if (action) throw new ArgumentException("only one MSI action allowed");
+                action = true; operand = "product"; encoded.Add(value); continue;
+            }
+            if (value == "/qn") { if (quiet) throw new ArgumentException("duplicate MSI quiet switch"); quiet = true; encoded.Add(value); continue; }
+            if (value == "/norestart") { if (noRestart) throw new ArgumentException("duplicate MSI restart switch"); noRestart = true; encoded.Add(value); continue; }
+            if (value == "/L*v") { if (log) throw new ArgumentException("duplicate MSI log switch"); log = true; operand = "log"; encoded.Add(value); continue; }
+            int equals = value.IndexOf('=');
+            if (equals < 1 || equals > 72) throw new ArgumentException("unsupported MSI switch or property");
+            string name = value.Substring(0, equals);
+            for (int i = 0; i < name.Length; i++) {
+                char ch = name[i]; bool valid = ch >= 'A' && ch <= 'Z' || ch == '_' || i > 0 && (ch >= '0' && ch <= '9' || ch == '.');
+                if (!valid) throw new ArgumentException("MSI public property name must be an ASCII uppercase identifier");
+            }
+            if (!properties.Add(name)) throw new ArgumentException("duplicate MSI public property");
+            encoded.Add(name + "=\"" + value.Substring(equals + 1).Replace("\"", "\"\"") + "\"");
+        }
+        if (operand != null || !action || !quiet || !noRestart || !log) throw new ArgumentException("MSI requires one action, quiet/no-restart and an absolute verbose log");
+        string line = string.Join(" ", encoded);
+        if (line.Length > 32766) throw new ArgumentException("MSI command exceeds Windows bound");
+        return line;
+    }
     static int CompareNames(string first, string second) {
         int compared = CompareStringOrdinal(first, first.Length, second, second.Length, true);
         if (compared == 0) throw new Win32Exception(Marshal.GetLastWin32Error(), "compare environment names");
@@ -103,6 +141,15 @@ public static class GocodeReleaseProcess {
         return capture;
     }
     public static Result Run(string image, string[] arguments, string directory, IDictionary<string,string> environment, int timeoutMS) {
+        return RunCore(image, arguments, directory, environment, timeoutMS, false);
+    }
+    public static Result RunMSI(string[] arguments, string directory, IDictionary<string,string> environment, int timeoutMS) {
+        if (!Environment.Is64BitOperatingSystem || !Environment.Is64BitProcess || timeoutMS < 1 || timeoutMS > 120000) throw new ArgumentException("MSI requires native x64 and at most120seconds");
+        SerializeMSI(arguments); // Reject invalid syntax before allocating/spawning.
+        string image = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "msiexec.exe");
+        return RunCore(image, arguments, directory, environment, timeoutMS, true);
+    }
+    static Result RunCore(string image, string[] arguments, string directory, IDictionary<string,string> environment, int timeoutMS, bool msi) {
         if (!Path.IsPathRooted(image) || !File.Exists(image) || !Directory.Exists(directory) || arguments == null || arguments.Length > 64 || timeoutMS < 1 || timeoutMS > 1200000)
             throw new ArgumentException("invalid bounded owned process request");
         var result = new Result(); var elapsed = Stopwatch.StartNew();
@@ -124,7 +171,8 @@ public static class GocodeReleaseProcess {
             Check(UpdateProcThreadAttribute(attrs,0,new IntPtr(0x20002),handles,new UIntPtr((uint)(3*IntPtr.Size)),IntPtr.Zero,IntPtr.Zero),"restrict inherited handles");
             block=Marshal.StringToHGlobalUni(EnvironmentBlock(environment));
             var startup=new SIEX(); startup.Startup.Size=(uint)Marshal.SizeOf(typeof(SIEX)); startup.Startup.Flags=0x100; startup.Startup.Input=inputRead;startup.Startup.Output=outWrite;startup.Startup.Error=errWrite;startup.Attributes=attrs;
-            string command=Quote(image)+" "+string.Join(" ",arguments.Select(Quote));
+            if(msi){startup.Startup.Flags|=1;startup.Startup.Show=0;}
+            string command=Quote(image)+" "+(msi?SerializeMSI(arguments):string.Join(" ",arguments.Select(Quote)));
             if(command.Length>32766) throw new ArgumentException("command exceeds Windows bound");
             PI info; Check(CreateProcessW(image,new StringBuilder(command),IntPtr.Zero,IntPtr.Zero,true,0x08000000|0x80000|0x400|4,block,directory,ref startup,out info),"create suspended owned process");
             process=info.Process;thread=info.Thread;result.PID=checked((int)info.PID);

@@ -90,11 +90,9 @@ GUIDs remain unregistered. Prior failed COM/parser preparations are preserved.
 This is a file-only tooling proof, not a final v0.24.0 installer transaction.
 The final-source freeze map and validation record bind the exact script bytes.
 
-Root still needs to execute the final clean-source `Prepare`, then provide the
-existing key and genuine prior artifacts for `Validate`. Final source-suite,
-production ZIP/MSI, signed envelope, all packaged native gates, real installer
-transactions, rollback and remote publication remain pending until their actual
-source/byte-bound receipts exist. Free distribution tools are used throughout.
+The existing signing key is still needed for production `Validate`. Free
+distribution tools are used throughout. A pending/prepared candidate or separate
+unsigned native/tooling proof does not satisfy the complete-release verifier.
 
 The first actual clean-source Prepare at
 `249b057d60f66d715fba49ec863285e1254147cd` completes all five ordered source checks.
@@ -111,3 +109,80 @@ object[] arguments; no additional scalar/null change was needed. A new clean
 source commit and fresh Prepare must rerun the exact five checks; the successful
 249 receipts cannot be relabeled for the corrected packager source. The ignored
 candidate249 MSI runner remains bound to249 and is not revised or executed here.
+
+## MSI raw-command correction (2026-10-08)
+
+Clean source f4a795d4a4cc09ce67f72a93364f15363c077d48 subsequently passes all
+five Prepare source checks and produces genuine MSI/ZIP bytes. Its unsigned
+original ZIP also passes all35 packaged native gates in111.793s. Those receipts
+remain bound to f4a; they are not relabeled for the corrected publication helper.
+The exact-source record is [local candidate f4a](local-candidate-f4a.md).
+
+The first real prior-MSI install reaches the original120s deadline without a
+verbose log. A same-owner, same-SW_HIDE missing-package negative control isolates
+the parser: generic all-token quoting waits5026ms and exits2 after timeout;
+MSI raw syntax returns1619 in83ms with a5806-byte real Installer log. The retained
+result is `.cache/native-combined24/msi-quote-control-r1/execution/results.json`,
+SHA256 ee49cbc883d2cc07a211489e32deff904681f6c595d4414dd9f9eafc564d8ef6.
+A missing-package1619/log proves entry into the engine, not property-value
+interpretation or an installation transaction.
+
+`GocodeReleaseProcess.RunMSI` now fixes the executable to the original system
+x64 msiexec and serializes only the explicit `/i` or `/x`, `/qn`, `/norestart`
+and `/L*v` grammar. Switches remain bare; canonical absolute path operands are
+quoted; unique ASCII public-property identifiers use `NAME="value"`, doubling
+literal quotes. Empty values remain `NAME=""`. Null/NUL/CR/LF tokens, ambiguous
+or relative paths, duplicate switches/properties, unsupported options and
+oversized inputs reject before spawn. This follows Microsoft's
+[MSI command-line syntax](https://learn.microsoft.com/en-us/windows/win32/msi/command-line-options),
+[property identifiers](https://learn.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names)
+and [empty property values](https://learn.microsoft.com/en-us/windows/win32/msi/setting-public-property-values-on-the-command-line).
+The generic Quote function and ordinary Go/PowerShell argv serialization remain
+unchanged. Only this MSI path sets STARTF_USESHOWWINDOW/SW_HIDE; suspended
+Job-before-Resume ownership,64 arguments,4MiB per captured stream,120s MSI
+deadline and the original3s tree/root and3s reader joins remain enforced.
+
+The corrected two execution files pass a real f4a/prior23 lifecycle preflight:
+10984ms, outer PID183364, root/tree closure. The validation directory actually
+contains spaces and Unicode; MST/INSTALLDIR paths and logs are used by Installer.
+Prior installation takes2421ms/exit0; corrupted upgrade236ms/1603 retains prior;
+upgrade2625ms/0 installs candidate; rejected downgrade115ms/1603 retains candidate;
+uninstall2145ms/0 removes the isolated product. Native installed launch, original
+registrations, PATH, workspace and all four original package hashes pass; private
+TMP/config are removed. The result is
+`.cache/native-combined24/msi-parser-fixed-preflight-r2/execution/current.json`,
+SHA256 906c8eaff6ee96da1ebdc1c6c433d57547095613820835909bce0a716df66e77.
+Execution-source hashes are unchanged before/after: C#
+33c01cd658c2db4b3f82396a1922c30bb31d17e7cb5c42a105ac39a223807471,
+candidate MSI script bd3ca3fc72b422807e7765ab7f1c09d7494811b0971061e2fdd1aa4e3046bbc7,
+functions424c3a1c0f9ce8764a5ae9091d156d566e1d95776f75178ecf7784dc5ca73706.
+The original quoted failure and the separate r1 pre-execution harness failure
+remain preserved. This preflight uses the uncommitted corrected harness with
+original f4a packages; it is not a final-source complete release.
+
+The test script adds pure bounded grammar controls and a separate root-only
+`-MSIControls` opt-in. Pure controls include Unicode/space paths, literal quote
+doubling, empty/equal-containing values, rejected private/malformed identifiers,
+token/path/length/deadline rejection and the original generic argv convention.
+The actual opt-in preserves missing-package process/log evidence and a fresh
+minimal Type19 parser fixture. Its sequence1 error formats the real property
+before any transaction/file/registry action, requiring exact embedded quote,
+equals, Unicode and space values, intentional1603 and unchanged unregistered
+product state. Root executes these actual controls in final-r7: all102 parser/
+process/MSI controls pass. Missing1619 writes5790B/log SHA256
+77efabb9428848fff126343eb2d9434b9fb31ec4df71a06918c6882573f51e3d;
+the intentional Type19 abort1603 writes41468B/log SHA256
+93faa7cf7f5f792fbe4f7f843c05186518ea9793c6fb9089d4f9822f80230f4a.
+The actual formatted property is `Embedded "Quotes" = White Space 世界`;
+product state stays-1 before/after and both owned process trees close. This
+proves actual Installer property parsing, not an installed product transaction.
+A fresh owner-validated `-MSIEvidenceDirectory` preserves original logs/results;
+an existing nonempty directory rejects rather than overwriting older proof.
+
+AST, native C# compilation and three pure90-control repeats pass. Root also
+passes95 ordinary parser/process controls three times in7.765s; log SHA256
+d34aa0500cc8289697218d962d433c8fe8ac5245d54abaabcf34f33703efa382.
+Workflow
+actionlint/ShellCheck and pinned PSScriptAnalyzer Warning/Error checks pass.
+New-source whole regression, trusted signing, final complete-release verification,
+tag/upload and user installation remain pending; no Actions are dispatched.

@@ -1,5 +1,27 @@
 # Milestone ledger
 
+## Exact f4a clean-source and unsigned package acceptance (2026-10-08)
+
+Unpublished source f4a795d4a4cc09ce67f72a93364f15363c077d48 now passes
+all five local Prepare source checks against public17, including Windows
+strict-cgo/race/shuffle3 in1036.470s and no-cgo3 in295.196s. Actual final MSI
+and ZIP are produced, and the same ZIP passes all35 original native gates in
+111.793s with exact executable/ZIP binding, real Go/TypeScript reports and owned
+process closure. Private roots are removed and original profiles unchanged.
+Root visually checks File, details and both real language captures.
+
+MSI acceptance separately fails before candidate install: all-token command
+quoting leaves the prior install without a log until the original120s deadline.
+A nonexistent-package same-owner control reproduces that timeout, while raw
+MSI syntax returns actual1619/log in83ms. The narrow publication-helper fix now
+passes genuine original f4a MSI install/rollback/upgrade/downgrade/native/uninstall
+in10.984s, under separately hashed helper sources and a directory with spaces/
+Chinese. New clean-source preparation remains required. These receipts bind f4a,
+not a subsequent corrected
+helper source. No production signature, complete release, child24 tag, source
+push or Actions is claimed. Full hashes/scope/negative controls are in
+[local candidate f4a](local-candidate-f4a.md).
+
 ## Consolidated local Windows release policy (2026-10-08)
 
 User steering retires automatic push/PR Actions and remote release packaging.

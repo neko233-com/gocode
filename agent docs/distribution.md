@@ -46,8 +46,11 @@ The complete receipt is bounded to 512KiB, persisted atomically and skips an
 identical write. Verification recomputes all artifact/log/signature/module/source
 digests and requires actual private-stage/TMP/config absence. The verifier
 cannot make a fabricated complete receipt from a roadmap or placeholder command.
-The PowerShell orchestrator and final real native/MSI/signed-byte proof remain
-pending; CPU unit fixtures use ephemeral test keys solely inside tests, never
+The PowerShell orchestrator is implemented. Source f4a passes all five local
+Prepare checks and35 real unsigned package gates; exact evidence and the actual
+MSI parser failure are in [local candidate f4a](local-candidate-f4a.md). The narrow
+installer-owner correction, final actual MSI transaction and production-signed
+staging/rollback/publication remain pending. Ephemeral fixture keys never replace
 the production publisher identity or installed trust.
 
 MSI evidence must consume and bind both original final MSI and ZIP hashes.
@@ -55,7 +58,17 @@ The existing test-msi synthetic 0.0.1/0.0.2 transaction remains a source behavio
 check, not proof of the final candidate installer bytes. The candidate path
 uses isolated Windows Installer identities/transforms and an owned root while
 preserving the original MSI hash/payload and the user's stable install.
-This real candidate transaction has not yet run.
+The original final candidate transaction has run and fails at prior install
+before candidate installation: its all-token quoting times out120s without an
+MSI log. A same-owner nonexistent-package control proves raw MSI syntax reaches
+the expected1619/log in83ms. Retain the failed source/process/artifact evidence;
+the corrected complete transaction still needs actual validation.
+
+The corrected MSI-specific owner subsequently passes the genuine f4a original
+MSI/ZIP install/failed-upgrade rollback/upgrade/downgrade/native/uninstall in
+10.984s with a space/Chinese validation root, preserving user registration/PATH/
+workspace and all original hashes. Its separately bound helper source remains
+pending commit; final corrected-source production sealing is still required.
 
 Focused CPU validation of the verifier passes strict-cgo/race/shuffle/count3
 (3.033s), no-cgo/count3 (1.892s), both focused vet modes and five real-file
